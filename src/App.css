@@ -1,0 +1,15 @@
+
+.brush-highlight {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding: 4px 12px;
+  margin: 0 -8px;
+  font-weight: bold;
+  
+  /* Use a transparent brush stroke SVG or PNG */
+  background-image: url('https://svgbox.net');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
