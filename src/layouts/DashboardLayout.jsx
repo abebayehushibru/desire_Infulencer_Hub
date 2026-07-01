@@ -3,10 +3,11 @@ import Navbar from "../components/Navbar";
 import { Outlet } from "react-router-dom";
 import Home from "../pages/Home";
 import CreateCampaign from "../pages/CreateCampaign";
+import CampaignDetail from "../pages/campaign/CampaignDetail";
 
 export default function DashboardLayout() {
   return (
-    <div className="flex flex-row bg-[#F7F8FC] min-h-screen">
+    <div className="flex flex-row bg-[#F7F8FC] min-h-screen text-primary">
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
@@ -14,8 +15,9 @@ export default function DashboardLayout() {
 
         <main className=" flex-1   relative">
           <div className="max-h-full w-full absolute  p-4  overflow-auto">
-            <Home/>
+            {/* <Home/> */}
                 {/* <CreateCampaign/> */}
+                <CampaignDetail/>
           </div>
         {/* <CreateCampaign/> */}
         </main>

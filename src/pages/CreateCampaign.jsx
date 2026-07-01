@@ -20,6 +20,7 @@ import RadioGroup from "../components/commen/RadioGroup";
 import DatePicker from "../components/commen/DatePicker";
 import FileUpload from "../components/commen/FileUpload";
 import Textarea from "../components/commen/Textarea";
+import Checkbox from "../components/commen/Checkbox";
 
 const goals = [
   {
@@ -45,7 +46,7 @@ const goals = [
   },
 ];
 
-const steps = ["Type", "Target", "Details", "Tracking", "Review"];
+const steps = ["Type", "Target", "Details", "Tracking", "Target_By", "Review"];
 
 // ─── Review Row Helper ────────────────────────────────────────────────────────
 function ReviewRow({ label, value }) {
@@ -70,13 +71,63 @@ function ReviewSection({ title, children }) {
 export default function CreateCampaign() {
   // ── Form state ──────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
+    type: "",
     title: "",
     video: null,
     description: "",
     start_date: "",
     end_date: "",
+    locations: [],
+    EthiopiaLc: [],
+    platforms: {
+      tiktok: true,
+      facebook: false,
+      instagram: false,
+    }
   });
 
+  const toggleLocation = (location) => {
+    setForm((prev) => {
+      // Check if location already exists
+      const isIncluded = prev.locations?.includes(location);
+
+      if (isIncluded) {
+
+        // Remove it if it exists
+        return {
+          ...prev,
+          locations: prev.locations.filter((item) => item !== location)
+        };
+      } else {
+        // Add it if it doesn't exist (ensuring locations is an array)
+        return {
+          ...prev,
+          locations: [...(prev.locations || []), location]
+        };
+      }
+    });
+  };
+  const ethiopianLocation = (location) => {
+    setForm((prev) => {
+      // Check if location already exists
+      const isIncluded = prev.EthiopiaLc?.includes(location);
+
+      if (isIncluded) {
+
+        // Remove it if it exists
+        return {
+          ...prev,
+          EthiopiaLc: prev.EthiopiaLc.filter((item) => item !== location)
+        };
+      } else {
+        // Add it if it doesn't exist (ensuring locations is an array)
+        return {
+          ...prev,
+          EthiopiaLc: [...(prev.EthiopiaLc || []), location]
+        };
+      }
+    });
+  };
   // ── Tracking state ─────────────────────────────────────────────────────────
   const [tracking, setTracking] = useState({
     tracking_url: "",
@@ -125,7 +176,51 @@ export default function CreateCampaign() {
     const qs = params.toString();
     return qs ? `${base}?${qs}` : base;
   })();
-
+  const locations = [
+    "Ethiopia",
+    "Bahrain",
+    "Brazil",
+    "Canada",
+    "Djibouti",
+    "Egypt",
+    "Europe",
+    "Iran",
+    "Iraq",
+    "Israel",
+    "Jordan",
+    "Kuwait",
+    "Lebanon",
+    "Oman",
+    "Palestine",
+    "Qatar",
+    "Saudi Arabia",
+    "South Africa",
+    "Sudan",
+    "Turkey",
+    "United Arab Emirates (UAE)",
+    "USA",
+    "Yemen",
+    "Others",
+  ];
+  const EthiopiaLc = [
+    "Addis Ababa",
+    "Adama",
+    "Bahir Dar",
+    "Hawassa",
+    "Mekelle",
+    "Dire Dawa",
+    "Jimma",
+    "Harar",
+    "Arba Minch",
+    "Debre Birhan",
+    "Dessie",
+    "Gondar",
+    "Shashemene",
+    "Nekemte",
+    "Jigjiga",
+    "Assosa",
+    "Semera",
+  ]
   return (
     <div className="min-h-full bg-gray-50 flex justify-center text-primary">
       <div className="w-full max-w-full bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -149,7 +244,7 @@ export default function CreateCampaign() {
             const completed = stepNumber < currentStep;
 
             return (
-              <div key={step} className="flex-1 flex items-center">
+              <div key={step} className="flex-1 flex items-center cursor-pointer" onClick={() => setCurrentStep(stepNumber)}>
                 <div className="flex flex-col items-center relative">
                   <div
                     className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-semibold transition
@@ -163,7 +258,7 @@ export default function CreateCampaign() {
                     {stepNumber}
                   </div>
                   <span
-                    className={`mt-2 text-sm absolute top-full font-medium ${active ? "text-violet-600" : "text-gray-500"
+                    className={`mt-2 w-full flex-1 text-sm absolute top-full font-medium ${active ? "text-violet-600" : "text-gray-500"
                       }`}
                   >
                     {step}
@@ -200,10 +295,14 @@ export default function CreateCampaign() {
                 const Icon = goal.icon;
                 const selected = selectedGoal === goal.id;
 
+
                 return (
                   <button
                     key={goal.id}
-                    onClick={() => setSelectedGoal(goal.id)}
+                    onClick={() => {
+                      setForm(prev => ({ ...prev, type: goal.title }))
+                      setSelectedGoal(goal.id)
+                    }}
                     className={`text-left rounded-3xl border p-4 transition-all duration-200 hover:shadow-lg
                       ${selected
                         ? "border-primary bg-gradient-to-br from-primary via-secondary to-primary"
@@ -219,7 +318,7 @@ export default function CreateCampaign() {
                     >
                       <Icon size={36} />
                     </div>
-                    <h3 className={ `${selected ?"text-white":""} text-xl font-semibold text-center mt-8`}>
+                    <h3 className={`${selected ? "text-white" : ""} text-xl font-semibold text-center mt-8`}>
                       {goal.title}
                     </h3>
                     <p className="text-gray-500 text-center text-sm mt-4 leading-7">
@@ -238,89 +337,140 @@ export default function CreateCampaign() {
         {/* ══════════════════════════════════════════════════════════════════════
             STEP 2 — TARGET
         ══════════════════════════════════════════════════════════════════════ */}
-        {currentStep === 2 && (
-          <div className="max-w-4xl">
-            <h2 className="text-xl font-bold">Who do you want to target?</h2>
+        {currentStep === 2 && <div className="bg-white rounded-3xl border border-gray-200 p-8">
+
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              Target Audience
+            </h2>
+
             <p className="text-gray-500 mt-2">
-              Choose whether this campaign will be promoted by an influencer or
-              a community.
+              Choose where your campaign will run and which social media
+              platforms creators should use.
+            </p>
+          </div>
+
+          {/* Locations */}
+
+          <div>
+
+            <h3 className="font-semibold text-lg mb-4">
+              Target Locations
+            </h3>
+
+            <p className="text-gray-500 mb-6">
+              Select one or more countries.
             </p>
 
-            <div className="grid md:grid-cols-2 gap-6 mt-6">
-              <label
-                className={`cursor-pointer rounded-2xl border p-6 transition
-                  ${targetType === "influencer"
-                    ? "border-violet-600 bg-violet-50"
-                    : "border-gray-200 hover:border-violet-300"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  className="hidden"
-                  value="influencer"
-                  checked={targetType === "influencer"}
-                  onChange={(e) => {
-                    setTarget("");
-                    setTargetType(e.target.value);
-                  }}
+            {/* checkbox grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {locations.map((location) => (
+                <Checkbox
+                  key={location}
+                  label={location}
+                  checked={form?.locations?.includes(location)}
+                  onChange={() => toggleLocation(location)}
                 />
-                <UserRound size={40} className="text-violet-600" />
-                <h3 className="text-xl font-semibold mt-4">Influencer</h3>
-                <p className="text-gray-500 mt-2">
-                  Select one influencer to promote your campaign.
-                </p>
-              </label>
-
-              <label
-                className={`cursor-pointer rounded-2xl border p-6 transition
-                  ${targetType === "community"
-                    ? "border-violet-600 bg-violet-50"
-                    : "border-gray-200 hover:border-violet-300"
-                  }`}
-              >
-                <input
-                  type="radio"
-                  className="hidden"
-                  value="community"
-                  checked={targetType === "community"}
-                  onChange={(e) => {
-                    setTarget("");
-                    setTargetType(e.target.value);
-                  }}
-                />
-                <Users size={40} className="text-violet-600" />
-                <h3 className="text-xl font-semibold mt-4">Community</h3>
-                <p className="text-gray-500 mt-2">
-                  Select a Telegram, Facebook or other community.
-                </p>
-              </label>
+              ))}
             </div>
 
-            <div className="mt-10">
-              {targetType === "influencer" ? (
-                <Select
-                  label="Select Influencer"
-                  value={target}
-                  onChange={(e) => setTarget(e.target.value)}
-                  api="/api/influencers"
-                  labelKey="name"
-                  valueKey="id"
-                  placeholder="Choose an influencer"
-                />
-              ) : (
-                <Select
-                  label="Select Community"
-                  value={target}
-                  onChange={(e) => setTarget(e.target.value)}
-                  api="/api/communities"
-                  labelKey="name"
-                  valueKey="id"
-                  placeholder="Choose a community"
-                />
-              )}
+            <div className="my-8 border border-gray-200 p-4">
+              <h3 className="mb-4 text-lg font-semibold ">Ethiopian Cities</h3>
+
+              {form?.locations?.includes("Ethiopia") && <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {EthiopiaLc?.map((location) => (
+                  <Checkbox
+                    key={location}
+                    label={location}
+                    checked={form.EthiopiaLc?.includes(location)}
+                    onChange={() => ethiopianLocation(location)}
+                  />
+                ))}
+              </div>}
             </div>
+
           </div>
-        )}
+
+          {/* Platforms */}
+
+          <div className="mt-10">
+
+            <h3 className="font-semibold text-lg mb-4">
+              Platforms
+            </h3>
+
+            <p className="text-gray-500 mb-6">
+              TikTok is required for every campaign.
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+
+              {/* TikTok */}
+
+              <div className="rounded-2xl border-2 border-primary bg-primary/5 p-5">
+
+                <Checkbox
+                  label="TikTok"
+                  checked={true}
+                  disabled
+                />
+
+                <p className="text-sm text-gray-500 mt-3">
+                  Required platform
+                </p>
+
+              </div>
+
+              {/* Facebook */}
+
+              <div className="rounded-2xl border border-gray-200 p-5">
+
+                <Checkbox
+                  label="Facebook"
+                  name="facebook"
+                  checked={form.platforms.facebook}
+                  onChange={(e) => {
+                    const { name, checked } = e.target; // Correct destructuring 
+                    setForm((prev) => ({
+                      ...prev,
+                      platforms: {
+                        ...(prev?.platforms || {}), // Keeps other platforms intact
+                        [name]: checked,
+                      },
+                    }));
+                  }}
+                />
+
+              </div>
+
+              {/* Instagram */}
+
+              <div className="rounded-2xl border border-gray-200 p-5">
+
+                <Checkbox
+                  label="Instagram"
+                  name="instagram"
+                  checked={form.platforms.instagram}
+                  onChange={(e) => {
+                    const { name, checked } = e.target; // Correct destructuring 
+                    setForm((prev) => ({
+                      ...prev,
+                      platforms: {
+                        ...(prev?.platforms || {}), // Keeps other platforms intact
+                        [name]: checked,
+                      },
+                    }));
+                  }}
+
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>}
+
 
         {/* ══════════════════════════════════════════════════════════════════════
             STEP 3 — DETAILS
@@ -367,18 +517,19 @@ export default function CreateCampaign() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
 
               {/* Campaign Configuration */}
-              <div className="bg-white rounded-2xl border  border-gray-200 p-4">
-                <h3 className="font-semibold text-lg mb-6">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6">
+
+                <h3 className="text-lg font-semibold mb-6">
                   Campaign Configuration
                 </h3>
 
-
+                {/* Run Type */}
 
                 <RadioGroup
                   label="Run Type"
                   name="run_type"
-                  value={runType}
-                  onChange={(e) => setRunType(e.target.value)}
+                  value={form.run_type}
+                  onChange={handleChange}
                   options={[
                     { value: "manual", label: "Manual" },
                     { value: "automatic", label: "Automatic" },
@@ -386,57 +537,128 @@ export default function CreateCampaign() {
                   ]}
                 />
 
-                <div className="mt-8">
-                  <RadioGroup
-                    label="Fund Type"
-                    name="fund_type"
-                    value={fundType}
-                    onChange={(e) => setFundType(e.target.value)}
-                    options={[
-                      { value: "commission", label: "Commission Based" },
-                      { value: "fixed", label: "Fixed Budget" },
-                    ]}
-                  />
-                </div>
+                {/* SALES */}
 
-                {fundType === "commission" && (
-                  <div className="grid md:grid-cols-2 gap-6 mt-8">
+                {form.type.toLowerCase() === "sales" && (
+                  <>
+
+                    <div className="mt-8">
+
+                      <RadioGroup
+                        label="Payment Type"
+                        name="fund_type"
+                        value={form.fund_type}
+                        onChange={handleChange}
+                        options={[
+                          {
+                            value: "conversion",
+                            label: "Per Conversion",
+                          },
+                          {
+                            value: "fixed",
+                            label: "Fixed Amount",
+                          },
+                        ]}
+                      />
+
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-5 mt-6">
+
+                      {form.fund_type === "conversion" && (
+                        <Input
+                          label="Conversion Rate (%)"
+                          name="conversion_rate"
+                          type="number"
+                          value={form.conversion_rate}
+                          onChange={handleChange}
+                        />
+                      )}
+
+                      <Input
+                        label={
+                          form.fund_type === "conversion"
+                            ? "Amount Per Conversion"
+                            : "Fixed Amount"
+                        }
+                        name="amount"
+                        type="number"
+                        value={form.amount}
+                        onChange={handleChange}
+                      />
+
+                      <Input
+                        label="Total Budget"
+                        name="total_budget"
+                        type="number"
+                        value={form.total_budget}
+                        onChange={handleChange}
+                      />
+
+                    </div>
+
+                  </>
+                )}
+
+                {/* AWARENESS */}
+
+                {form.type.toLowerCase() === "awareness" && (
+                  <div className="grid md:grid-cols-2 gap-5 mt-8">
+
                     <Input
-                      label="Per Conversion Amount"
+                      label="Target Views"
+                      name="total_views"
                       type="number"
-                      name="per_conversion"
-                      value={perConversion}
-                      min={100}
-                      step={50}
-                      onChange={(e) => setPerConversion(e.target.value)}
+                      value={form.total_views}
+                      onChange={handleChange}
                     />
+
                     <Input
                       label="Total Budget"
-                      type="number"
                       name="total_budget"
-                      value={totalBudget}
-                      min={10000}
-                      step={5000}
-                      onChange={(e) => setTotalBudget(e.target.value)}
+                      type="number"
+                      value={form.total_budget}
+                      onChange={handleChange}
                     />
+
                   </div>
                 )}
 
-                {fundType === "fixed" && (
-                  <div className="mt-8">
+                {/* GROWTH */}
+
+                {form.campaign_type === "growth" && (
+                  <div className="mt-8 space-y-5">
+
                     <Input
-                      label="Total Budget"
-                      type="number"
-                      name="total_budget"
-                      value={totalBudget}
-                      min={10000}
-                      step={5000}
-                      onChange={(e) => setTotalBudget(e.target.value)}
+                      label="Platform"
+                      value="TikTok"
+                      disabled
                     />
+
+                    <div className="grid md:grid-cols-2 gap-5">
+
+                      <Input
+                        label="Followers to Gain"
+                        name="followers"
+                        type="number"
+                        value={form.followers}
+                        onChange={handleChange}
+                      />
+
+                      <Input
+                        label="Price"
+                        name="follower_price"
+                        type="number"
+                        value={form.follower_price}
+                        onChange={handleChange}
+                      />
+
+                    </div>
+
                   </div>
                 )}
+
               </div>
-
               {/* Campaign Duration */}
               <div className="bg-white rounded-2xl border border-gray-200  p-4">
                 <h3 className="font-semibold text-lg mb-6">Campaign Duration</h3>
@@ -492,9 +714,99 @@ export default function CreateCampaign() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
-            STEP 5 — REVIEW
+            STEP 5 — Choose community or infulecer
         ══════════════════════════════════════════════════════════════════════ */}
+
         {currentStep === 5 && (
+          <div className="max-w-4xl">
+            <h2 className="text-xl font-bold">With whom do you want to target?</h2>
+            <p className="text-gray-500 mt-2">
+              Choose whether this campaign will be promoted by an influencer or
+              a community.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6 mt-6">
+              <label
+                className={`cursor-pointer rounded-2xl border p-6 transition
+                  ${targetType === "influencer"
+                    ? "border-violet-600 bg-violet-50"
+                    : "border-gray-200 hover:border-violet-300"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  className="hidden"
+                  value="influencer"
+                  checked={targetType === "influencer"}
+                  onChange={(e) => {
+                    setTarget("");
+                    setTargetType(e.target.value);
+                  }}
+                />
+                <UserRound size={40} className="text-violet-600" />
+                <h3 className="text-xl font-semibold mt-4">Influencer</h3>
+                <p className="text-gray-500 mt-2">
+                  Select one influencer to promote your campaign.
+                </p>
+              </label>
+
+              <label
+                className={`cursor-pointer rounded-2xl border p-6 transition
+                  ${targetType === "community"
+                    ? "border-violet-600 bg-violet-50"
+                    : "border-gray-200 hover:border-violet-300"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  className="hidden"
+                  value="community"
+                  checked={targetType === "community"}
+                  onChange={(e) => {
+                    setTarget("");
+                    setTargetType(e.target.value);
+                  }}
+                />
+                <Users size={40} className="text-violet-600" />
+                <h3 className="text-xl font-semibold mt-4">Community</h3>
+                <p className="text-gray-500 mt-2">
+                  Select one community to promote your campaign.
+                </p>
+              </label>
+            </div>
+
+            <div className="mt-10">
+              {targetType === "influencer" ? (
+                <Select
+                  label="Select Influencer"
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  api="/api/influencers"
+                  labelKey="name"
+                  valueKey="id"
+                  placeholder="Choose an influencer"
+                />
+              ) : (
+                <Select
+                  label="Select Community"
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  api="/api/communities"
+                  labelKey="name"
+                  valueKey="id"
+                  placeholder="Choose a community"
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            STEP 6 — REVIEW
+        ══════════════════════════════════════════════════════════════════════ */}
+
+
+        {currentStep === 6 && (
           <div className="space-y-4">
             <div className="mb-2">
               <h2 className="text-xl font-bold text-primary">
@@ -552,9 +864,9 @@ export default function CreateCampaign() {
               </ReviewSection>
 
               <ReviewSection title="Tracking">
-              
+
                 <ReviewRow label="Conversion Event" value={tracking.conversion_event} />
-              
+
               </ReviewSection>
             </div>
 
