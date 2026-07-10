@@ -51,7 +51,7 @@ export default function Home() {
             key: "campaign",
             label: "Campaign",
 
-            render: (value,row) => (
+            render: (value, row) => (
                 <div className="flex flex-col">
                     <span className=" py-1 rounded-full text-primary font-medium text-sm">
                         {value}
@@ -96,16 +96,16 @@ export default function Home() {
         {
             key: "conversion",
             label: "Conversions",
-             render: (value) => (
+            render: (value) => (
                 <span className=" text-center block w-full  py-1 rounded-full  text-primary text-lg font-medium">
                     {value}
                 </span>
             ),
         },
-         {
+        {
             key: "spend",
             label: "Spends",
-             render: (value) => (
+            render: (value) => (
                 <span className=" py-1 rounded-full  text-primary text-lg font-medium">
                     {value} <span className=" text-sm uppercase text-gray-400">Etb</span>
                 </span>
@@ -135,7 +135,7 @@ export default function Home() {
             target: "Students",
             status: "Active",
             conversion: 320,
-            spend:"30,000",
+            spend: "30,000",
         },
         {
             campaign: "Addis Tech Event",
@@ -143,7 +143,7 @@ export default function Home() {
             target: "Developers",
             status: "Draft",
             conversion: 120,
-            spend:"10,000",
+            spend: "10,000",
         },
         {
             campaign: "Summer Promotion",
@@ -151,7 +151,7 @@ export default function Home() {
             target: "Parents",
             status: "Completed",
             conversion: 540,
-            spend:"15,000",
+            spend: "15,000",
         },
     ];
 
@@ -173,7 +173,7 @@ export default function Home() {
 
             {/* Stats */}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2  xl:grid-cols-4 gap-4">
 
                 <StatsCard
                     title="Active Campiagns"
@@ -214,19 +214,22 @@ export default function Home() {
 
                 {/* Recent Students */}
 
-                <div className="xl:col-span-2 bg-white rounded-2xl border border-gray-200 mt-4 shadow-sm p-6">
+                <div className="xl:col-span-2 bg-white rounded-lg border border-gray-200 mt-4 shadow-sm p-6">
                     <div className="flex items-start justify-between mb-4">
-                        <h2 className="font-semibold text-primary text-lg mb-5">
+                        <h2 className="font-semibold text-primary text-lg mb-0">
                             Recent Campaigns
                         </h2>
-                        <Button
-                            className="rounded-lg"
-                            type=""
-                            leftIcon={<Plus size={20} />}
+                        <div className="hidden md:flex">
+                            <Button
+                                className="rounded-lg "
+                                type=""
+                                leftIcon={<Plus size={20} />}
 
-                        >
-                            Create Campiagn
-                        </Button>
+                            >
+                                Create Campiagn
+                            </Button>
+
+                        </div>
 
                     </div>
 

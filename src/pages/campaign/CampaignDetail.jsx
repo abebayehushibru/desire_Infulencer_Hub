@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ChevronRight,
     MoreVertical,
@@ -18,6 +18,7 @@ import Overview from "./Overview";
 import Performance from "./Performance";
 import Conversions from "./Conversions";
 import Earnings from "./Earnings";
+import { Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 const tabs = [
     {
@@ -26,7 +27,7 @@ const tabs = [
         icon: <PlayCircle size={18} />,
     },
     {
-        id: "content",
+        id: "contents",
         label: "Content",
         icon: <PlayCircle size={18} />,
     },
@@ -53,31 +54,44 @@ const tabs = [
 ];
 
 export default function CampaignDetail() {
-    const [activeTab, setActiveTab] = useState("chat");
+    const loc = useLocation()
 
-    const renderTab = () => {
-        switch (activeTab) {
+
+    const [activeTab, setActiveTab] = useState("overview");
+
+
+    const navigate = useNavigate();
+    const handleNavigate = (tab) => {
+        let current = ""
+        switch (tab) {
             case "overview":
-                return <Overview />;
-
-            case "content":
-                return <Contents />;
+                current = "/overview";
+                break;
+            case "contents":
+                current = "/contents";
+                break;
 
             case "chat":
-                return <Chat />;
+                current = "/chat";
+                break;
 
             case "performance":
-                return <Performance />;
+                current = "/performance";
+                break;
 
             case "conversions":
-                return <Conversions />;
+                current = "/conversions";
+                break;
 
             case "earnings":
-                return <Earnings />;
+                current = "/earnings";
+                break;
 
             default:
-                return <Overview />;
+                current = "/overview";
         }
+        setActiveTab(tab);
+        navigate(`/campaigns/123${current}`);
     };
 
     return (
@@ -91,7 +105,7 @@ export default function CampaignDetail() {
                 <ChevronRight size={16} />
 
                 <span className="text-gray-900 font-medium">
-                    Online English Course
+                    Online English Course 
                 </span>
 
             </div>
@@ -115,7 +129,7 @@ export default function CampaignDetail() {
                             </span>
 
                         </div>
-                        <div className="flex items-center justify-between w-full ">
+                        <div className="hidden md:flex items-center justify-between w-full ">
                             <div className="flex gap-4 text-sm ">
                                 <p className="text-primary  bg-primary/10 rounded-full px-4 py-1">
                                     Sales Campaign
@@ -142,7 +156,7 @@ export default function CampaignDetail() {
 
                     </div>
 
-                    
+
 
                 </div>
 
@@ -158,10 +172,9 @@ export default function CampaignDetail() {
 
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-2 px-5 py-4 border-b-2 whitespace-nowrap transition
-
-              ${activeTab === tab.id
+                            onClick={() => handleNavigate(tab.id)}
+                            className={`flex items-center cursor-pointer gap-2 px-5 py-4 border-b-2 whitespace-nowrap transition
+${activeTab === tab.id
                                     ? "border-primary text-primary font-semibold"
                                     : "border-transparent text-gray-500 hover:text-primary"
                                 }
@@ -184,8 +197,7 @@ export default function CampaignDetail() {
             {/* Page */}
 
             <div>
-
-                {renderTab()}
+                <Outlet />
 
             </div>
 

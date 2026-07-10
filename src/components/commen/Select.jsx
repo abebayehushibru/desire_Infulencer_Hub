@@ -125,15 +125,14 @@ const Select = ({
           <option value="">
             {loading ? "Loading..." : placeholder}
           </option>
-{JSON.stringify(options)}
-          {/* {options?.map((item) => (
+          {options?.map((item) => (
             <option
               key={item[valueKey]}
               value={item[valueKey]}
             >
               {item[labelKey]}
             </option>
-          ))} */}
+          ))}
         </select>
 
         <div className="absolute right-4 top-1/2 -translate-y-1/2">

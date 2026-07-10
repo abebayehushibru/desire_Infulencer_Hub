@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import logo from "../assets/logo1.png"
+import { Link } from "react-router-dom";
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard },
   { name: "Campaigns", icon: Megaphone },
@@ -53,7 +54,8 @@ export default function Sidebar() {
 
             return (
               <li key={index}>
-                <button
+                <Link
+                  to={item?.name?.toLowerCase()}
                   className={`w-full flex items-center gap-3 px-4 font-300 py-3 rounded-xl transition
                   ${index === 0
                       ? "bg-primary/10 text-primary"
@@ -62,7 +64,7 @@ export default function Sidebar() {
                 >
                   <Icon size={18} />
                   <span>{item.name}</span>
-                </button>
+                </Link>
               </li>
             );
           })}

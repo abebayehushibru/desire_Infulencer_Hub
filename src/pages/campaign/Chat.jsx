@@ -77,8 +77,8 @@ function CopyField({ label, value }) {
 
 function CampaignInfoCard() {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4 h-full">
-        <h3 className="font-semibold text-xl text-gray-900 ">Campaign Info</h3>
+    <div className="bg-white hidden md:block rounded-lg border border-gray-200 p-4 space-y-4 h-full">
+      <h3 className="font-semibold text-xl text-gray-900 ">Campaign Info</h3>
 
       <div>
         <p className="text-gray-500 text-sm">Business</p>
@@ -132,7 +132,7 @@ function CommunityChatCard() {
   const [draft, setDraft] = useState("");
 
   return (
-    <div className="bg-white rounded-lg col-span-2 border border-gray-200 flex flex-col h-full">
+    <div className="bg-white min-h-full  h-full    rounded-lg col-span-2 border border-gray-200 flex flex-col h-full">
       <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
         <h3 className="font-semibold text-gray-900">Community Chat</h3>
         <span className="flex items-center gap-1.5 bg-purple-50 text-primary text-xs font-medium px-3 py-1.5 rounded-full">
@@ -193,7 +193,7 @@ function CommunityChatCard() {
 
 function CampaignContentCard() {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4 h-fit">
+    <div className="bg-white hidden md:block rounded-lg border border-gray-200 p-4 space-y-4 h-fit">
       <h3 className="font-semibold text-xl text-gray-900 ">Campaign Content</h3>
 
       <div className="relative rounded-xl overflow-hidden bg-gray-900 aspect-[5/5]">
@@ -233,10 +233,14 @@ function CampaignContentCard() {
 
 export default function Chat() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-      <CampaignInfoCard />
-      <CommunityChatCard />
-      <CampaignContentCard />
+    <div className="space-y-4 flex-1 flex flex-col min-h-full h-full py-4">
+
+
+      <div className="grid grid-cols-1 min-h-full  relative flex-1 lg:grid-cols-4 gap-4">
+        <CampaignInfoCard />
+        <CommunityChatCard />
+        <CampaignContentCard />
+      </div>
     </div>
   );
 }

@@ -130,7 +130,7 @@ export default function Contents() {
         </div>
 
       </div>
-      <div className=" lg:col-span-4">
+      <div className=" lg:col-span-4 md:block hidden">
         <PlatformVideosList/>
       </div>
 

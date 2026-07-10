@@ -12,19 +12,19 @@ import {
 import { Eye, MousePointerClick, Percent, TrendingUp } from "lucide-react";
 
 const dailyData = [
-  { day: "Jun 24", impressions: 14200, clicks: 680 },
-  { day: "Jun 25", impressions: 15800, clicks: 740 },
-  { day: "Jun 26", impressions: 13900, clicks: 610 },
-  { day: "Jun 27", impressions: 17200, clicks: 820 },
-  { day: "Jun 28", impressions: 19600, clicks: 990 },
-  { day: "Jun 29", impressions: 21100, clicks: 1080 },
-  { day: "Jun 30", impressions: 22400, clicks: 1190 },
+  { day: "Jun 24", impressions: 140, clicks: 60 },
+  { day: "Jun 25", impressions: 150, clicks: 74 },
+  { day: "Jun 26", impressions: 130, clicks: 61 },
+  { day: "Jun 27", impressions: 172, clicks: 82 },
+  { day: "Jun 28", impressions: 196, clicks: 99 },
+  { day: "Jun 29", impressions: 211, clicks: 18 },
+  { day: "Jun 30", impressions: 224, clicks: 19 },
 ];
 
 const sourceData = [
-  { source: "TikTok", clicks: 3920 },
-  { source: "Facebook", clicks: 1340 },
-  { source: "Instagram", clicks: 610 },
+  { source: "TikTok", clicks: 392 },
+  { source: "Facebook", clicks: 134 },
+  { source: "Instagram", clicks: 61 },
 ];
 
 const stats = [
@@ -95,7 +95,7 @@ export default function Performance () {
         <h3 className="font-semibold text-gray-900 mb-4">
           Conversions (last 7 days)
         </h3>
-        <div className="h-72">
+        <div className="h-72 p-3">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={dailyData} margin={{ left: -16, right: 8 }}>
               <defs>
@@ -145,19 +145,19 @@ export default function Performance () {
             <span className="w-2.5 h-2.5 rounded-full bg-primary" /> Impressions
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Clicks
+            <span className="w-2.5 h-2.5 rounded-full bg-tertiary" /> Clicks
           </span>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-900 mb-4">Converstion from platforms</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={sourceData}
               layout="vertical"
-              margin={{ left: 16, right: 16 }}
+              margin={{ left: 16, right: 6 }}
             >
               <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f1f4" />
               <XAxis

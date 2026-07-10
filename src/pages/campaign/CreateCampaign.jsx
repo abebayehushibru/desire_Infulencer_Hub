@@ -13,14 +13,14 @@ import {
   Tag,
   Globe,
 } from "lucide-react";
-import Button from "../components/commen/Button";
-import Select from "../components/commen/Select";
-import Input from "../components/commen/Input";
-import RadioGroup from "../components/commen/RadioGroup";
-import DatePicker from "../components/commen/DatePicker";
-import FileUpload from "../components/commen/FileUpload";
-import Textarea from "../components/commen/Textarea";
-import Checkbox from "../components/commen/Checkbox";
+import Button from "../../components/commen/Button";
+import Select from "../../components/commen/Select";
+import Input from "../../components/commen/Input";
+import RadioGroup from "../../components/commen/RadioGroup";
+import DatePicker from "../../components/commen/DatePicker";
+import FileUpload from "../../components/commen/FileUpload";
+import Textarea from "../../components/commen/Textarea";
+import Checkbox from "../../components/commen/Checkbox";
 
 const goals = [
   {

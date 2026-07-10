@@ -74,7 +74,7 @@ export function ActionMenu({
         menuRef.current &&
         !menuRef.current.contains(event.target)
       ) {
-        setActive?.(null);
+        // setActive?.(null);
       }
     }
 
@@ -112,8 +112,9 @@ export function ActionMenu({
         >
           <button
             onClick={() => {
-              setActive(null);
+              
               onEdit?.();
+              // setActive(null);
             }}
             className="w-full px-4 py-3 text-left hover:bg-gray-100"
           >
@@ -123,7 +124,7 @@ export function ActionMenu({
           {onDelete && (
             <button
               onClick={() => {
-                setActive(null);
+                // setActive(null);
                 onDelete();
               }}
               className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50"

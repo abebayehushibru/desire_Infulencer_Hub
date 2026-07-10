@@ -39,7 +39,7 @@ export default function Overview() {
     },
     {
       title: "Revenue",
-      value: "371,000 ETB",
+      value: "371K",
       icon: DollarSign,
       color: "bg-orange-50 text-orange-600",
     },
@@ -51,7 +51,7 @@ export default function Overview() {
       {/* Statistics */}
       {/* ====================== */}
 
-      <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-4 grid-cols-2 gap-4">
         {stats.map((item) => {
           const Icon = item.icon;
 
@@ -96,7 +96,7 @@ export default function Overview() {
             Campaign Information
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid  md:grid-cols-4 gap-6">
             <Info
               icon={Target}
               title="Campaign Type"
@@ -243,19 +243,19 @@ export default function Overview() {
 function Info({ icon: Icon, title, value }) {
   return (
     <div className="flex gap-4">
-      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
         <Icon
-          size={22}
+          size={20}
           className="text-primary"
         />
       </div>
 
       <div>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 md:text-sm text-xs truncate">
           {title}
         </p>
 
-        <h4 className="font-semibold mt-1">
+        <h4 className="font-semibold mt-1 block">
           {value}
         </h4>
       </div>
@@ -272,7 +272,7 @@ function Summary({ title, value }) {
         {title}
       </p>
 
-      <h3 className="text-3xl font-bold mt-2">
+      <h3 className=" text-lg md:text-3xl font-bold mt-2">
         {value}
       </h3>
     </div>
