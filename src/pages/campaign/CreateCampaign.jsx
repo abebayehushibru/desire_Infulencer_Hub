@@ -13,14 +13,15 @@ import {
   Tag,
   Globe,
 } from "lucide-react";
-import Button from "../../components/commen/Button";
-import Select from "../../components/commen/Select";
-import Input from "../../components/commen/Input";
-import RadioGroup from "../../components/commen/RadioGroup";
-import DatePicker from "../../components/commen/DatePicker";
-import FileUpload from "../../components/commen/FileUpload";
-import Textarea from "../../components/commen/Textarea";
-import Checkbox from "../../components/commen/Checkbox";
+import Button from "../../components/common/Button";
+import Select from "../../components/common/Select";
+import Input from "../../components/common/Input";
+import RadioGroup from "../../components/common/RadioGroup";
+import DatePicker from "../../components/common/DatePicker";
+import FileUpload from "../../components/common/FileUpload";
+import Textarea from "../../components/common/Textarea";
+import Checkbox from "../../components/common/Checkbox";
+import Title from "../../components/common/Titel";
 
 const goals = [
   {
@@ -222,19 +223,13 @@ export default function CreateCampaign() {
     "Semera",
   ]
   return (
-    <div className="min-h-full bg-gray-50 flex justify-center text-primary">
-      <div className="w-full max-w-full bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="min-h-full bg-gray-50 flex flex-col  text-primary">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
 
-        {/* ── Header ─────────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2 mb-6">
-          <button
-            onClick={goBack}
-            className="w-10 text-primary h-10 rounded-full hover:bg-gray-100 flex items-center justify-center"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-xl font-bold text-primary">Create Campaign</h1>
-        </div>
+      <Title titel={"Create Campaign"} disc={"Create a new marketing campaign."} />
+
+      <div className="w-full max-w-full bg-white rounded-xl shadow-sm border border-gray-200 p-4 mt-4">
+
 
         {/* ── Stepper ────────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between mb-14 ">
@@ -258,7 +253,7 @@ export default function CreateCampaign() {
                     {stepNumber}
                   </div>
                   <span
-                    className={`mt-2 w-full flex-1 text-sm absolute top-full font-medium ${active ? "text-violet-600" : "text-gray-500"
+                    className={`mt-2 w-full flex-1 text-xs absolute top-full font-medium ${active ? "text-violet-600" : "text-gray-500"
                       }`}
                   >
                     {step}
@@ -282,10 +277,10 @@ export default function CreateCampaign() {
         {currentStep === 1 && (
           <div>
             <div className="mb-6">
-              <h2 className="text-lg text-primary font-bold">
+              <h2 className="text-sm text-primary font-bold">
                 What is your main goal?
               </h2>
-              <p className="text-gray-500 text-sm mt-1">
+              <p className="text-gray-500 text-xs mt-1">
                 Choose the objective for this campaign.
               </p>
             </div>
@@ -303,28 +298,36 @@ export default function CreateCampaign() {
                       setForm(prev => ({ ...prev, type: goal.title }))
                       setSelectedGoal(goal.id)
                     }}
-                    className={`text-left rounded-3xl border p-4 transition-all duration-200 hover:shadow-lg
+                    className={`text-left rounded-lg border p-4 transition-all duration-200 hover:shadow-lg
                       ${selected
                         ? "border-primary bg-gradient-to-br from-primary via-secondary to-primary"
                         : "border-gray-200 hover:border-violet-300"
                       }`}
                   >
-                    <div
-                      className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center border
+                    <div className="flex gap-4 items-center justify-start ">
+                      <div
+                        className={`w-16 h-16 min-w-16 rounded-full  flex items-center justify-center border
                         ${selected
-                          ? "bg-gradient-to-br from-primary via-secondary to-primary border-white text-white"
-                          : "bg-gray-50 border-gray-200"
-                        }`}
-                    >
-                      <Icon size={36} />
+                            ? "bg-gradient-to-br from-primary via-secondary to-primary border-white text-white"
+                            : "bg-gray-50 border-gray-200"
+                          }`}
+                      >
+                        <Icon size={25} />
+                      </div>
+                      <div>
+
+
+                        <h3 className={`${selected ? "text-white" : ""} text-lg font-semibold text-left `}>
+                          {goal.title}
+
+                        </h3>
+                        <p className="text-gray-400 text-start text-xs leading-4">
+                          {goal.description}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className={`${selected ? "text-white" : ""} text-xl font-semibold text-center mt-8`}>
-                      {goal.title}
-                    </h3>
-                    <p className="text-gray-500 text-center text-sm mt-4 leading-7">
-                      {goal.description}
-                    </p>
-                    <div className="mt-3 text-sm text-gray-400 text-center leading-6">
+
+                    <div className=" text-xs text-gray-400 text-center mt-2 leading-6">
                       {goal.example}
                     </div>
                   </button>
@@ -337,14 +340,14 @@ export default function CreateCampaign() {
         {/* ══════════════════════════════════════════════════════════════════════
             STEP 2 — TARGET
         ══════════════════════════════════════════════════════════════════════ */}
-        {currentStep === 2 && <div className="bg-white rounded-3xl border border-gray-200 p-8">
+        {currentStep === 2 && <div className="bg-white rounded-lg border border-gray-200 p-4">
 
-          <div className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900">
+          <div className="mb-4">
+            <h2 className="text-sm font-semibold text-gray-900">
               Target Audience
             </h2>
 
-            <p className="text-gray-500 mt-2">
+            <p className="text-gray-500 text-xs ">
               Choose where your campaign will run and which social media
               platforms creators should use.
             </p>
@@ -352,18 +355,18 @@ export default function CreateCampaign() {
 
           {/* Locations */}
 
-          <div>
+          <div className="p-4 border border-gray-200 rounded-lg">
 
-            <h3 className="font-semibold text-lg mb-4">
+            <h3 className="font-semibold text-sm mb-1">
               Target Locations
             </h3>
 
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 text-xs  mb-4">
               Select one or more countries.
             </p>
 
             {/* checkbox grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {locations.map((location) => (
                 <Checkbox
                   key={location}
@@ -374,10 +377,10 @@ export default function CreateCampaign() {
               ))}
             </div>
 
-            <div className="my-8 border border-gray-200 p-4">
-              <h3 className="mb-4 text-lg font-semibold ">Ethiopian Cities</h3>
+            {form?.locations?.includes("Ethiopia") && <div className="mt-6 border border-gray-200 p-4 rounded-lg">
+              <h3 className="mb-4 text-sm font-semibold ">Ethiopian Cities</h3>
 
-              {form?.locations?.includes("Ethiopia") && <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {EthiopiaLc?.map((location) => (
                   <Checkbox
                     key={location}
@@ -386,43 +389,38 @@ export default function CreateCampaign() {
                     onChange={() => ethiopianLocation(location)}
                   />
                 ))}
-              </div>}
-            </div>
+              </div>
+            </div>}
 
           </div>
 
           {/* Platforms */}
 
-          <div className="mt-10">
+          <div className="mt-6">
 
-            <h3 className="font-semibold text-lg mb-4">
+            <h3 className="font-semibold text-sm ">
               Platforms
             </h3>
 
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 mb-0 text-xs">
               TikTok is required for every campaign.
             </p>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-4 mt-2">
 
               {/* TikTok */}
 
-              <div className="rounded-2xl border-2 border-primary bg-primary/5 p-5">
+              <div className="rounded-lg border-1 border-gray-200 bg-primary/5 p-5">
 
                 <Checkbox
                   label="TikTok"
                   checked={true}
                   disabled
                 />
-
-                <p className="text-sm text-gray-500 mt-3">
-                  Required platform
-                </p>
-
               </div>
 
               {/* Facebook */}
 
-              <div className="rounded-2xl border border-gray-200 p-5">
+              <div className="rounded-lg border border-gray-200 p-5">
 
                 <Checkbox
                   label="Facebook"
@@ -444,7 +442,7 @@ export default function CreateCampaign() {
 
               {/* Instagram */}
 
-              <div className="rounded-2xl border border-gray-200 p-5">
+              <div className="rounded-lg border border-gray-200 p-5">
 
                 <Checkbox
                   label="Instagram"
@@ -479,11 +477,11 @@ export default function CreateCampaign() {
           <div className="space-y-8 ">
             {/* Campaign Information */}
             <div className="bg-white rounded-2xl border border-gray-200 p-4">
-              <h3 className="font-semibold  text-lg mb-6">
+              <h3 className="font-semibold  text-sm mb-4">
                 Campaign Information
               </h3>
-              <div className=" grid grid-cols-1 md:grid-cols-2 gap-4 ">
-                <div className="flex flex-col flex-1 gap-4">
+              <div className=" grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col flex-1 gap-3">
                   <Input
                     label="Campaign Title"
                     name="title"
@@ -718,17 +716,17 @@ export default function CreateCampaign() {
         ══════════════════════════════════════════════════════════════════════ */}
 
         {currentStep === 5 && (
-          <div className="max-w-4xl">
-            <h2 className="text-xl font-bold">With whom do you want to target?</h2>
-            <p className="text-gray-500 mt-2">
+          <div className="">
+            <h2 className="text-sm font-bold">With whom do you want to target?</h2>
+            <p className="text-gray-500 mt-1 text-xs  ">
               Choose whether this campaign will be promoted by an influencer or
               a community.
             </p>
 
             <div className="grid md:grid-cols-2 gap-6 mt-6">
-              <label
-                className={`cursor-pointer rounded-2xl border p-6 transition
-                  ${targetType === "influencer"
+                <label
+                className={`cursor-pointer flex  gap-4  items-center rounded-lg border p-6 transition
+                ${targetType === "influencer"
                     ? "border-violet-600 bg-violet-50"
                     : "border-gray-200 hover:border-violet-300"
                   }`}
@@ -744,14 +742,16 @@ export default function CreateCampaign() {
                   }}
                 />
                 <UserRound size={40} className="text-violet-600" />
-                <h3 className="text-xl font-semibold mt-4">Influencer</h3>
-                <p className="text-gray-500 mt-2">
-                  Select one influencer to promote your campaign.
-                </p>
+                <div className="flex flex-col items-start ">
+                  <h3 className="text-sm font-semibold ">Influencer</h3>
+                  <p className="text-gray-500 text-xs  ">
+                    Select one influencer to promote your campaign.
+                  </p>
+                </div>
               </label>
 
               <label
-                className={`cursor-pointer rounded-2xl border p-6 transition
+                className={`cursor-pointer flex  gap-4  items-center rounded-lg border p-6 transition
                   ${targetType === "community"
                     ? "border-violet-600 bg-violet-50"
                     : "border-gray-200 hover:border-violet-300"
@@ -768,10 +768,12 @@ export default function CreateCampaign() {
                   }}
                 />
                 <Users size={40} className="text-violet-600" />
-                <h3 className="text-xl font-semibold mt-4">Community</h3>
-                <p className="text-gray-500 mt-2">
-                  Select one community to promote your campaign.
-                </p>
+                <div className="flex flex-col items-start ">
+                  <h3 className="text-sm font-semibold ">Community</h3>
+                  <p className="text-gray-500 text-xs  ">
+                    Select one community to promote your campaign.
+                  </p>
+                </div>
               </label>
             </div>
 
@@ -779,6 +781,7 @@ export default function CreateCampaign() {
               {targetType === "influencer" ? (
                 <Select
                   label="Select Influencer"
+                  options={[]} // You can provide options here if needed
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
                   api="/api/influencers"

@@ -1,92 +1,95 @@
-import { useState } from "react";
-import {
-  Bell,
-  Search,
-  ChevronDown,
-  Settings,
-  LogOut,
-} from "lucide-react";
-import Input from "./commen/Input";
+import { useEffect, useRef, useState } from "react";
+import { Bell, ChevronDown, LogOut, Search, Settings } from "lucide-react";
+import Input from "./common/Input";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <header className="bg-white border-b border-gray-200 h-20 px-8 flex items-center justify-between">
-    <div className="flex-1 block w-full "></div>
-      {/* Right */}
-      <div className="flex items-center gap-6">
-        
-          {/* Search */}
-      <div className="relative w-[350px]">
-        <Search
-          size={18}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-        />
+    <header className="flex h-20 items-center justify-between border-b border-gray-200 bg-white px-8">
+      <div className="block w-full flex-1" />
 
-        <Input
-          name="search"
-          value=""
-          onChange={() => {}}
-          placeholder="Search anythings..."
-          leftIcon={<Search
-          size={18}
-          className=""
-        />}
-        />
-      </div>
+      {/* Right */}
+      <div className="flex items-center gap-5">
+        {/* Search */}
+        <div className="w-[300px] lg:w-[350px]">
+          <Input
+            name="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search anything..."
+            leftIcon={<Search size={18} />}
+          />
+        </div>
 
         {/* Notification */}
-        <button className="relative text-gray-500">
-          <Bell size={22} />
-
-          <span className="absolute -top-1 -right-1 bg-red-500 h-4 w-4 rounded-full text-white text-[10px] flex items-center justify-center">
+        <button
+          type="button"
+          aria-label="Notifications"
+          className="relative rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+        >
+          <Bell size={20} />
+          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
             3
           </span>
         </button>
 
         {/* User Dropdown */}
-        <div className="relative border-gray-400">
+        <div className="relative" ref={menuRef}>
           <button
-            onClick={() => setOpen(!open)}
-            className="flex items-center gap-3  cursor-pointer rounded-lg px-2 py-2 hover:bg-gray-100 transition"
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-gray-100"
           >
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary via-secondary to-primary text-white flex items-center justify-center font-semibold">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-primary font-semibold text-white">
               D
             </div>
 
-            <div className="text-left">
-              <h4 className="text-sm font-medium text-gray-500">
-                Desire Online School
-              </h4>
+            <div className="hidden text-left sm:block">
+              <h4 className="text-sm font-semibold text-gray-800">Desire Online School</h4>
+              <p className="text-xs text-gray-400">Business</p>
             </div>
 
             <ChevronDown
               size={18}
-              className={`transition-transform ${
-                open ? "rotate-180" : ""
-              }`}
+              className={`text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
             />
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-200 z-50">
+            <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
               <button
-                className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
+                type="button"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
               >
-                <Settings size={18} />
+                <Settings size={16} />
                 <span>Settings</span>
               </button>
 
-              <div className="border-t border-gray-200 " />
+              <div className="border-t border-gray-100" />
 
               <button
-                className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition"
+                type="button"
                 onClick={() => {
                   console.log("Logout");
+                  setOpen(false);
                 }}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
               >
-                <LogOut size={18} />
+                <LogOut size={16} />
                 <span>Logout</span>
               </button>
             </div>

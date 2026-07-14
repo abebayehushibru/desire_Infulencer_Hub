@@ -1,10 +1,10 @@
 import { ArrowLeft, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import Button from "../../components/commen/Button";
-import Input from "../../components/commen/Input";
-import Select from "../../components/commen/Select";
-import TextArea from "../../components/commen/TextArea";
+import Button from "../../components/common/Button";
+import Input from "../../components/common/Input";
+import Select from "../../components/common/Select";
+import TextArea from "../../components/common/TextArea";
 
 export default function AddCommunityMember() {
   const navigate = useNavigate();

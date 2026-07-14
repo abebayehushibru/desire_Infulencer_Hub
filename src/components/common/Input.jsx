@@ -20,7 +20,7 @@ const Input = ({
       {label && (
         <label
           htmlFor={name}
-          className="mb-2 block text-sm font-medium text-gray-700"
+          className="mb-1 block text-xs font-medium text-gray-700"
         >
           {label}
           {required && <span className="ml-1 text-red-500">*</span>}
@@ -47,6 +47,7 @@ const Input = ({
             w-full rounded-lg border
             bg-white
             py-3
+            text-xs 
             transition-all
             duration-200
             outline-none
@@ -79,7 +80,7 @@ const Input = ({
       </div>
 
       {error && (
-        <p className="mt-1 text-sm text-red-500">
+        <p className="mt-1 text-xs  text-red-500">
           {error}
         </p>
       )}

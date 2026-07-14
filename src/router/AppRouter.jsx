@@ -24,6 +24,10 @@ import CommunityDetail from "../pages/community/Communitydetail";
 import Communities from "../pages/community/Communities";
 import CreateCommunity from "../pages/community/Createcommunity";
 import EditCommunity from "../pages/community/Editcommunity";
+import CreateBusiness from "../pages/business/Createbusiness";
+import EditBusiness from "../pages/business/Editbusiness";
+import BusinessDetail from "../pages/business/Businessdetail";
+import Businesses from "../pages/business/Businesses";
 export default function AppRouter() {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -61,6 +65,10 @@ export default function AppRouter() {
           <Route path="communities/create" element={<CreateCommunity />} />
           <Route path="communities/view/:id" element={<CommunityDetail />} />
           <Route path="communities/edit/:id" element={<EditCommunity />} />
+          <Route path="businesses" element={<Businesses />} />
+          <Route path="businesses/create" element={<CreateBusiness />} />
+          <Route path="businesses/edit/:id" element={<EditBusiness />} />
+          <Route path="businesses/view/:id" element={<BusinessDetail />} />
 
           <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         </Route>

@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 
-import Table, { ActionMenu } from "../../components/commen/Table";
-import Button from "../../components/commen/Button";
+import Table, { ActionMenu } from "../../components/common/Table";
+import Button from "../../components/common/Button";
 import { useState } from "react";
-import Input from "../../components/commen/Input";
-import Select from "../../components/commen/Select";
+import Input from "../../components/common/Input";
+import Select from "../../components/common/Select";
+import Title from "../../components/common/Titel";
 
 export default function Campaigns() {
   const navigate = useNavigate();
@@ -107,25 +108,19 @@ export default function Campaigns() {
   return (
     <div className="bg-gray-50 min-h-full">
 
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">
-            Campaigns
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Manage all your marketing campaigns.
-          </p>
-        </div>
-
+      <div className="flex justify-between items-center mb-4">
+        <Title titel={"Campaigns"} disc={"Manage all your marketing campaigns."}>
+        
         <Button
           leftIcon={<Plus size={18} />}
           onClick={() => navigate("/campaigns/create")}
         >
           Create Campaign
         </Button>
+        </Title>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
 
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-4 justify-between mb-5">

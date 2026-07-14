@@ -2,7 +2,7 @@ import { Eye, ExternalLink, Video } from "lucide-react";
 import Pagination from "./Pagination";
 import FilterBar from "./FilterBar";
 import { useState } from "react";
-import Button from "./commen/Button";
+import Button from "./common/Button";
 
 export default function PlatformVideosList() {
   const [page, setPage] = useState(1);

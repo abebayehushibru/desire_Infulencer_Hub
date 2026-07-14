@@ -1,13 +1,13 @@
 import { Megaphone, Target, DollarSign, Wallet, Plus } from "lucide-react";
-import StatsCard from "../components/common/StatsCard.";
-import Table, { ActionMenu } from "../components/common/Table";
-import { useState } from "react";
-import Button from "../components/common/Button";
-import AdminHome from "./home/Adminhome";
-import InfluencerHome from "./home/Influencerhome";
-import BusinessHome from "./home/Businesshome";
+import Table, { ActionMenu } from "../../components/common/Table";
+import StatsCard from "../../components/common/StatsCard.";
 
-export default function Home() {
+import { useState } from "react";
+import Button from "../../components/common/Button";
+import { useNavigate } from "react-router-dom";
+
+export default function BusinessHome() {
+  const navigate = useNavigate();
   const hour = new Date().getHours();
   const [active, setActive] = useState(false);
 
@@ -84,7 +84,7 @@ export default function Home() {
       label: "",
       render: (_, row, index) => (
         <ActionMenu
-          onEdit={() => console.log("Edit", row)}
+          onEdit={() => navigate(`/campaigns/edit/${row.id}`)}
           onDelete={() => console.log("Delete", row)}
           index={index}
           active={active}
@@ -96,6 +96,7 @@ export default function Home() {
 
   const data = [
     {
+      id: 1,
       campaign: "Online English Course",
       type: "Sales",
       target: "Students",
@@ -104,6 +105,7 @@ export default function Home() {
       spend: "30,000",
     },
     {
+      id: 2,
       campaign: "Addis Tech Event",
       type: "Awareness",
       target: "Developers",
@@ -112,6 +114,7 @@ export default function Home() {
       spend: "10,000",
     },
     {
+      id: 3,
       campaign: "Summer Promotion",
       type: "Growth",
       target: "Parents",
@@ -122,11 +125,71 @@ export default function Home() {
   ];
 
   return (
-    <>
-     <AdminHome/>
-     <InfluencerHome/>
-     <BusinessHome/>
-    </>
+    <div className="min-h-full bg-gray-50 text-primary">
+      {/* Greeting */}
+      <div className="mb-5">
+        <h1 className="text-xl font-bold">{greeting}, Desire!</h1>
+        <p className="mt-1 text-gray-500">Here's what's happening in your campaigns.</p>
+      </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <StatsCard
+          title="Active Campaigns"
+          number={1250}
+          compare={12}
+          icon={Megaphone}
+          color="bg-blue-100 text-blue-600"
+        />
+
+        <StatsCard
+          title="Total Conversions"
+          number={85}
+          compare={3}
+          icon={Target}
+          color="bg-emerald-100 text-emerald-600"
+        />
+
+        <StatsCard
+          title="Total Spent"
+          number="250,000"
+          currency="ETB"
+          compare={-7}
+          icon={DollarSign}
+          color="bg-violet-100 text-violet-600"
+        />
+
+        <StatsCard
+          title="Total Earnings"
+          number="150,000"
+          currency="ETB"
+          compare={5}
+          icon={Wallet}
+          color="bg-orange-100 text-orange-600"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-primary">Recent Campaigns</h2>
+            <p className="text-sm text-gray-400">Your latest campaign activity</p>
+          </div>
+
+          <div className="hidden md:flex">
+            <Button
+              className="rounded-lg"
+              leftIcon={<Plus size={20} />}
+              onClick={() => navigate("/campaigns/create")}
+            >
+              Create Campaign
+            </Button>
+          </div>
+        </div>
+
+        <Table columns={columns} data={data} />
+      </div>
+    </div>
   );
 }

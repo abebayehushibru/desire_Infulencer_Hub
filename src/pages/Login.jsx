@@ -1,9 +1,9 @@
 import { Eye, EyeClosed, Lock, Mail } from "lucide-react";
 import loginImage from "../assets/login.png";
-import Input from "../components/commen/Input";
+import Input from "../components/common/Input";
 import { useState } from "react";
-import Button from "../components/commen/Button";
-import Checkbox from "../components/commen/Checkbox";
+import Button from "../components/common/Button";
+import Checkbox from "../components/common/Checkbox";
 
 export default function Login() {
   const [form, setForm] = useState({
