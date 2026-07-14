@@ -6,7 +6,7 @@ import {
   User,
 } from "lucide-react";
 
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useParams, useSearchParams } from "react-router-dom";
 
 const menus = [
   {
@@ -37,7 +37,7 @@ const menus = [
 ];
 
 export default function MobileBottomNav() {
-      const location = useLocation();
+      const [params] = useParams();
  const checkForActive = (path) => {
   // 1. Remove slash at index 0 from current URL path if it exists
   const currentPath = location.pathname.startsWith('/') 

@@ -32,7 +32,7 @@ const Checkbox = ({
         {/* Custom Checkbox */}
         <div
           className={`
-            flex h-6 w-6 items-center justify-center rounded-md border-2
+            flex h-4 w-4 items-center justify-center rounded-md border-2
             transition-all duration-200
 
             ${
@@ -44,12 +44,12 @@ const Checkbox = ({
             peer-focus:ring-2 peer-focus:ring-primary
           `}
         >
-          {checked && <Check size={16} strokeWidth={3} />}
+          {checked && <Check size={12} strokeWidth={5} />}
         </div>
 
         {/* Label */}
         {label && (
-          <span className="text-sm text-gray-700">
+          <span className="text-xs text-gray-700">
             {label}
             {required && <span className="ml-1 text-red-500">*</span>}
           </span>

@@ -58,25 +58,25 @@ export default function Overview() {
           return (
             <div
               key={item.title}
-              className="bg-white rounded-lg border border-gray-200 p-6"
+              className="bg-white rounded-lg border border-gray-200 p-4"
             >
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-gray-500 text-sm">{item.title}</p>
 
-                  <h2 className="text-3xl text-primary font-bold mt-2">
+                  <h2 className="text-xl text-primary font-bold mt-2">
                     {item.value}
                   </h2>
 
-                  <p className="text-green-600 text-sm mt-2">
+                  <p className="text-green-600 text-xs mt-1">
                     +12.5% this week
                   </p>
                 </div>
 
                 <div
-                  className={`w-14 h-14 rounded-xl flex items-center justify-center ${item.color}`}
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center ${item.color}`}
                 >
-                  <Icon size={26} />
+                  <Icon size={20} />
                 </div>
               </div>
             </div>
@@ -92,15 +92,15 @@ export default function Overview() {
         {/* Left */}
 
         <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="font-semibold text-xl mb-6">
+          <h2 className="font-semibold text-lg mb-4">
             Campaign Information
           </h2>
 
-          <div className="grid  md:grid-cols-4 gap-6">
+          <div className="grid  md:grid-cols-4 gap-3">
             <Info
               icon={Target}
               title="Campaign Type"
-              value="Sales Campaign"
+              value="Sales"
             />
 
             <Info
@@ -136,9 +136,9 @@ export default function Overview() {
 
           {/* Progress */}
 
-          <div className="mt-6">
+          <div className="mt-4">
             <div className="flex justify-between text-sm mb-2">
-              <span className="font-medium">
+              <span className="font-semibold ">
                 Budget Used
               </span>
 
@@ -162,40 +162,40 @@ export default function Overview() {
         <div className="space-y-4">
           {/* Status */}
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="font-semibold text-lg mb-5">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <h2 className="font-semibold text-lg mb-4">
               Campaign Status
             </h2>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <CheckCircle2
                 className="text-green-600"
-                size={28}
+                size={20}
               />
 
               <div>
-                <h4 className="font-semibold">
+                <h4 className="font-semibold text-sm">
                   Active
                 </h4>
 
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500">
                   Campaign is currently running.
                 </p>
               </div>
             </div>
 
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-2 flex items-center gap-3">
               <Clock
                 className="text-yellow-500"
-                size={24}
+                size={20}
               />
 
               <div>
-                <h4 className="font-medium">
+                <h4 className="font-medium text-sm">
                   24 Days Remaining
                 </h4>
 
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500">
                   Ends on 30 August 2026
                 </p>
               </div>
@@ -205,7 +205,7 @@ export default function Overview() {
           {/* Tracking */}
 
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="font-semibold text-lg mb-5">
+            <h2 className="font-semibold text-sm mb-4">
               Tracking Link
             </h2>
 
@@ -213,7 +213,7 @@ export default function Overview() {
               <div className="flex items-center gap-3 overflow-hidden">
                 <Link2
                   className="text-primary"
-                  size={20}
+                  size={16}
                 />
 
                 <p className="truncate text-sm">
@@ -221,14 +221,12 @@ export default function Overview() {
                 </p>
               </div>
 
-              <button className="text-primary hover:text-primary/80">
-                <Copy size={18} />
+              <button className="text-primary hover:text-primary/80 cursor-pointer ">
+                <Copy size={16} />
               </button>
             </div>
 
-            <button className="w-full mt-5 rounded-xl bg-primary text-white py-3 font-medium hover:opacity-90">
-              Copy Referral Link
-            </button>
+    
           </div>
         </div>
       </div>
@@ -242,20 +240,20 @@ export default function Overview() {
 
 function Info({ icon: Icon, title, value }) {
   return (
-    <div className="flex gap-4">
-      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+    <div className="flex gap-3">
+      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
         <Icon
-          size={20}
+          size={16}
           className="text-primary"
         />
       </div>
 
       <div>
-        <p className="text-gray-500 md:text-sm text-xs truncate">
+        <p className="text-gray-500  text-xs truncate">
           {title}
         </p>
 
-        <h4 className="font-semibold mt-1 block">
+        <h4 className="font-semibold  text-sm mt-1">
           {value}
         </h4>
       </div>
@@ -267,12 +265,12 @@ function Info({ icon: Icon, title, value }) {
 
 function Summary({ title, value }) {
   return (
-    <div className="rounded-xl bg-gray-50 p-5 text-center">
+    <div className="rounded-lg bg-gray-50 p-5 text-center">
       <p className="text-gray-500 text-sm">
         {title}
       </p>
 
-      <h3 className=" text-lg md:text-3xl font-bold mt-2">
+      <h3 className=" text-sm md:text-sm font-bold mt-2">
         {value}
       </h3>
     </div>

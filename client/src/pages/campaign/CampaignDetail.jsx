@@ -98,13 +98,13 @@ export default function CampaignDetail() {
         <div className="space-y-4">
             {/* Breadcrumb */}
 
-            <div className="flex items-center text-sm text-gray-500 gap-2">
+            <div className="flex items-center text-xs text-gray-500 gap-2">
 
                 <span>Campaigns</span>
 
                 <ChevronRight size={16} />
 
-                <span className="text-gray-900 font-medium">
+                <span className="text-gray-900 font-semibold">
                     Online English Course 
                 </span>
 
@@ -112,25 +112,25 @@ export default function CampaignDetail() {
 
             {/* Header */}
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
 
                 <div className="flex justify-between items-start">
 
                     <div className="w-full ">
 
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center gap-3 mb-1">
 
-                            <h1 className="text-2xl font-bold">
+                            <h1 className="text-lg font-semibold ">
                                 Online English Course
                             </h1>
 
-                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">
                                 Active
                             </span>
 
                         </div>
                         <div className="hidden md:flex items-center justify-between w-full ">
-                            <div className="flex gap-4 text-sm ">
+                            <div className="flex gap-4 text-xs ">
                                 <p className="text-primary  bg-primary/10 rounded-full px-4 py-1">
                                     Sales Campaign
                                 </p>
@@ -173,7 +173,7 @@ export default function CampaignDetail() {
                         <button
                             key={tab.id}
                             onClick={() => handleNavigate(tab.id)}
-                            className={`flex items-center cursor-pointer gap-2 px-5 py-4 border-b-2 whitespace-nowrap transition
+                            className={`flex items-center cursor-pointer text-sm gap-2 px-5 py-4 border-b-2 whitespace-nowrap transition
 ${activeTab === tab.id
                                     ? "border-primary text-primary font-semibold"
                                     : "border-transparent text-gray-500 hover:text-primary"
