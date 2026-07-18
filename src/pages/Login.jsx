@@ -4,6 +4,7 @@ import Input from "../components/common/Input";
 import { useState } from "react";
 import Button from "../components/common/Button";
 import Checkbox from "../components/common/Checkbox";
+import Header from "../components/header";
 
 export default function Login() {
   const [form, setForm] = useState({
@@ -24,9 +25,11 @@ export default function Login() {
     });
   };
   return (
-    <div className="h-screen my-auto bg-gray-100 flex items-center justify-center p-8">
+    <>
+  <Header/>
+    <div className="h-full md:my-auto bg-gray-100 flex items-center justify-center md:p-8 p-4">
 
-      <div className="w-full h-[600px]  max-w-7xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
+      <div className="w-full min-h-[500px]  max-w-7xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
 
         {/* LEFT */}
 
@@ -36,16 +39,16 @@ export default function Login() {
             <img
               src={loginImage}
               alt=""
-              className="w-full mt-4 scale-80"
+              className="w-full mt-4 scale-60"
             />
           </div>
           <div>
 
-            <h4 className="text-xl font-semibold mb-4">
+            <h4 className="text-lg font-semibold mb-4">
               Welcome Back 👋
             </h4>
 
-            <h1 className="text-5xl font-bold leading-tight">
+            <h1 className="text-4xl font-bold leading-tight">
               Let's Continue
               <br />
               <span className="flex relative">
@@ -61,7 +64,7 @@ export default function Login() {
               </span>
             </h1>
 
-            <p className="mt-4 text-lg opacity-90">
+            <p className="mt-4 text-xs opacity-90">
               Log in to your account and manage campaigns,
               communities and analytics.
             </p>
@@ -79,15 +82,15 @@ export default function Login() {
 
           <div className="w-full">
 
-            <h2 className="text-4xl text-gray-800 font-bold mb-2">
+            <h2 className="text-2xl text-gray-800 font-bold mb-2">
               Log in
             </h2>
 
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 text-sm mb-4">
               Enter your credentials.
             </p>
 
-            <form className="flex flex-col gap-4 mb-6">
+            <form className="flex flex-col gap-3 mb-4">
 
               <Input
                 label="Email"
@@ -137,5 +140,6 @@ export default function Login() {
       </div>
 
     </div>
+      </>
   );
 }

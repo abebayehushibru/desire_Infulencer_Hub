@@ -28,6 +28,8 @@ import CreateBusiness from "../pages/business/Createbusiness";
 import EditBusiness from "../pages/business/Editbusiness";
 import BusinessDetail from "../pages/business/Businessdetail";
 import Businesses from "../pages/business/Businesses";
+import TheHubLanding from "../pages/Landing";
+import Register from "../pages/Register";
 export default function AppRouter() {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -35,8 +37,10 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<TheHubLanding/>} />
+         <Route path="/register" element={<Register/>} />
         <Route path="/" element={<ResponsiveLayout />}>
-          <Route index element={<Home />} />
+         
           <Route path="dashboard" element={<Home />} />
           <Route path="campaigns" element={<CampaignLayout />}>
             <Route index element={<Campaigns />} />

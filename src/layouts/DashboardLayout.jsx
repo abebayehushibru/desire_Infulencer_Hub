@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import { Outlet } from "react-router-dom";
 export default function DashboardLayout() {
   return (
-    <div className="flex flex-row bg-[#F7F8FC] min-h-screen text-primary">
+    <div className="flex flex-row bg-[#F7F8FC] poppins min-h-screen text-primary">
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
