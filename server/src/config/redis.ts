@@ -7,6 +7,9 @@ import Redis from 'ioredis';
 import { env } from './env';
 import logger from '../common/logger/logger';
 
+// Prevent log spam when Redis is simply not running
+let redisErrorLogged = false;
+
 const createRedisClient = (): Redis => {
   const client = new Redis({
     host: env.REDIS_HOST,
@@ -14,37 +17,40 @@ const createRedisClient = (): Redis => {
     password: env.REDIS_PASSWORD || undefined,
     db: env.REDIS_DB,
     retryStrategy: (times: number) => {
-      if (times > 10) {
-        logger.error('Redis: max retry attempts reached, giving up');
+      if (times > 3) {
+        // Stop retrying — Redis not available, run in degraded mode
         return null;
       }
-      const delay = Math.min(times * 100, 3000);
-      logger.warn(`Redis: reconnecting in ${delay}ms (attempt ${times})`);
-      return delay;
+      return Math.min(times * 200, 600);
     },
-    enableOfflineQueue: true,
-    lazyConnect: false,
+    enableOfflineQueue: false,
+    lazyConnect: true,
+    maxRetriesPerRequest: 0,
+    connectTimeout: 3000,
+    commandTimeout: 2000,
   });
 
   client.on('connect', () => {
-    logger.info('Redis: connected successfully');
+    logger.info('Redis: connected');
   });
 
   client.on('ready', () => {
-    logger.info('Redis: client ready');
+    logger.info('Redis: ready');
   });
 
   client.on('error', (err: Error) => {
-    logger.error('Redis: connection error', { error: err.message });
+    // Only log once — avoid spamming logs when Redis is simply not running
+    if (!redisErrorLogged) {
+      logger.warn('Redis: unavailable — running in degraded mode (no token blacklisting)', {
+        host: env.REDIS_HOST,
+        port: env.REDIS_PORT,
+      });
+      redisErrorLogged = true;
+    }
   });
 
-  client.on('close', () => {
-    logger.warn('Redis: connection closed');
-  });
-
-  client.on('reconnecting', () => {
-    logger.info('Redis: reconnecting...');
-  });
+  client.on('close', () => { /* silent */ });
+  client.on('reconnecting', () => { /* silent */ });
 
   return client;
 };

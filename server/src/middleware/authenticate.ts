@@ -27,9 +27,16 @@ export const authenticate = async (
     const payload = verifyAccessToken(token);
 
     // Check token blacklist (for logged-out tokens still within expiry)
-    const isBlacklisted = await redisClient.get(REDIS_KEYS.blacklistToken(payload.jti));
-    if (isBlacklisted) {
-      throw ApiError.unauthorized('Token has been revoked. Please log in again.');
+    // If Redis is down, skip the blacklist check and allow the request
+    try {
+      const isBlacklisted = await redisClient.get(REDIS_KEYS.blacklistToken(payload.jti));
+      if (isBlacklisted) {
+        throw ApiError.unauthorized('Token has been revoked. Please log in again.');
+      }
+    } catch (redisErr) {
+      // Only rethrow if it's our own ApiError (blacklisted token)
+      if (redisErr instanceof ApiError) throw redisErr;
+      // Redis unavailable — log warning and continue (degraded mode)
     }
 
     // Attach user payload to request

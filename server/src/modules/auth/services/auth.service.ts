@@ -221,7 +221,7 @@ class AuthService {
         }
       }
     } catch {
-      // Token already expired — no need to blacklist
+      // Token already expired or Redis unavailable — no need to blacklist
     }
 
     // Audit

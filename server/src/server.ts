@@ -21,9 +21,9 @@ const bootstrap = async (): Promise<void> => {
     await prisma.$connect();
     logger.info('Database: connected successfully');
 
-    // ── Test Redis connection ───────────────────────────────────────────────
-    await redisClient.ping();
-    logger.info('Redis: connected successfully');
+    // ── Redis — connects lazily on first use ──────────────────────────────
+    logger.info('Redis: client initialized (connects on first use)');
+    logger.warn('Redis: if not running, token blacklisting will be disabled');
 
     // ── Verify SMTP (non-blocking) ──────────────────────────────────────────
     emailService.verifyConnection().then((ok) => {
