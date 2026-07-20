@@ -28,8 +28,8 @@ const createPrismaClient = (): PrismaClient => {
 
   // Log slow queries in development
   if (env.IS_DEVELOPMENT) {
-    // @ts-expect-error Prisma event typing
-    client.$on('query', (e: { query: string; duration: number }) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (client.$on as any)('query', (e: { query: string; duration: number }) => {
       if (e.duration > 1000) {
         logger.warn('Slow query detected', {
           query: e.query,
@@ -39,8 +39,8 @@ const createPrismaClient = (): PrismaClient => {
     });
   }
 
-  // @ts-expect-error Prisma event typing
-  client.$on('error', (e: { message: string }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (client.$on as any)('error', (e: { message: string }) => {
     logger.error('Prisma error', { message: e.message });
   });
 

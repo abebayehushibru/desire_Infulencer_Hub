@@ -5,6 +5,7 @@
 // Each token has a unique jti (JWT ID) for blacklisting support
 // ─────────────────────────────────────────────────────────────────────────────
 
+import crypto from 'crypto';
 import jwt, { SignOptions, JwtPayload as JWTLibPayload } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { Role } from '@prisma/client';
@@ -12,12 +13,15 @@ import { env } from '../../config/env';
 import { JwtPayload, TokenPair } from '../types';
 import { ApiError } from '../errors/ApiError';
 
+// Helper: env string → typed expiresIn (works around StringValue branded type)
+const asExpiry = (val: string): SignOptions['expiresIn'] =>
+  val as unknown as SignOptions['expiresIn'];
+
 // ── Sign access token ─────────────────────────────────────────────────────────
 export const signAccessToken = (payload: Omit<JwtPayload, 'jti' | 'iat' | 'exp'>): string => {
-  const jti = uuidv4();
   const options: SignOptions = {
-    expiresIn: env.JWT_ACCESS_EXPIRES_IN as string,
-    jwtid: jti,
+    expiresIn: asExpiry(env.JWT_ACCESS_EXPIRES_IN),
+    jwtid: uuidv4(),
     algorithm: 'HS256',
   };
 
@@ -35,7 +39,7 @@ export const signRefreshToken = (
 ): string => {
   const jti = uuidv4();
   const options: SignOptions = {
-    expiresIn: env.JWT_REFRESH_EXPIRES_IN as string,
+    expiresIn: asExpiry(env.JWT_REFRESH_EXPIRES_IN),
     jwtid: jti,
     algorithm: 'HS256',
   };
@@ -54,16 +58,16 @@ export const generateTokenPair = (
   role: Role,
   family?: string
 ): TokenPair => {
-  const accessToken = signAccessToken({ sub: userId, email, role });
+  const accessToken  = signAccessToken({ sub: userId, email, role });
   const refreshToken = signRefreshToken({ sub: userId, email, role }, family);
 
-  const accessDecoded = decodeToken(accessToken);
+  const accessDecoded  = decodeToken(accessToken);
   const refreshDecoded = decodeToken(refreshToken);
 
   return {
     accessToken,
     refreshToken,
-    accessTokenExpiresAt: new Date((accessDecoded.exp ?? 0) * 1000),
+    accessTokenExpiresAt:  new Date((accessDecoded.exp  ?? 0) * 1000),
     refreshTokenExpiresAt: new Date((refreshDecoded.exp ?? 0) * 1000),
   };
 };
@@ -73,20 +77,16 @@ export const verifyAccessToken = (token: string): JwtPayload => {
   try {
     const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as JWTLibPayload & JwtPayload;
     return {
-      sub: decoded.sub as string,
+      sub:   decoded.sub as string,
       email: decoded.email,
-      role: decoded.role,
-      jti: decoded.jti as string,
-      iat: decoded.iat,
-      exp: decoded.exp,
+      role:  decoded.role,
+      jti:   decoded.jti as string,
+      iat:   decoded.iat,
+      exp:   decoded.exp,
     };
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      throw ApiError.unauthorized('Access token has expired');
-    }
-    if (error instanceof jwt.JsonWebTokenError) {
-      throw ApiError.unauthorized('Invalid access token');
-    }
+    if (error instanceof jwt.TokenExpiredError)   throw ApiError.unauthorized('Access token has expired');
+    if (error instanceof jwt.JsonWebTokenError)   throw ApiError.unauthorized('Invalid access token');
     throw ApiError.unauthorized('Token verification failed');
   }
 };
@@ -96,26 +96,22 @@ export const verifyRefreshToken = (token: string): JwtPayload & { family?: strin
   try {
     const decoded = jwt.verify(token, env.JWT_REFRESH_SECRET) as JWTLibPayload & JwtPayload & { family?: string };
     return {
-      sub: decoded.sub as string,
-      email: decoded.email,
-      role: decoded.role,
-      jti: decoded.jti as string,
+      sub:    decoded.sub as string,
+      email:  decoded.email,
+      role:   decoded.role,
+      jti:    decoded.jti as string,
       family: decoded.family,
-      iat: decoded.iat,
-      exp: decoded.exp,
+      iat:    decoded.iat,
+      exp:    decoded.exp,
     };
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      throw ApiError.unauthorized('Refresh token has expired');
-    }
-    if (error instanceof jwt.JsonWebTokenError) {
-      throw ApiError.unauthorized('Invalid refresh token');
-    }
+    if (error instanceof jwt.TokenExpiredError)  throw ApiError.unauthorized('Refresh token has expired');
+    if (error instanceof jwt.JsonWebTokenError)  throw ApiError.unauthorized('Invalid refresh token');
     throw ApiError.unauthorized('Token verification failed');
   }
 };
 
-// ── Decode token without verification (for extracting jti on logout) ──────────
+// ── Decode without verification (extract jti for logout blacklisting) ─────────
 export const decodeToken = (token: string): JWTLibPayload => {
   const decoded = jwt.decode(token);
   if (!decoded || typeof decoded === 'string') {
@@ -124,18 +120,13 @@ export const decodeToken = (token: string): JWTLibPayload => {
   return decoded;
 };
 
-// ── Extract token from Bearer header ─────────────────────────────────────────
+// ── Extract Bearer token from Authorization header ────────────────────────────
 export const extractBearerToken = (authHeader?: string): string | null => {
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
-  }
+  if (!authHeader?.startsWith('Bearer ')) return null;
   const token = authHeader.split(' ')[1];
-  return token && token.length > 0 ? token : null;
+  return token?.length > 0 ? token : null;
 };
 
-// ── Hash refresh token for storage (SHA-256) ──────────────────────────────────
-import crypto from 'crypto';
-
-export const hashRefreshToken = (token: string): string => {
-  return crypto.createHash('sha256').update(token).digest('hex');
-};
+// ── Hash refresh token for DB storage (SHA-256, not bcrypt — deterministic) ───
+export const hashRefreshToken = (token: string): string =>
+  crypto.createHash('sha256').update(token).digest('hex');

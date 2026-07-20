@@ -15,14 +15,13 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  setupFilesAfterFramework: [],
   testTimeout: 30000,
-  globals: {
-    'ts-jest': {
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         strict: true,
         esModuleInterop: true,
       },
-    },
+    }],
   },
 };

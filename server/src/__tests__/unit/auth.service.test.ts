@@ -156,7 +156,12 @@ describe('AuthService.login()', () => {
   });
 
   it('should throw 403 if email is not verified', async () => {
-    mockRepo.findUserByEmail.mockResolvedValue(makeUser({ emailVerified: false }));
+    // Need a valid password hash so auth passes password check and reaches email verification check
+    const bcrypt = require('bcrypt');
+    const realHash = await bcrypt.hash('MySecure@Pass1', 4);
+    mockRepo.findUserByEmail.mockResolvedValue(
+      makeUser({ emailVerified: false, passwordHash: realHash })
+    );
     await expect(authService.login(dto, ctx)).rejects.toMatchObject({ statusCode: 403 });
   });
 

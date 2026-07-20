@@ -7,11 +7,16 @@ import {
   LogOut,
 } from "lucide-react";
 import Input from "./common/Input";
+import { useNavigate } from "react-router-dom";
+import useAuthStore from "../store/authStore";
+import toast from "react-hot-toast";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const menuRef = useRef(null);
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -22,6 +27,24 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLogout = async () => {
+    setOpen(false);
+    await logout();
+    toast.success("Logged out successfully");
+    navigate("/login");
+  };
+
+  // Build display name from user object, fall back to generic label
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`
+    : "Account";
+  const displayRole = user?.role
+    ? user.role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : "";
+  const initials = user
+    ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()
+    : "?";
 
   return (
     <header className="flex h-20 items-center justify-between border-b border-gray-200 bg-white px-8">
@@ -60,12 +83,12 @@ export default function Navbar() {
             className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-gray-100"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-primary font-semibold text-white">
-              D
+              {initials}
             </div>
 
             <div className="hidden text-left sm:block">
-              <h4 className="text-sm font-semibold text-gray-800">Desire Online School</h4>
-              <p className="text-xs text-gray-400">Business</p>
+              <h4 className="text-sm font-semibold text-gray-800">{displayName}</h4>
+              <p className="text-xs text-gray-400">{displayRole}</p>
             </div>
 
             <ChevronDown
@@ -89,10 +112,7 @@ export default function Navbar() {
 
               <button
                 type="button"
-                onClick={() => {
-                  console.log("Logout");
-                  setOpen(false);
-                }}
+                onClick={handleLogout}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 transition hover:bg-red-50"
               >
                 <LogOut size={16} />

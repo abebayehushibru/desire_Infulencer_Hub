@@ -4,8 +4,15 @@ import Input from "../components/common/Input";
 import { useState } from "react";
 import Button from "../components/common/Button";
 import Checkbox from "../components/common/Checkbox";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import useAuthStore from "../store/authStore";
+import toast from "react-hot-toast";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, loading } = useAuthStore();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -22,6 +29,48 @@ export default function Login() {
       ...form,
       [e.target.name]: e.target.value,
     });
+    // Clear field-level error when user starts typing
+    if (error[e.target.name]) {
+      setError(prev => ({ ...prev, [e.target.name]: "" }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Client-side validation
+    const newErrors = { email: "", password: "" };
+    let hasError = false;
+
+    if (!form.email.trim()) {
+      newErrors.email = "Email is required";
+      hasError = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = "Invalid email format";
+      hasError = true;
+    }
+
+    if (!form.password) {
+      newErrors.password = "Password is required";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setError(newErrors);
+      return;
+    }
+
+    const result = await login({ email: form.email, password: form.password });
+
+    if (result.success) {
+      toast.success("Welcome back!");
+      // Redirect to the page the user originally tried to visit,
+      // or fall back to /dashboard
+      const destination = location.state?.from?.pathname || "/dashboard";
+      navigate(destination, { replace: true });
+    } else {
+      toast.error(result.message || "Login failed");
+    }
   };
   return (
     <div className="h-screen my-auto bg-gray-100 flex items-center justify-center p-8">
@@ -87,7 +136,7 @@ export default function Login() {
               Enter your credentials.
             </p>
 
-            <form className="flex flex-col gap-4 mb-6">
+            <form className="flex flex-col gap-4 mb-6" onSubmit={handleSubmit}>
 
               <Input
                 label="Email"
@@ -125,9 +174,17 @@ export default function Login() {
                 }} /> <a href="/forget-paswword" className="">Forget password</a>
               </div>
 
-              <Button type="submit" fullWidth>
+              <Button type="submit" fullWidth loading={loading} disabled={loading}>
                 Login
               </Button>
+
+              <p className="text-center text-sm text-gray-500">
+                Don&apos;t have an account?{" "}
+                <Link to="/register" className="font-semibold text-primary hover:underline">
+                  Sign up
+                </Link>
+              </p>
+
             </form>
 
           </div>

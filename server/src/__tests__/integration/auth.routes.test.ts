@@ -1,7 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Integration Tests — Auth Routes
-// Uses supertest to test real HTTP requests through the full Express stack.
-// Database and Redis are mocked.
+// Mocks: Redis, Prisma (bootstrap only), authRepository, emailService
 // ─────────────────────────────────────────────────────────────────────────────
 
 process.env.NODE_ENV = 'test';
@@ -16,245 +15,235 @@ process.env.REDIS_PORT = '6379';
 process.env.SMTP_USER = '';
 process.env.SMTP_PASS = '';
 
-// ── Mocks ──────────────────────────────────────────────────────────────────────
+// ── Mock Redis ────────────────────────────────────────────────────────────────
 jest.mock('../../config/redis', () => ({
   default: {
     get: jest.fn().mockResolvedValue(null),
     setex: jest.fn().mockResolvedValue('OK'),
     ping: jest.fn().mockResolvedValue('PONG'),
     quit: jest.fn().mockResolvedValue('OK'),
+    on: jest.fn(),
   },
 }));
 
+// ── Mock Prisma (bootstrap $connect only — real queries go via repository mock)
 jest.mock('../../config/prisma', () => ({
   default: {
-    user: {
-      findFirst: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-    },
-    refreshToken: {
-      create: jest.fn(),
-      findFirst: jest.fn(),
-      findMany: jest.fn(),
-      updateMany: jest.fn(),
-    },
-    emailVerification: {
-      create: jest.fn(),
-      findFirst: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-    },
-    passwordReset: {
-      create: jest.fn(),
-      findFirst: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-    },
-    auditLog: {
-      create: jest.fn(),
-    },
-    $connect: jest.fn(),
-    $disconnect: jest.fn(),
+    $connect:    jest.fn().mockResolvedValue(undefined),
+    $disconnect: jest.fn().mockResolvedValue(undefined),
+    $on:         jest.fn(),
   },
 }));
 
+// ── Mock authRepository — avoids all real DB calls ───────────────────────────
+jest.mock('../../modules/auth/repositories/auth.repository', () => ({
+  authRepository: {
+    findUserByEmail:                  jest.fn(),
+    findUserById:                     jest.fn(),
+    createUser:                       jest.fn(),
+    updateLastLogin:                  jest.fn(),
+    incrementFailedAttempts:          jest.fn(),
+    lockUserAccount:                  jest.fn(),
+    resetFailedAttempts:              jest.fn(),
+    markEmailVerified:                jest.fn(),
+    updatePassword:                   jest.fn(),
+    createRefreshToken:               jest.fn(),
+    findRefreshTokenByHash:           jest.fn(),
+    revokeRefreshToken:               jest.fn(),
+    revokeTokenFamily:                jest.fn(),
+    revokeAllUserRefreshTokens:       jest.fn(),
+    invalidatePreviousPasswordResets: jest.fn().mockResolvedValue(undefined),
+    createPasswordReset:              jest.fn().mockResolvedValue({}),
+    findLatestPasswordReset:          jest.fn(),
+    markPasswordResetUsed:            jest.fn(),
+    invalidatePreviousVerifications:  jest.fn().mockResolvedValue(undefined),
+    createEmailVerification:          jest.fn().mockResolvedValue({}),
+    findLatestEmailVerification:      jest.fn(),
+    markEmailVerificationUsed:        jest.fn(),
+    createAuditLog:                   jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+// ── Mock email service ────────────────────────────────────────────────────────
 jest.mock('../../common/email/email.service', () => ({
   emailService: {
-    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
-    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+    sendVerificationEmail:    jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetEmail:   jest.fn().mockResolvedValue(undefined),
+    sendWelcomeEmail:         jest.fn().mockResolvedValue(undefined),
     sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
-    verifyConnection: jest.fn().mockResolvedValue(true),
+    verifyConnection:         jest.fn().mockResolvedValue(true),
   },
 }));
 
 import request from 'supertest';
 import app from '../../app';
-import prisma from '../../config/prisma';
+import { authRepository } from '../../modules/auth/repositories/auth.repository';
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+const mockRepo = authRepository as jest.Mocked<typeof authRepository>;
 
-describe('Auth Routes — Integration Tests', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+// ── Shared fixture ────────────────────────────────────────────────────────────
+const makeUser = (overrides = {}) => ({
+  id: 'uuid-test-1',
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'john@example.com',
+  passwordHash: '$2b$04$testhashedpassword',
+  role: 'SILVER_INFLUENCER',
+  status: 'ACTIVE',
+  emailVerified: true,
+  lastLogin: null,
+  failedLoginAttempts: 0,
+  lockedUntil: null,
+  profileImage: null,
+  isSuspended: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  deletedAt: null,
+  ...overrides,
+});
+
+beforeEach(() => jest.clearAllMocks());
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('GET /health', () => {
+  it('returns 200 OK', async () => {
+    const res = await request(app).get('/health');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.status).toBe('ok');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('POST /api/v1/auth/register', () => {
+  const valid = {
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@example.com',
+    password: 'MySecure@Pass1',
+  };
+
+  it('returns 201 on successful registration', async () => {
+    mockRepo.findUserByEmail.mockResolvedValue(null);
+    mockRepo.createUser.mockResolvedValue(makeUser() as any);
+
+    const res = await request(app).post('/api/v1/auth/register').send(valid);
+
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.user.email).toBe('john@example.com');
+    expect(res.body.data.user.passwordHash).toBeUndefined(); // never leak hash
   });
 
-  // ── POST /register ────────────────────────────────────────────────────────
+  it('returns 409 if email already exists', async () => {
+    mockRepo.findUserByEmail.mockResolvedValue(makeUser() as any);
 
-  describe('POST /api/v1/auth/register', () => {
-    const validPayload = {
-      firstName: 'aman',
-      lastName: 'alex',
-      email: 'aman@example.com',
-      password: 'MySecure@Pass1',
-    };
-
-    it('should register successfully and return 201', async () => {
-      const createdUser = {
-        id: 'uuid-1',
-        firstName: 'aman',
-        lastName: 'alex',
-        email: 'aman@example.com',
-        passwordHash: '$2b$04$hash',
-        role: 'SILVER_INFLUENCER',
-        status: 'PENDING_VERIFICATION',
-        emailVerified: false,
-        lastLogin: null,
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        profileImage: null,
-        isSuspended: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        deletedAt: null,
-      };
-
-      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
-      (mockPrisma.user.create as jest.Mock).mockResolvedValue(createdUser);
-      (mockPrisma.emailVerification.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
-      (mockPrisma.emailVerification.create as jest.Mock).mockResolvedValue({
-        id: 'ev-1',
-        userId: 'uuid-1',
-        otpHash: '$2b$04$hash',
-        isUsed: false,
-        expiresAt: new Date(Date.now() + 600000),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        deletedAt: null,
-      });
-      (mockPrisma.auditLog.create as jest.Mock).mockResolvedValue({});
-
-      const res = await request(app).post('/api/v1/auth/register').send(validPayload);
-
-      expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-      expect(res.body.message).toContain('verification');
-      expect(res.body.data.user.email).toBe('aman@example.com');
-      expect(res.body.data.user.passwordHash).toBeUndefined(); // Never expose hash
-    });
-
-    it('should return 409 if email already exists', async () => {
-      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue({ id: 'existing' });
-
-      const res = await request(app).post('/api/v1/auth/register').send(validPayload);
-
-      expect(res.status).toBe(409);
-      expect(res.body.success).toBe(false);
-    });
-
-    it('should return 422 for missing fields', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ email: 'test@example.com' });
-
-      expect(res.status).toBe(422);
-      expect(res.body.success).toBe(false);
-      expect(res.body.errors).toBeDefined();
-    });
-
-    it('should return 422 for weak password', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ ...validPayload, password: 'weakpass' });
-
-      expect(res.status).toBe(422);
-    });
-
-    it('should return 422 for invalid email', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/register')
-        .send({ ...validPayload, email: 'not-an-email' });
-
-      expect(res.status).toBe(422);
-    });
+    const res = await request(app).post('/api/v1/auth/register').send(valid);
+    expect(res.status).toBe(409);
+    expect(res.body.success).toBe(false);
   });
 
-  // ── POST /login ───────────────────────────────────────────────────────────
+  it('returns 422 for missing required fields', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/register')
+      .send({ email: 'test@example.com' });
 
-  describe('POST /api/v1/auth/login', () => {
-    it('should return 422 for missing credentials', async () => {
-      const res = await request(app).post('/api/v1/auth/login').send({});
-      expect(res.status).toBe(422);
-    });
-
-    it('should return 401 for non-existent user', async () => {
-      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
-      (mockPrisma.auditLog.create as jest.Mock).mockResolvedValue({});
-
-      const res = await request(app)
-        .post('/api/v1/auth/login')
-        .send({ email: 'none@example.com', password: 'MySecure@Pass1' });
-
-      expect(res.status).toBe(401);
-      expect(res.body.success).toBe(false);
-    });
+    expect(res.status).toBe(422);
+    expect(res.body.errors).toBeDefined();
+    expect(res.body.errors.length).toBeGreaterThan(0);
   });
 
-  // ── POST /forgot-password ─────────────────────────────────────────────────
-
-  describe('POST /api/v1/auth/forgot-password', () => {
-    it('should always return 200 (security: email existence not revealed)', async () => {
-      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
-
-      const res = await request(app)
-        .post('/api/v1/auth/forgot-password')
-        .send({ email: 'nonexistent@example.com' });
-
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-    });
-
-    it('should return 422 for invalid email', async () => {
-      const res = await request(app)
-        .post('/api/v1/auth/forgot-password')
-        .send({ email: 'not-email' });
-
-      expect(res.status).toBe(422);
-    });
+  it('returns 422 for weak password', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/register')
+      .send({ ...valid, password: 'weakpass' });
+    expect(res.status).toBe(422);
   });
 
-  // ── GET /me (protected) ───────────────────────────────────────────────────
+  it('returns 422 for invalid email format', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/register')
+      .send({ ...valid, email: 'not-an-email' });
+    expect(res.status).toBe(422);
+  });
+});
 
-  describe('GET /api/v1/auth/me', () => {
-    it('should return 401 without Authorization header', async () => {
-      const res = await request(app).get('/api/v1/auth/me');
-      expect(res.status).toBe(401);
-    });
-
-    it('should return 401 with invalid token', async () => {
-      const res = await request(app)
-        .get('/api/v1/auth/me')
-        .set('Authorization', 'Bearer invalid.token.here');
-      expect(res.status).toBe(401);
-    });
+// ─────────────────────────────────────────────────────────────────────────────
+describe('POST /api/v1/auth/login', () => {
+  it('returns 422 for missing credentials', async () => {
+    const res = await request(app).post('/api/v1/auth/login').send({});
+    expect(res.status).toBe(422);
   });
 
-  // ── Response format ───────────────────────────────────────────────────────
+  it('returns 401 for non-existent user', async () => {
+    mockRepo.findUserByEmail.mockResolvedValue(null);
 
-  describe('Response format', () => {
-    it('should always include success, message, data, timestamp fields', async () => {
-      (mockPrisma.user.findFirst as jest.Mock).mockResolvedValue(null);
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'nobody@example.com', password: 'MySecure@Pass1' });
 
-      const res = await request(app)
-        .post('/api/v1/auth/forgot-password')
-        .send({ email: 'test@example.com' });
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+});
 
-      expect(res.body).toHaveProperty('success');
-      expect(res.body).toHaveProperty('message');
-      expect(res.body).toHaveProperty('data');
-      expect(res.body).toHaveProperty('timestamp');
-    });
+// ─────────────────────────────────────────────────────────────────────────────
+describe('POST /api/v1/auth/forgot-password', () => {
+  it('always returns 200 — never reveals if email exists', async () => {
+    mockRepo.findUserByEmail.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'nonexistent@example.com' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(mockRepo.createPasswordReset).not.toHaveBeenCalled();
   });
 
-  // ── Health check ──────────────────────────────────────────────────────────
+  it('returns 422 for invalid email', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'not-email' });
+    expect(res.status).toBe(422);
+  });
+});
 
-  describe('GET /health', () => {
-    it('should return 200 OK', async () => {
-      const res = await request(app).get('/health');
-      expect(res.status).toBe(200);
-      expect(res.body.success).toBe(true);
-    });
+// ─────────────────────────────────────────────────────────────────────────────
+describe('GET /api/v1/auth/me (protected)', () => {
+  it('returns 401 without Authorization header', async () => {
+    const res = await request(app).get('/api/v1/auth/me');
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('returns 401 with invalid token', async () => {
+    const res = await request(app)
+      .get('/api/v1/auth/me')
+      .set('Authorization', 'Bearer invalid.token.here');
+    expect(res.status).toBe(401);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Response format contract', () => {
+  it('every response has success, message, data, timestamp', async () => {
+    mockRepo.findUserByEmail.mockResolvedValue(null);
+
+    const res = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'test@example.com' });
+
+    expect(res.body).toHaveProperty('success');
+    expect(res.body).toHaveProperty('message');
+    expect(res.body).toHaveProperty('data');
+    expect(res.body).toHaveProperty('timestamp');
+  });
+
+  it('404 for unknown route has correct format', async () => {
+    const res = await request(app).get('/api/v1/nonexistent');
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toContain('not found');
   });
 });

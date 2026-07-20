@@ -17,23 +17,32 @@ import {
 import { useState } from "react";
 import logo from "../assets/logo1.png";
 import { Link, useLocation } from "react-router-dom";
+import useAuthStore from "../store/authStore";
 
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard },
-  { name: "Campaigns", icon: Megaphone },
-  { name: "Influencers", icon: UserCheck },
-  { name: "Communities", icon: Users },
-  { name: "Businesses", icon: BriefcaseBusiness },
-  { name: "Analytics", icon: BarChart3 },
-  { name: "Earnings", icon: Wallet },
-  { name: "Payments", icon: CreditCard },
-  { name: "Notifications", icon: Bell },
-  { name: "Settings", icon: Settings },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Campaigns", icon: Megaphone, path: "/dashboard/campaigns" },
+  { name: "Influencers", icon: UserCheck, path: "/dashboard/influencers" },
+  { name: "Communities", icon: Users, path: "/dashboard/communities" },
+  { name: "Businesses", icon: BriefcaseBusiness, path: "/dashboard/businesses" },
+  { name: "Analytics", icon: BarChart3, path: "/dashboard/analytics" },
+  { name: "Earnings", icon: Wallet, path: "/dashboard/earnings" },
+  { name: "Payments", icon: CreditCard, path: "/dashboard/payments" },
+  { name: "Notifications", icon: Bell, path: "/dashboard/notifications" },
+  { name: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
 
 export default function Sidebar() {
   const [showCard, setShowCard] = useState(true);
   const location = useLocation();
+  const user = useAuthStore((state) => state.user);
+
+  const displayName = user
+    ? `${user.firstName} ${user.lastName}`
+    : "Account";
+  const displayRole = user?.role
+    ? user.role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : "";
 
   return (
     <aside className="flex min-h-full   w-72 flex-col border-r border-gray-100 bg-white">
@@ -50,9 +59,9 @@ export default function Sidebar() {
         <ul className="space-y-1">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const path = `/${item.name.toLowerCase()}`;
             const isActive =
-              location.pathname === path || location.pathname.startsWith(`${path}/`);
+              location.pathname === item.path ||
+              location.pathname.startsWith(`${item.path}/`);
 
             return (
               <li key={index} className="relative">
@@ -60,7 +69,7 @@ export default function Sidebar() {
                   <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary" />
                 )}
                 <Link
-                  to={item.name.toLowerCase()}
+                  to={item.path}
                   className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 ${
                     isActive
                       ? "bg-primary/10 text-primary"
@@ -123,20 +132,29 @@ export default function Sidebar() {
           onClick={() => setShowCard(true)}
           className="group flex w-full items-center gap-3 rounded-xl p-2 text-left transition hover:bg-gray-50"
         >
+          {/* Avatar — show profile image if available, otherwise initials */}
           <div className="relative shrink-0">
-            <img
-              src="https://i.pravatar.cc/150?img=12"
-              alt="Account avatar"
-              className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
-            />
+            {user?.profileImage ? (
+              <img
+                src={user.profileImage}
+                alt={displayName}
+                className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-primary text-sm font-semibold text-white ring-2 ring-white">
+                {user
+                  ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()
+                  : "?"}
+              </div>
+            )}
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
           </div>
 
           <div className="min-w-0 flex-1">
             <h4 className="truncate text-sm font-semibold text-gray-800">
-              Desire Online School
+              {displayName}
             </h4>
-            <p className="text-xs text-gray-500">Business</p>
+            <p className="text-xs text-gray-500">{displayRole}</p>
           </div>
 
           {!showCard ? (
