@@ -5,13 +5,26 @@
 import { Request } from 'express';
 import { RequestContext } from '../types';
 
-// ── Extract IP address (supports proxies) ────────────────────────────────────
+// ── Validate IP address format ─────────────────────────────────────────────────
+const isValidIp = (ip: string): boolean => {
+  // IPv4
+  const ipv4 = /^(\d{1,3}\.){3}\d{1,3}$/;
+  // IPv6 (simplified)
+  const ipv6 = /^[0-9a-fA-F:]+$/;
+  return ipv4.test(ip) || ipv6.test(ip);
+};
+
+// ── Extract IP address (supports proxies, validates to prevent spoofing) ──────
 export const getIpAddress = (req: Request): string => {
   const forwarded = req.headers['x-forwarded-for'];
   if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0].trim();
+    // Take the first IP (client IP) and validate it
+    const candidate = forwarded.split(',')[0].trim();
+    if (isValidIp(candidate)) return candidate;
   }
-  return req.socket?.remoteAddress || req.ip || 'unknown';
+  const remoteAddr = req.socket?.remoteAddress || req.ip || 'unknown';
+  // Strip IPv6 prefix (::ffff:) for IPv4-mapped addresses
+  return remoteAddr.replace(/^::ffff:/, '');
 };
 
 // ── Extract User-Agent ────────────────────────────────────────────────────────

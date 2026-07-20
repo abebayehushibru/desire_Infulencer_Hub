@@ -22,6 +22,7 @@ export const comparePassword = async (
 
 // ── Validate password strength ────────────────────────────────────────────────
 export const isStrongPassword = (password: string): boolean => {
-  const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-#])[A-Za-z\d@$!%*?&_\-#]{8,}$/;
+  // Min 8 chars, at least: 1 uppercase, 1 lowercase, 1 digit, 1 special char
+  const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-#]).{8,128}$/;
   return pattern.test(password);
 };

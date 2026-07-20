@@ -7,7 +7,7 @@ import { User } from '@prisma/client';
 import { authRepository } from '../repositories/auth.repository';
 import { emailService } from '../../../common/email/email.service';
 import { ApiError } from '../../../common/errors/ApiError';
-import { generateTokenPair, hashRefreshToken, verifyRefreshToken } from '../../../common/utils/jwt.util';
+import { generateTokenPair, hashRefreshToken, verifyRefreshToken, verifyAccessToken } from '../../../common/utils/jwt.util';
 import { comparePassword } from '../../../common/utils/password.util';
 import { generateOtp, hashOtp, verifyOtp, getOtpExpiry, isOtpExpired } from '../../../common/utils/otp.util';
 import { securityLogger } from '../../../common/logger/logger';
@@ -100,7 +100,12 @@ class AuthService {
       throw ApiError.unauthorized(`Account is temporarily locked. Try again after ${unlockAt}`);
     }
 
-    // Check suspension
+    // Auto-unlock if lock period has expired (reset suspension flag)
+    if (user.isSuspended && user.lockedUntil && new Date() >= user.lockedUntil) {
+      await authRepository.resetFailedAttempts(user.id);
+    }
+
+    // Check permanent suspension (no lock time = admin-suspended)
     if (user.isSuspended && !user.lockedUntil) {
       throw ApiError.forbidden('Your account has been suspended. Contact support.');
     }
@@ -207,17 +212,19 @@ class AuthService {
     // Revoke the specific refresh token
     await authRepository.revokeRefreshToken(tokenHash);
 
-    // Blacklist the access token in Redis until it expires
+    // Blacklist the ACCESS token in Redis until it expires
     try {
-      const decoded = verifyRefreshToken(refreshToken);
-      if (decoded.jti) {
-        const ttl = decoded.exp ? decoded.exp - Math.floor(Date.now() / 1000) : 900;
-        if (ttl > 0) {
-          await redisClient.setex(
-            REDIS_KEYS.blacklistToken(decoded.jti),
-            ttl,
-            '1'
-          );
+      if (accessToken) {
+        const decoded = verifyAccessToken(accessToken);
+        if (decoded.jti) {
+          const ttl = decoded.exp ? decoded.exp - Math.floor(Date.now() / 1000) : 900;
+          if (ttl > 0) {
+            await redisClient.setex(
+              REDIS_KEYS.blacklistToken(decoded.jti),
+              ttl,
+              '1'
+            );
+          }
         }
       }
     } catch {
@@ -485,7 +492,7 @@ class AuthService {
     context: { ip: string; userAgent: string }
   ): Promise<void> {
     const user = await authRepository.findUserByEmail(dto.email);
-    if (!user) return; // Silently ignore
+    if (!user) return; // Silently ignore — don't reveal if email exists
 
     if (user.emailVerified) {
       throw ApiError.badRequest('Email is already verified');
@@ -498,6 +505,7 @@ class AuthService {
       action: 'RESEND_VERIFICATION',
       ipAddress: context.ip,
       userAgent: context.userAgent,
+      metadata: { email: user.email },
     });
   }
 

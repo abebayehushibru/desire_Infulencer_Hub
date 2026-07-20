@@ -17,7 +17,7 @@ export const HTTP_STATUS = {
 } as const;
 
 export const AUTH = {
-  BCRYPT_ROUNDS: 12,
+  get BCRYPT_ROUNDS() { return parseInt(process.env.BCRYPT_ROUNDS || '12', 10); },
   OTP_LENGTH: 6,
   OTP_EXPIRES_MINUTES: 10,
   MAX_LOGIN_ATTEMPTS: 5,

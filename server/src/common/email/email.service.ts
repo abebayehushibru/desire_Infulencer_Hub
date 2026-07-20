@@ -29,12 +29,18 @@ class EmailService {
     });
   }
 
+  // ── Sanitize inputs to prevent SMTP injection via CRLF ──────────────────────
+  private sanitize(input: string): string {
+    // Strip CRLF and other control characters that could enable header injection
+    return input.replace(/[\r\n\t\0\x08\x0B\x0C\x1F\x7F]/g, ' ').trim();
+  }
+
   // ── Core send method ────────────────────────────────────────────────────────
   private async send(options: SendEmailOptions): Promise<void> {
     const mailOptions: SendMailOptions = {
-      from: `"${env.SMTP_FROM_NAME}" <${env.SMTP_FROM_EMAIL}>`,
-      to: options.to,
-      subject: options.subject,
+      from: `"${this.sanitize(env.SMTP_FROM_NAME)}" <${this.sanitize(env.SMTP_FROM_EMAIL)}>`,
+      to: this.sanitize(options.to),
+      subject: this.sanitize(options.subject),
       html: options.html,
       text: options.text || this.htmlToText(options.html),
     };
@@ -106,17 +112,29 @@ class EmailService {
 </html>`;
   }
 
+  // ── Escape HTML to prevent XSS in email templates ───────────────────────────
+  private escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
   // ── FR05 Email Verification ──────────────────────────────────────────────────
   async sendVerificationEmail(params: {
     to: string;
     firstName: string;
     otp: string;
   }): Promise<void> {
+    const safeName = this.escapeHtml(this.sanitize(params.firstName));
+    const safeOtp  = this.escapeHtml(params.otp.replace(/\D/g, '').slice(0, 6)); // digits only
     const content = `
-      <p>Hi <strong>${params.firstName}</strong>,</p>
+      <p>Hi <strong>${safeName}</strong>,</p>
       <p>Welcome to InfluenceHub! To activate your account, please use the verification code below:</p>
       <div class="otp-box">
-        <div class="otp-code">${params.otp}</div>
+        <div class="otp-code">${safeOtp}</div>
         <div class="otp-expiry">⏱ This code expires in 10 minutes</div>
       </div>
       <p>Enter this code in the app to verify your email address.</p>
@@ -138,11 +156,13 @@ class EmailService {
     firstName: string;
     otp: string;
   }): Promise<void> {
+    const safeName = this.escapeHtml(this.sanitize(params.firstName));
+    const safeOtp  = this.escapeHtml(params.otp.replace(/\D/g, '').slice(0, 6));
     const content = `
-      <p>Hi <strong>${params.firstName}</strong>,</p>
+      <p>Hi <strong>${safeName}</strong>,</p>
       <p>We received a request to reset your InfluenceHub password. Use the code below:</p>
       <div class="otp-box">
-        <div class="otp-code">${params.otp}</div>
+        <div class="otp-code">${safeOtp}</div>
         <div class="otp-expiry">⏱ This code expires in 10 minutes</div>
       </div>
       <p>This code can only be used once. If you request another reset, a new code will be generated.</p>

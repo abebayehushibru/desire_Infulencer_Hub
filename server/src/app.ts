@@ -25,10 +25,12 @@ const app: Application = express();
 
 // ── Security Headers (Helmet) ─────────────────────────────────────────────────
 app.use(helmet({
-  contentSecurityPolicy: env.IS_PRODUCTION
-    ? undefined
-    : false, // Disable CSP in dev for easier debugging
+  contentSecurityPolicy: env.IS_PRODUCTION ? undefined : false,
   crossOriginEmbedderPolicy: false,
+  hsts: env.IS_PRODUCTION ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
+  noSniff: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  xssFilter: true,
 }));
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
@@ -52,9 +54,9 @@ app.use(compression());
 // ── Cookie Parser ─────────────────────────────────────────────────────────────
 app.use(cookieParser());
 
-// ── Body Parsing ──────────────────────────────────────────────────────────────
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// ── Body Parsing (auth endpoints only need small payloads) ───────────────────
+app.use(express.json({ limit: '50kb' }));
+app.use(express.urlencoded({ extended: true, limit: '50kb' }));
 
 // ── Trust proxy (for accurate IP behind reverse proxy) ───────────────────────
 app.set('trust proxy', 1);

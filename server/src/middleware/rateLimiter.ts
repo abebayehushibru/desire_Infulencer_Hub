@@ -24,8 +24,8 @@ export const generalRateLimiter = rateLimit({
 
 // ── Auth endpoints — strict limiter ──────────────────────────────────────────
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,   // 15 minutes
-  max: 20,                     // 20 auth requests per 15 min per IP
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 20 : 200,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.ip || 'unknown',
