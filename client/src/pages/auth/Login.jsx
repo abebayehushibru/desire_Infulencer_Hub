@@ -1,11 +1,11 @@
 import { Eye, EyeClosed, Lock, Mail } from "lucide-react";
-import loginImage from "../assets/login.png";
-import Input from "../components/common/Input";
+import loginImage from "../../assets/login.png";
+import Input from "../../components/common/Input";
 import { useState } from "react";
-import Button from "../components/common/Button";
-import Checkbox from "../components/common/Checkbox";
+import Button from "../../components/common/Button";
+import Checkbox from "../../components/common/Checkbox";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import useAuthStore from "../store/authStore";
+import useAuthStore from "../../store/authStore";
 import toast from "react-hot-toast";
 
 export default function Login() {
@@ -171,7 +171,7 @@ export default function Login() {
                     ...prev,
                     remeber: !prev.remeber
                   }))
-                }} /> <a href="/forget-paswword" className="">Forget password</a>
+                }} /> <Link to="/forgot-password" className="text-sm font-medium text-primary hover:underline">Forgot password?</Link>
               </div>
 
               <Button type="submit" fullWidth loading={loading} disabled={loading}>

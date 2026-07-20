@@ -40,12 +40,11 @@ export const authRateLimiter = rateLimit({
 
 // ── Login — most strict ────────────────────────────────────────────────────────
 export const loginRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,   // 15 minutes
-  max: 10,                     // 10 login attempts per 15 min per IP
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 10 : 100,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {
-    // Rate limit per IP + email combination
     const email = (req.body?.email as string || '').toLowerCase();
     return `${req.ip}:${email}`;
   },
@@ -61,7 +60,7 @@ export const loginRateLimiter = rateLimit({
 // ── OTP endpoints (forgot password, resend verification) ─────────────────────
 export const otpRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,   // 1 hour
-  max: 5,                      // 5 OTP requests per hour per IP
+  max: process.env.NODE_ENV === 'production' ? 5 : 50, // 50 in dev, 5 in prod
   standardHeaders: true,
   legacyHeaders: false,
   handler: (_req, res) => {

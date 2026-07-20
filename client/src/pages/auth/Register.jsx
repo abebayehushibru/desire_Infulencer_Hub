@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Eye, EyeClosed, Lock, Mail, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import Input from "../components/common/Input";
-import Button from "../components/common/Button";
-import loginImage from "../assets/login.png";
-import useAuthStore from "../store/authStore";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
+import loginImage from "../../assets/login.png";
+import useAuthStore from "../../store/authStore";
 import toast from "react-hot-toast";
 
 // Password must match backend: min 8, uppercase, lowercase, digit, special char
