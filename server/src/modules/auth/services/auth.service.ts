@@ -245,9 +245,26 @@ class AuthService {
   // ── Logout All Devices ────────────────────────────────────────────────────────
   async logoutAll(
     userId: string,
+    accessToken: string,
     context: { ip: string; userAgent: string }
   ): Promise<void> {
+    // Revoke all stored refresh tokens
     await authRepository.revokeAllUserRefreshTokens(userId);
+
+    // Also blacklist the current access token so it cannot be reused
+    try {
+      if (accessToken) {
+        const decoded = verifyAccessToken(accessToken);
+        if (decoded.jti) {
+          const ttl = decoded.exp ? decoded.exp - Math.floor(Date.now() / 1000) : 900;
+          if (ttl > 0) {
+            await redisClient.setex(REDIS_KEYS.blacklistToken(decoded.jti), ttl, '1');
+          }
+        }
+      }
+    } catch {
+      // Token expired or Redis unavailable — safe to ignore
+    }
 
     await authRepository.createAuditLog({
       userId,

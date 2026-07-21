@@ -98,7 +98,9 @@ class AuthController {
   async logoutAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const authReq = req as AuthenticatedRequest;
-      await authService.logoutAll(authReq.user.sub, ctx(req));
+      const accessToken = extractBearerToken(req.headers.authorization) || '';
+
+      await authService.logoutAll(authReq.user.sub, accessToken, ctx(req));
 
       res.clearCookie(COOKIE.REFRESH_TOKEN, { ...COOKIE.OPTIONS });
 

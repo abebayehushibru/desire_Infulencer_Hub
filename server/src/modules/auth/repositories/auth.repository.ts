@@ -115,6 +115,14 @@ export class AuthRepository {
     });
   }
 
+  // ── Find all non-deleted users (admin) ────────────────────────────────────
+  async findAllUsers(): Promise<User[]> {
+    return prisma.user.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // REFRESH TOKEN QUERIES — FR04 Session Management
   // ─────────────────────────────────────────────────────────────────────────

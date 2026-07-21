@@ -15,7 +15,8 @@ import { generalRateLimiter } from './middleware/rateLimiter';
 import logger from './common/logger/logger';
 
 // ── Route imports ─────────────────────────────────────────────────────────────
-import authRoutes from './modules/auth/routes/auth.routes';
+import authRoutes  from './modules/auth/routes/auth.routes';
+import adminRoutes from './modules/auth/routes/admin.routes';
 
 // ── Swagger ───────────────────────────────────────────────────────────────────
 import swaggerUi from 'swagger-ui-express';
@@ -101,7 +102,8 @@ if (!env.IS_PRODUCTION) {
 // ── API Routes ─────────────────────────────────────────────────────────────────
 const API_PREFIX = `/api/${env.API_VERSION}`;
 
-app.use(`${API_PREFIX}/auth`, authRoutes);
+app.use(`${API_PREFIX}/auth`,  authRoutes);
+app.use(`${API_PREFIX}/admin`, adminRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

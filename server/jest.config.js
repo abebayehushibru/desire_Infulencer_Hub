@@ -12,9 +12,19 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/server.ts',
     '!src/prisma/**',
+    '!src/docs/**',
+    '!src/scripts/**',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      branches:   60,
+      functions:  70,
+      lines:      70,
+      statements: 70,
+    },
+  },
   testTimeout: 30000,
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
