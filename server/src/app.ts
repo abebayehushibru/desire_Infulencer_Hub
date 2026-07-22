@@ -15,9 +15,10 @@ import { generalRateLimiter } from './middleware/rateLimiter';
 import logger from './common/logger/logger';
 
 // ── Route imports ─────────────────────────────────────────────────────────────
-import authRoutes  from './modules/auth/routes/auth.routes';
-import adminRoutes from './modules/auth/routes/admin.routes';
-import userRoutes  from './modules/users/routes/user-management.routes';
+import authRoutes      from './modules/auth/routes/auth.routes';
+import adminRoutes     from './modules/auth/routes/admin.routes';
+import userRoutes      from './modules/users/routes/user-management.routes';
+import communityRoutes from './modules/community/routes/community.routes';
 
 // ── Swagger ───────────────────────────────────────────────────────────────────
 import swaggerUi from 'swagger-ui-express';
@@ -104,9 +105,10 @@ if (!env.IS_PRODUCTION) {
 // ── API Routes ─────────────────────────────────────────────────────────────────
 const API_PREFIX = `/api/${env.API_VERSION}`;
 
-app.use(`${API_PREFIX}/auth`,  authRoutes);
-app.use(`${API_PREFIX}/admin`, adminRoutes);
-app.use(`${API_PREFIX}/users`, userRoutes);
+app.use(`${API_PREFIX}/auth`,        authRoutes);
+app.use(`${API_PREFIX}/admin`,       adminRoutes);
+app.use(`${API_PREFIX}/users`,       userRoutes);
+app.use(`${API_PREFIX}/communities`, communityRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

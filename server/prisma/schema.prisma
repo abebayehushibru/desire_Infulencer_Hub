@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// InfluenceHub — Prisma Schema v2
-// Auth module (FR01–FR05) + User Management & Profiles (FR06–FR10)
+// InfluenceHub — Prisma Schema v3
+// Auth (FR01–FR05) + User Management (FR06–FR10) + Community (FR11–FR15)
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
@@ -70,6 +70,15 @@ enum AuditAction {
   // FR08
   BUSINESS_APPROVED
   BUSINESS_REJECTED
+  // FR11–FR15
+  COMMUNITY_CREATED
+  COMMUNITY_UPDATED
+  COMMUNITY_DEACTIVATED
+  COMMUNITY_DELETED
+  COMMUNITY_LEADER_ASSIGNED
+  COMMUNITY_MEMBER_ADDED
+  COMMUNITY_MEMBER_REMOVED
+  COMMUNITY_COMMISSION_UPDATED
 }
 
 enum NotificationType {
@@ -77,7 +86,27 @@ enum NotificationType {
   BUSINESS_REJECTED
   TIER_CHANGED
   ACCOUNT_STATUS_CHANGED
+  // FR11–FR15
+  COMMUNITY_CREATED
+  COMMUNITY_LEADER_ASSIGNED
+  COMMUNITY_MEMBER_ADDED
+  COMMUNITY_MEMBER_REMOVED
+  COMMUNITY_COMMISSION_UPDATED
   GENERAL
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FR11–FR15 ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CommunityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CommunityMemberStatus {
+  ACTIVE
+  REMOVED
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,6 +145,10 @@ model User {
   createdByAdmin       User?     @relation("AdminCreatedUsers", fields: [createdBy], references: [id])
   createdBy            String?   @map("created_by") @db.Uuid
   managedUsers         User[]    @relation("AdminCreatedUsers")
+
+  // Community relations (FR11–FR15)
+  ledCommunities       Community[]       @relation("CommunityLeader")
+  communityMemberships CommunityMember[]
 
   @@index([email])
   @@index([role])
@@ -358,4 +391,110 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMUNITY — FR11 Community Creation
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Community {
+  id                String          @id @default(uuid()) @db.Uuid
+  title             String          @unique @db.VarChar(255)
+  description       String?         @db.Text
+  rules             String?         @db.Text
+  status            CommunityStatus @default(ACTIVE)
+  communityLeaderId String?         @map("community_leader_id") @db.Uuid
+  createdBy         String          @map("created_by") @db.Uuid         // SYSTEM_ADMIN id
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+  deletedAt         DateTime?       @map("deleted_at")
+
+  // Relations
+  leader            User?           @relation("CommunityLeader", fields: [communityLeaderId], references: [id])
+  members           CommunityMember[]
+  commission        CommunityCommission?
+  commissionHistory CommunityCommissionHistory[]
+
+  @@index([status])
+  @@index([communityLeaderId])
+  @@index([deletedAt])
+  @@map("communities")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMUNITY MEMBER — FR13 Community Member Management
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CommunityMember {
+  id          String              @id @default(uuid()) @db.Uuid
+  communityId String              @map("community_id") @db.Uuid
+  userId      String              @map("user_id") @db.Uuid
+  status      CommunityMemberStatus @default(ACTIVE)
+  joinedAt    DateTime            @default(now()) @map("joined_at")
+  leftAt      DateTime?           @map("left_at")
+  addedBy     String              @map("added_by") @db.Uuid             // SYSTEM_ADMIN or Community Leader
+  removedBy   String?             @map("removed_by") @db.Uuid
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+  deletedAt   DateTime?           @map("deleted_at")
+
+  // Relations
+  community   Community           @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([communityId, userId])           // prevent duplicate active memberships
+  @@index([communityId])
+  @@index([userId])
+  @@index([status])
+  @@map("community_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMUNITY COMMISSION — FR12 Commission Rules (current active config)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CommunityCommission {
+  id                 String    @id @default(uuid()) @db.Uuid
+  communityId        String    @unique @map("community_id") @db.Uuid
+  platformFee        Float     @map("platform_fee")          // e.g. 20.0  (%)
+  leaderPercentage   Float     @map("leader_percentage")     // of remaining after platform fee
+  memberPercentage   Float     @map("member_percentage")     // leaderPercentage + memberPercentage = 100
+  effectiveFrom      DateTime  @default(now()) @map("effective_from")
+  updatedBy          String    @map("updated_by") @db.Uuid   // SYSTEM_ADMIN
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+
+  // Relations
+  community          Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([communityId])
+  @@map("community_commissions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMUNITY COMMISSION HISTORY — FR12 Immutable history for auditing
+// Historical records are never modified — new record on every change.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CommunityCommissionHistory {
+  id                 String    @id @default(uuid()) @db.Uuid
+  communityId        String    @map("community_id") @db.Uuid
+  platformFee        Float     @map("platform_fee")
+  leaderPercentage   Float     @map("leader_percentage")
+  memberPercentage   Float     @map("member_percentage")
+  effectiveFrom      DateTime  @map("effective_from")
+  effectiveTo        DateTime? @map("effective_to")          // null = currently active
+  changedBy          String    @map("changed_by") @db.Uuid
+  changeReason       String?   @map("change_reason") @db.VarChar(500)
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+
+  // Relations
+  community          Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([communityId])
+  @@index([effectiveFrom])
+  @@map("community_commission_history")
 }

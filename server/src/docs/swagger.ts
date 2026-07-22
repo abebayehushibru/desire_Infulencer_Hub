@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Swagger / OpenAPI Documentation
-// Covers: Auth (FR01–FR05) + User Management & Profiles (FR06–FR10)
+// Covers: Auth (FR01–FR05) + User Mgmt (FR06–FR10) + Community (FR11–FR15)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const swaggerDocument = {
@@ -8,7 +8,7 @@ export const swaggerDocument = {
   info: {
     title: 'InfluenceHub API',
     description: 'Enterprise Influencer Marketing Platform — Full API Documentation',
-    version: '2.0.0',
+    version: '3.0.0',
     contact: {
       name: 'InfluenceHub API Support',
       email: 'api@influencehub.com',
@@ -27,6 +27,11 @@ export const swaggerDocument = {
     { name: 'Influencer Profile',    description: 'FR09 — Influencer manages their profile and views tier history' },
     { name: 'Agent',                 description: 'FR10 — Agent profile and read-only access to businesses/campaigns' },
     { name: 'Notifications',         description: 'In-app notifications for all authenticated users' },
+    { name: 'Community — Admin',     description: 'FR11 — SYSTEM_ADMIN creates, manages, deactivates, and deletes communities' },
+    { name: 'Community — Commission',description: 'FR12 — Commission rules per community with full audit history' },
+    { name: 'Community — Members',   description: 'FR13 — GOLD/SILVER influencer member management' },
+    { name: 'Community — Leaderboard', description: 'FR14 — Ranked member leaderboard per community' },
+    { name: 'Community — Rankings',  description: 'FR15 — Platform-wide cross-community rankings (SYSTEM_ADMIN only)' },
   ],
   components: {
     securitySchemes: {
@@ -937,6 +942,301 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Notification marked as read' },
           401: { description: 'Not authenticated' },
+        },
+      },
+    },
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FR11 — Community CRUD
+    // ─────────────────────────────────────────────────────────────────────────
+
+    '/api/v1/communities': {
+      post: {
+        tags: ['Community — Admin'],
+        summary: 'FR11 — Create a new community',
+        description: 'SYSTEM_ADMIN only. Title must be unique (case-insensitive). Optionally assign a DIAMOND influencer as leader.',
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            required: ['title'],
+            properties: {
+              title:             { type: 'string', minLength: 3, maxLength: 255, example: 'Fashion Creators' },
+              description:       { type: 'string', maxLength: 5000, example: 'A community for fashion influencers.' },
+              rules:             { type: 'string', maxLength: 5000, example: 'Be respectful. No spam.' },
+              communityLeaderId: { type: 'string', format: 'uuid', nullable: true, description: 'Must be a DIAMOND_INFLUENCER user ID' },
+            },
+          } } },
+        },
+        responses: {
+          201: { description: 'Community created. Leader notification sent if leader assigned.' },
+          401: { description: 'Not authenticated' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+          409: { description: 'Community title already exists, or leader already leads another community' },
+          422: { description: 'Validation error' },
+        },
+      },
+      get: {
+        tags: ['Community — Admin'],
+        summary: 'FR11 — List communities with filters, pagination, and sorting',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { in: 'query', name: 'status',    schema: { type: 'string', enum: ['ACTIVE', 'INACTIVE'] } },
+          { in: 'query', name: 'search',    schema: { type: 'string', maxLength: 100 }, description: 'Search by title or description' },
+          { in: 'query', name: 'page',      schema: { type: 'integer', minimum: 1, default: 1 } },
+          { in: 'query', name: 'limit',     schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
+          { in: 'query', name: 'sortBy',    schema: { type: 'string', enum: ['title', 'createdAt', 'status'], default: 'createdAt' } },
+          { in: 'query', name: 'sortOrder', schema: { type: 'string', enum: ['asc', 'desc'], default: 'desc' } },
+        ],
+        responses: {
+          200: { description: 'Paginated community list with member counts and commission data' },
+          401: { description: 'Not authenticated' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+        },
+      },
+    },
+
+    '/api/v1/communities/rankings': {
+      get: {
+        tags: ['Community — Rankings'],
+        summary: 'FR15 — Platform-wide cross-community rankings',
+        description: 'SYSTEM_ADMIN only. Rank all communities by earnings, conversions, or active campaigns. Paginated and sortable.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { in: 'query', name: 'page',      schema: { type: 'integer', minimum: 1, default: 1 } },
+          { in: 'query', name: 'limit',     schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
+          { in: 'query', name: 'sortBy',    schema: { type: 'string', enum: ['totalEarnings', 'totalConversions', 'activeCampaigns', 'memberCount'], default: 'totalEarnings' } },
+          { in: 'query', name: 'sortOrder', schema: { type: 'string', enum: ['asc', 'desc'], default: 'desc' } },
+          { in: 'query', name: 'status',    schema: { type: 'string', enum: ['ACTIVE', 'INACTIVE'] } },
+        ],
+        responses: {
+          200: { description: 'Ranked community list. Earnings/conversions populated by Module 4.' },
+          401: { description: 'Not authenticated' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+        },
+      },
+    },
+
+    '/api/v1/communities/{id}': {
+      get: {
+        tags: ['Community — Admin'],
+        summary: 'FR11 — Get community details',
+        description: 'Accessible by SYSTEM_ADMIN, the community leader, and community members.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          200: { description: 'Community with leader, commission, and member count' },
+          401: { description: 'Not authenticated' },
+          403: { description: 'Insufficient access — not a member or admin' },
+          404: { description: 'Community not found' },
+        },
+      },
+      patch: {
+        tags: ['Community — Admin'],
+        summary: 'FR11 — Update community (SYSTEM_ADMIN only)',
+        description: 'Update title, description, rules, status, or community leader. Title must remain unique.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            properties: {
+              title:             { type: 'string', minLength: 3, maxLength: 255 },
+              description:       { type: 'string', maxLength: 5000, nullable: true },
+              rules:             { type: 'string', maxLength: 5000, nullable: true },
+              status:            { type: 'string', enum: ['ACTIVE', 'INACTIVE'] },
+              communityLeaderId: { type: 'string', format: 'uuid', nullable: true },
+            },
+          } } },
+        },
+        responses: {
+          200: { description: 'Community updated. New leader notified if leadership changed.' },
+          400: { description: 'Invalid data' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+          404: { description: 'Community not found' },
+          409: { description: 'Duplicate title or leader already assigned elsewhere' },
+          422: { description: 'Validation error' },
+        },
+      },
+      delete: {
+        tags: ['Community — Admin'],
+        summary: 'FR11 — Soft-delete community (SYSTEM_ADMIN only)',
+        description: 'Marks the community as deleted and sets status INACTIVE. Cascades to members but preserves history.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          200: { description: 'Community soft-deleted' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+          404: { description: 'Community not found' },
+        },
+      },
+    },
+
+    '/api/v1/communities/{id}/deactivate': {
+      post: {
+        tags: ['Community — Admin'],
+        summary: 'FR11 — Deactivate a community',
+        description: 'Sets status to INACTIVE without deleting. Cannot add members to inactive communities.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          200: { description: 'Community deactivated' },
+          400: { description: 'Community is already inactive' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+          404: { description: 'Community not found' },
+        },
+      },
+    },
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FR12 — Commission
+    // ─────────────────────────────────────────────────────────────────────────
+
+    '/api/v1/communities/{id}/commission': {
+      patch: {
+        tags: ['Community — Commission'],
+        summary: 'FR12 — Set or update commission rules',
+        description: 'SYSTEM_ADMIN only. leaderPercentage + memberPercentage must equal 100. Creates an immutable history record. Seals the previous history record. Notifies the community leader.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            required: ['platformFee', 'leaderPercentage', 'memberPercentage'],
+            properties: {
+              platformFee:       { type: 'number', minimum: 0, maximum: 100, example: 20, description: 'Platform fee % deducted first' },
+              leaderPercentage:  { type: 'number', minimum: 0, maximum: 100, example: 30, description: 'Leader share of post-fee amount' },
+              memberPercentage:  { type: 'number', minimum: 0, maximum: 100, example: 70, description: 'Member share. leaderPercentage + memberPercentage must = 100' },
+              changeReason:      { type: 'string', maxLength: 500, example: 'Quarterly revision' },
+            },
+          } } },
+        },
+        responses: {
+          200: { description: 'Commission updated. History record created. Leader notified.' },
+          400: { description: 'leaderPercentage + memberPercentage != 100, or platform fee out of range' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+          404: { description: 'Community not found' },
+          422: { description: 'Validation error' },
+        },
+      },
+      get: {
+        tags: ['Community — Commission'],
+        summary: 'FR12 — Get current commission rules',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          200: { description: 'Current commission configuration' },
+          403: { description: 'SYSTEM_ADMIN or Community Leader required' },
+          404: { description: 'Community or commission not found' },
+        },
+      },
+    },
+
+    '/api/v1/communities/{id}/commission/history': {
+      get: {
+        tags: ['Community — Commission'],
+        summary: 'FR12 — Get commission change history',
+        description: 'SYSTEM_ADMIN only. Returns all past commission configurations ordered by effectiveFrom descending. Historical records are never modified.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          200: { description: 'Commission history list' },
+          403: { description: 'SYSTEM_ADMIN role required' },
+          404: { description: 'Community not found' },
+        },
+      },
+    },
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FR13 — Members
+    // ─────────────────────────────────────────────────────────────────────────
+
+    '/api/v1/communities/{id}/members': {
+      post: {
+        tags: ['Community — Members'],
+        summary: 'FR13 — Add a member to a community',
+        description: 'SYSTEM_ADMIN or Community Leader. Only GOLD_INFLUENCER and SILVER_INFLUENCER can become members. DIAMOND influencers cannot be regular members. Prevents duplicate active membership. Blocked for suspended/inactive users.',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            required: ['userId'],
+            properties: { userId: { type: 'string', format: 'uuid', description: 'GOLD or SILVER influencer user ID' } },
+          } } },
+        },
+        responses: {
+          201: { description: 'Member added. In-app notification sent to new member.' },
+          400: { description: 'Ineligible role, suspended/inactive user, or inactive community' },
+          403: { description: 'SYSTEM_ADMIN or Community Leader required' },
+          404: { description: 'Community or user not found' },
+          409: { description: 'User is already an active member' },
+          422: { description: 'Validation error' },
+        },
+      },
+      get: {
+        tags: ['Community — Members'],
+        summary: 'FR13 — List community members',
+        description: 'Accessible by SYSTEM_ADMIN, the community leader, and existing community members.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'status', schema: { type: 'string', enum: ['ACTIVE', 'REMOVED'] } },
+          { in: 'query', name: 'page',   schema: { type: 'integer', minimum: 1, default: 1 } },
+          { in: 'query', name: 'limit',  schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
+        ],
+        responses: {
+          200: { description: 'Paginated member list with user data' },
+          403: { description: 'Must be admin, leader, or active member' },
+          404: { description: 'Community not found' },
+        },
+      },
+    },
+
+    '/api/v1/communities/{id}/members/{memberId}': {
+      delete: {
+        tags: ['Community — Members'],
+        summary: 'FR13 — Remove a member from a community',
+        description: 'SYSTEM_ADMIN or Community Leader. Sets member status to REMOVED and records leftAt. Sends in-app notification to removed member.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'id',       required: true, schema: { type: 'string', format: 'uuid' } },
+          { in: 'path', name: 'memberId', required: true, schema: { type: 'string', format: 'uuid' }, description: 'CommunityMember.id (not user ID)' },
+        ],
+        responses: {
+          200: { description: 'Member removed. In-app notification sent.' },
+          400: { description: 'Member already removed' },
+          403: { description: 'SYSTEM_ADMIN or Community Leader required' },
+          404: { description: 'Community or membership not found' },
+        },
+      },
+    },
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // FR14 — Leaderboard
+    // ─────────────────────────────────────────────────────────────────────────
+
+    '/api/v1/communities/{id}/leaderboard': {
+      get: {
+        tags: ['Community — Leaderboard'],
+        summary: 'FR14 — Community member leaderboard',
+        description: 'Rank active members by totalConversions, totalEarnings, or campaignActivity. Visible to SYSTEM_ADMIN, the community leader, and members. Conversion/earnings metrics populated by Module 4.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { in: 'path',  name: 'id',        required: true, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'page',       schema: { type: 'integer', minimum: 1, default: 1 } },
+          { in: 'query', name: 'limit',      schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 } },
+          { in: 'query', name: 'sortBy',     schema: { type: 'string', enum: ['totalConversions', 'totalEarnings', 'campaignActivity'], default: 'totalConversions' } },
+          { in: 'query', name: 'sortOrder',  schema: { type: 'string', enum: ['asc', 'desc'], default: 'desc' } },
+        ],
+        responses: {
+          200: { description: 'Ranked leaderboard entries with member data, join date, and metrics' },
+          403: { description: 'Must be admin, leader, or active community member' },
+          404: { description: 'Community not found' },
         },
       },
     },
