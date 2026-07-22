@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Heart,
     ThumbsUp,
@@ -17,19 +17,39 @@ import {
 } from "lucide-react";
 import logo from "../assets/logos/logo6.png"
 import logo2 from "../assets/logos/logo2.png"
-import heroimg from "../assets/hero-creators.jpg"
+import heroimg from "../assets/habiba.png"
 import { Link } from "react-router-dom";
 import Header from "../components/header";
 import Footer from "../components/Footer";
-
-
+import hero1 from "../assets/habiba.png";
+import hero2 from "../assets/fasika.png";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function InfulencerHubLanding() {
-   
+    const [current, setCurrent] = useState(0);
+    const images = [hero1, hero2, hero1, hero2, hero1, hero2];
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            nextSlide();
+        }, 4000);
+
+        return () => clearInterval(timer);
+    }, [current]);
+    const nextSlide = () => {
+        setCurrent((prev) => (prev + 1) % images.length);
+    };
+
+    const prevSlide = () => {
+        setCurrent((prev) =>
+            prev === 0 ? images.length - 1 : prev - 1
+        );
+    };
+
     return (
         <div className="min-h-full poppins bg-white text-primary font-sans">
             {/* ============ HEADER ============ */}
-           <Header  />
+            <Header />
             {/* ============ HERO ============ */}
             <section className="relative  overflow-hidden  bg-gradient-to-br from-primary via-secondary to-primary py-16 sm:py-24">
                 <div className="pointer-events-none absolute -top-40 -right-32 w-96 h-40 rounded-full bg-amber-400/20 blur-3xl" />
@@ -85,8 +105,8 @@ export default function InfulencerHubLanding() {
               using their phones, e.g. <img src="/assets/hero-creators.jpg" /> */}
                     <div className="relative aspect-[4/5] rounded-3xl bg-gradient-to-br from-violet-700 via-violet-800 to-violet-950  flex items-center justify-center ">
                         <Camera className="text-white/40" size={72} strokeWidth={1.2} />
-                        <img src={heroimg} className="absolute h-full object-fit"/>
-                          
+                        <img src={heroimg} className="absolute h-full w-full rounded-3xl  object-cover" />
+
 
                         <span className="absolute top-[6%] left-[4%] w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center animate-bounce">
                             <Heart size={20} className="text-rose-500" fill="currentColor" />
@@ -153,20 +173,63 @@ export default function InfulencerHubLanding() {
 
                     {/* Passion visual placeholder — replace with a real photo of a
               creator/photographer setup, e.g. <img src="/assets/creator-studio.jpg" /> */}
-                    <div className="order-1 lg:order-2 relative aspect-[5/4] rounded-3xl bg-gradient-to-br from-violet-100 via-violet-200 to-violet-300 shadow-xl flex items-center justify-center overflow-hidden">
-                        <Camera className="text-violet-800/50" size={64} strokeWidth={1.2} />
+                    <div className="order-1 lg:order-2 relative aspect-[5/4] rounded-3xl bg-gradient-to-br from-violet-100 via-violet-200 to-violet-300 shadow-xl overflow-hidden">
+
+                        <Camera
+                            className="absolute text-violet-800/20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                            size={70}
+                        />
+
+                        <AnimatePresence mode="slide">
+                            <motion.img
+                                key={current}
+                                src={images[current]}
+                                alt=""
+                                className="absolute inset-0 w-full h-full object-cover"
+                                initial={{
+                                    opacity: 0,
+                                    x: 80,
+                                    scale: 1.05,
+                                }}
+                                animate={{
+                                    opacity: 1,
+                                    x: 0,
+                                    scale: 1,
+                                }}
+                                exit={{
+                                    opacity: 0,
+                                    x: -80,
+                                    scale: 0.95,
+                                }}
+                                transition={{
+                                    duration: 0.8,
+                                    ease: "easeInOut",
+                                }}
+                            />
+                        </AnimatePresence>
 
                         <div className="absolute left-5 right-5 bottom-5 flex items-center justify-between rounded-2xl bg-white/85 backdrop-blur px-4 py-3 text-sm font-semibold text-violet-950">
+
                             <span>Aaliyah getting ready for her next video</span>
+
                             <div className="flex gap-2">
-                                <button aria-label="Previous" className="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center hover:bg-amber-400 transition">
+                                <button
+                                    onClick={prevSlide}
+                                    className="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center hover:bg-amber-400 transition"
+                                >
                                     <ChevronLeft size={15} />
                                 </button>
-                                <button aria-label="Next" className="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center hover:bg-amber-400 transition">
+
+                                <button
+                                    onClick={nextSlide}
+                                    className="w-8 h-8 rounded-full bg-white shadow flex items-center justify-center hover:bg-amber-400 transition"
+                                >
                                     <ChevronRight size={15} />
                                 </button>
                             </div>
+
                         </div>
+
                     </div>
                 </div>
             </section>
@@ -214,8 +277,8 @@ export default function InfulencerHubLanding() {
                             <div
                                 key={title}
                                 className={`rounded-2xl p-8 border transition hover:-translate-y-1.5 ${featured
-                                        ? "bg-gradient-to-br from-amber-400 to-amber-300 border-transparent shadow-lg hover:shadow-xl"
-                                        : "bg-white border-violet-950/10 hover:shadow-lg"
+                                    ? "bg-gradient-to-br from-amber-400 to-amber-300 border-transparent shadow-lg hover:shadow-xl"
+                                    : "bg-white border-violet-950/10 hover:shadow-lg"
                                     }`}
                             >
                                 <span className={`text-xs font-bold tracking-widest ${featured ? "text-violet-950/50" : "text-violet-800/60"}`}>
@@ -303,7 +366,7 @@ export default function InfulencerHubLanding() {
             </section>
 
             {/* ============ FOOTER ============ */}
-            <Footer/>
+            <Footer />
         </div>
     );
 }

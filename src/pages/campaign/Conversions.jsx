@@ -1,5 +1,12 @@
-import { useState } from "react";
-import { Search, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, CheckCircle2, Clock, XCircle, Layers, Plus } from "lucide-react";
+
+import Table, { ActionMenu } from "../../components/common/Table";
+import StatsCard from "../../components/common/StatsCard.";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
+import Title from "../../components/common/Titel";
 
 const conversions = [
   {
@@ -53,144 +60,147 @@ const conversions = [
 ];
 
 const statusConfig = {
-  Confirmed: {
-    icon: <CheckCircle2 size={14} />,
-    classes: "bg-green-50 text-green-700",
-  },
-  Pending: {
-    icon: <Clock size={14} />,
-    classes: "bg-amber-50 text-amber-700",
-  },
-  Rejected: {
-    icon: <XCircle size={14} />,
-    classes: "bg-red-50 text-red-700",
-  },
+  Confirmed: { icon: <CheckCircle2 size={13} />, classes: "bg-green-50 text-green-700" },
+  Pending: { icon: <Clock size={13} />, classes: "bg-amber-50 text-amber-700" },
+  Rejected: { icon: <XCircle size={13} />, classes: "bg-red-50 text-red-700" },
 };
 
 const filters = ["All", "Confirmed", "Pending", "Rejected"];
 
-export default function Conversions  () {
+export default function Conversions() {
+  const navigate = useNavigate();
+  const [active, setActive] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
   const [query, setQuery] = useState("");
 
-  const filtered = conversions.filter((c) => {
-    const matchesFilter = activeFilter === "All" || c.status === activeFilter;
-    const matchesQuery =
-      c.customer.toLowerCase().includes(query.toLowerCase()) ||
-      c.id.toLowerCase().includes(query.toLowerCase());
-    return matchesFilter && matchesQuery;
-  });
-
-  const counts = conversions.reduce(
-    (acc, c) => ({ ...acc, [c.status]: (acc[c.status] || 0) + 1 }),
-    {}
+  const counts = useMemo(
+    () =>
+      conversions.reduce((acc, c) => ({ ...acc, [c.status]: (acc[c.status] || 0) + 1 }), {}),
+    []
   );
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return conversions.filter((c) => {
+      const matchesFilter = activeFilter === "All" || c.status === activeFilter;
+      const matchesQuery = !q || c.customer.toLowerCase().includes(q) || c.id.toLowerCase().includes(q);
+      return matchesFilter && matchesQuery;
+    });
+  }, [activeFilter, query]);
+
+  const columns = [
+    {
+      key: "id",
+      label: "ID",
+      render: (value) => <span className="font-medium text-gray-400">{value}</span>,
+    },
+    {
+      key: "customer",
+      label: "Customer",
+      render: (value) => <span className="font-medium text-gray-900">{value}</span>,
+    },
+    {
+      key: "date",
+      label: "Date",
+      render: (value) => <span className="text-gray-500">{value}</span>,
+    },
+    {
+      key: "source",
+      label: "Source",
+      render: (value) => (
+        <span className="rounded-full bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary">
+          {value}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      label: "Payout",
+      render: (value) => <span className="font-semibold tabular-nums text-gray-900">{value}</span>,
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (value) => (
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${statusConfig[value].classes}`}
+        >
+          {statusConfig[value].icon}
+          {value}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      label: "",
+      render: (_, row, index) => (
+        <ActionMenu
+          index={index}
+          active={active}
+          setActive={setActive}
+          onEdit={() => navigate(`/conversions/edit/${row.id}`)}
+        />
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <p className="text-2xl font-bold">{conversions.length}</p>
-          <p className="text-gray-500 text-sm mt-0.5">Total Conversions</p>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <p className="text-2xl font-bold text-green-600">
-            {counts.Confirmed || 0}
-          </p>
-          <p className="text-gray-500 text-sm mt-0.5">Confirmed</p>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <p className="text-2xl font-bold text-amber-600">
-            {counts.Pending || 0}
-          </p>
-          <p className="text-gray-500 text-sm mt-0.5">Pending</p>
-        </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <p className="text-2xl font-bold text-red-600">
-            {counts.Rejected || 0}
-          </p>
-          <p className="text-gray-500 text-sm mt-0.5">Rejected</p>
-        </div>
+    <div className="space-y-4 mt-4">
+      <div className="flex items-center justify-between mx-4">
+        <Title titel={"Conversions"} disc={"Track and review all recorded conversions."}>
+        
+        
+
+        <Button leftIcon={<Plus size={18} />} onClick={() => navigate("/campaigns/123/conversions/add")}>
+          Add Conversion
+        </Button>
+        </Title>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 pb-4">
-          <div className="flex gap-2 flex-wrap">
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <StatsCard title="Total Conversions" number={conversions.length} icon={Layers} color="bg-primary/10 text-primary" />
+        <StatsCard title="Confirmed" number={counts.Confirmed || 0} icon={CheckCircle2} color="bg-green-100 text-green-600" />
+        <StatsCard title="Pending" number={counts.Pending || 0} icon={Clock} color="bg-amber-100 text-amber-600" />
+        <StatsCard title="Rejected" number={counts.Rejected || 0} icon={XCircle} color="bg-red-100 text-red-600" />
+      </div>
+
+      {/* Table */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-wrap gap-2">
             {filters.map((f) => (
               <button
                 key={f}
                 onClick={() => setActiveFilter(f)}
-                className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition ${
+                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
                   activeFilter === f
                     ? "bg-primary text-white"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                 }`}
               >
                 {f}
+                {f !== "All" && (
+                  <span className={`ml-1.5 ${activeFilter === f ? "text-white/70" : "text-gray-400"}`}>
+                    {counts[f] || 0}
+                  </span>
+                )}
               </button>
             ))}
           </div>
 
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
+          <div className="w-full sm:w-64">
+            <Input
+              name="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search customer or ID..."
-              className="pl-9 pr-4 py-2 bg-gray-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/30 w-full sm:w-64"
+              leftIcon={<Search size={16} />}
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-t border-gray-100">
-                <th className="font-medium px-6 py-3">ID</th>
-                <th className="font-medium px-6 py-3">Customer</th>
-                <th className="font-medium px-6 py-3">Date</th>
-                <th className="font-medium px-6 py-3">Source</th>
-                <th className="font-medium px-6 py-3">Payout</th>
-                <th className="font-medium px-6 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((c) => (
-                <tr key={c.id} className="border-t border-gray-100">
-                  <td className="px-6 py-3.5 text-gray-500">{c.id}</td>
-                  <td className="px-6 py-3.5 font-medium text-gray-900">
-                    {c.customer}
-                  </td>
-                  <td className="px-6 py-3.5 text-gray-500">{c.date}</td>
-                  <td className="px-6 py-3.5 text-gray-500">{c.source}</td>
-                  <td className="px-6 py-3.5 font-medium">{c.amount}</td>
-                  <td className="px-6 py-3.5">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig[c.status].classes}`}
-                    >
-                      {statusConfig[c.status].icon}
-                      {c.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-10 text-center text-gray-400"
-                  >
-                    No conversions match this search.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Table columns={columns} data={filtered} />
       </div>
     </div>
   );

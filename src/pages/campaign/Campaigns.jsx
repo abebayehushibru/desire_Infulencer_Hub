@@ -7,6 +7,7 @@ import { useState } from "react";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Title from "../../components/common/Titel";
+import Pagination from "../../components/Pagination";
 
 export default function Campaigns() {
   const navigate = useNavigate();
@@ -106,7 +107,7 @@ export default function Campaigns() {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-full">
+    <div className="bg-gray-50/10 min-h-full">
 
       <div className="flex justify-between items-center mb-4">
         <Title titel={"Campaigns"} disc={"Manage all your marketing campaigns."}>
@@ -156,6 +157,7 @@ export default function Campaigns() {
         </div>
 
         <Table columns={columns} data={campaigns} />
+        <Pagination/>
       </div>
     </div>
   );

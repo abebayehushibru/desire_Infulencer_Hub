@@ -1,17 +1,17 @@
 import { useEffect, useRef } from "react";
-import { MoreVertical, Pencil, Trash2, Inbox } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, Inbox, EyeIcon } from "lucide-react";
 
 export default function Table({ columns, data }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-100">
-      <div className="overflow-x-auto">
+    <div className="overflow-hidden rounded-lg  border border-gray-100">
+      <div className=" relative overflow-x-auto scroll-container">
         <table className="w-full">
-          <thead className="bg-gray-50/80">
+          <thead className=" sticky bg-primary">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-400"
+                  className="whitespace-nowrap px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-50"
                 >
                   {column.label}
                 </th>
@@ -21,9 +21,9 @@ export default function Table({ columns, data }) {
 
           <tbody className="divide-y divide-gray-100">
             {data.map((row, rowIndex) => (
-              <tr key={rowIndex} className="transition-colors hover:bg-gray-50/70">
+              <tr key={rowIndex} className={`${rowIndex%2==1?"":"bg-primary/10"} cursor-pointer transition-colors text-gray-700 hover:text-gray-100  hover:bg-tertiary/50`}>
                 {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-3.5 text-sm text-gray-700">
+                  <td key={column.key} className="px-4 py-2 text-sm ">
                     {column.render
                       ? column.render(row[column.key], row, rowIndex)
                       : row[column.key]}
@@ -53,13 +53,15 @@ export default function Table({ columns, data }) {
    Reusable Action Menu
 -----------------------------*/
 
-export function ActionMenu({ onEdit, onDelete, index, active, setActive }) {
+export function ActionMenu({ onEdit, onDelete,onView, index, active, setActive }) {
   const menuRef = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
+      console.log();
+      
       if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setActive?.(null);
+        // setActive?.(null);
       }
     }
 
@@ -87,10 +89,21 @@ export function ActionMenu({ onEdit, onDelete, index, active, setActive }) {
               onEdit?.();
               setActive?.(null);
             }}
-            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-600 transition hover:bg-gray-50"
+            className="flex w-full cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-600 transition hover:bg-gray-50"
           >
             <Pencil size={14} /> Edit
           </button>
+             {onView && (
+            <button
+              onClick={() => {
+                onView();
+                setActive?.(null);
+              }}
+                className="flex w-full  cursor-pointer items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-600 transition hover:bg-gray-50"
+       >
+              <EyeIcon size={14} /> View
+            </button>
+          )}
 
           {onDelete && (
             <button

@@ -30,6 +30,9 @@ import BusinessDetail from "../pages/business/Businessdetail";
 import Businesses from "../pages/business/Businesses";
 import TheHubLanding from "../pages/Landing";
 import Register from "../pages/Register";
+import AddConversion from "../pages/campaign/Addconversion";
+import EditConversion from "../pages/campaign/Editconversion";
+import Payments from "../pages/payments/Payments";
 export default function AppRouter() {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -37,10 +40,10 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<TheHubLanding/>} />
-         <Route path="/register" element={<Register/>} />
+        <Route path="/" element={<TheHubLanding />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/" element={<ResponsiveLayout />}>
-         
+
           <Route path="dashboard" element={<Home />} />
           <Route path="campaigns" element={<CampaignLayout />}>
             <Route index element={<Campaigns />} />
@@ -55,12 +58,15 @@ export default function AppRouter() {
               <Route path="chat" element={<Chat />} />
               <Route path="performance" element={<Performance />} />
               <Route path="conversions" element={<Conversions />} />
+
               <Route path="earnings" element={<Earnings />} />
 
               <Route path="*" element={<h1>404 - Page Not Found</h1>} />
             </Route>
             <Route path="*" element={<h1>404 - Page Not Found</h1>} />
           </Route>
+            <Route path="campaigns/:id/conversions/add" element={<AddConversion />} />
+                      <Route path="campaigns/:id/conversions/edit/:id2" element={<EditConversion />} />
           <Route path="influencers" element={<Influencers />} />
           <Route path="influencers/create" element={<CreateInfluencer />} />
           <Route path="influencers/edit/:id" element={<EditInfluencer />} />
@@ -73,6 +79,7 @@ export default function AppRouter() {
           <Route path="businesses/create" element={<CreateBusiness />} />
           <Route path="businesses/edit/:id" element={<EditBusiness />} />
           <Route path="businesses/view/:id" element={<BusinessDetail />} />
+<Route path="payments" element={<Payments />} />
 
           <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         </Route>

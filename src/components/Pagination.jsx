@@ -10,13 +10,13 @@ export default function Pagination({
   onLimitChange,
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mt-4">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-xs p-3 mt-3">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3">
 
         {/* Left */}
         <div className="flex items-center gap-3">
 
-          <span className="text-sm text-gray-500">
+          <span className="text-xs text-gray-500">
             Show
           </span>
 
@@ -27,7 +27,7 @@ export default function Pagination({
                 Number(e.target.value)
               )
             }
-            className="border border-gray-200 rounded-lg px-3 py-2"
+            className="border border-gray-200 text-xs rounded-lg px-3 py-1.5"
           >
             {[10, 20, 50, 100].map((item) => (
               <option
@@ -39,22 +39,22 @@ export default function Pagination({
             ))}
           </select>
 
-          <span className="text-sm text-gray-500">
+          <span className="text-xs text-gray-500">
             of {total} records
           </span>
         </div>
 
         {/* Right */}
-        <div className="flex items-center gap-2">
+        <div className="flex text-xs items-center gap-2">
 
           <button
             disabled={page <= 1}
             onClick={() =>
               onPageChange?.(page - 1)
             }
-            className="h-10 w-10 rounded-lg border border-gray-200 flex items-center justify-center disabled:opacity-50"
+            className="h-8 w-8 rounded-lg border border-gray-200 flex items-center justify-center disabled:opacity-50"
           >
-            <ChevronLeft />
+            <ChevronLeft size={18} />
           </button>
 
           <span className="font-medium">
@@ -68,7 +68,7 @@ export default function Pagination({
             }
             className="h-10 w-10 rounded-lg border border-gray-200 flex items-center justify-center disabled:opacity-50"
           >
-            <ChevronRight />
+            <ChevronRight size={18}/>
           </button>
 
         </div>

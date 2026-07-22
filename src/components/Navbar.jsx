@@ -18,7 +18,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="flex h-20 items-center justify-between border-b border-gray-200 bg-white px-8">
+    <header className="flex h-20 items-center justify-between border-b border-white/10 bg-gradient-to-br from-primary via-secondary to-primary px-8 shadow-lg shadow-primary/20">
       <div className="block w-full flex-1" />
 
       {/* Right */}
@@ -38,10 +38,10 @@ export default function Navbar() {
         <button
           type="button"
           aria-label="Notifications"
-          className="relative rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+          className="relative rounded-full p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
         >
           <Bell size={20} />
-          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white">
+          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white ring-2 ring-primary">
             3
           </span>
         </button>
@@ -51,25 +51,25 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-gray-100"
+            className="flex cursor-pointer items-center gap-3 rounded-xl bg-white/10 px-2 py-2 transition hover:bg-white/20"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary via-secondary to-primary font-semibold text-white">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary font-semibold text-primary">
               D
             </div>
 
             <div className="hidden text-left sm:block">
-              <h4 className="text-sm font-semibold text-gray-800">Desire Online School</h4>
-              <p className="text-xs text-gray-400">Business</p>
+              <h4 className="text-sm font-semibold text-white">Desire Online School</h4>
+              <p className="text-xs text-white/60">Business</p>
             </div>
 
             <ChevronDown
               size={18}
-              className={`text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+              className={`text-white/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
             />
           </button>
 
           {open && (
-            <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
+            <div className="absolute w-full right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
               <button
                 type="button"
                 onClick={() => setOpen(false)}

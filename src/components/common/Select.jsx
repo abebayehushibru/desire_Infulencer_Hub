@@ -34,7 +34,7 @@ const Select = ({
 
   useEffect(() => {
     // Static data takes priority; only hit the API when no data was given.
-    if (data?.length || !api) {
+    if (!api) {
       setOptions(data);
       return;
     }
@@ -48,14 +48,14 @@ const Select = ({
 
         const res = await axios.get(api);
 
-        if (mounted) {
-          setOptions(res.data || []);
+        if (mounted&& res) {
+          // setOptions(res.data || []);
         }
       } catch (err) {
         if (mounted) {
-          setApiError(
-            err.response?.data?.message || err.message || "Failed to load data."
-          );
+          // setApiError(
+          //   err.response?.data?.message || err.message || "Failed to load data."
+          // );
         }
       } finally {
         if (mounted) {
@@ -64,19 +64,19 @@ const Select = ({
       }
     }
 
-    loadData();
+    // loadData();
 
     return () => {
       mounted = false;
     };
-  }, [api, data]);
+  }, [api]);
 
   const hasError = Boolean(error || apiError);
 
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={name} className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label htmlFor={name} className="mb-1.5 block text-xs font-medium text-gray-700">
           {label}
           {required && <span className="ml-1 text-red-500">*</span>}
         </label>
@@ -88,7 +88,7 @@ const Select = ({
             {leftIcon}
           </div>
         )}
-
+   
         <select
           id={name}
           name={name}
@@ -99,7 +99,7 @@ const Select = ({
           aria-describedby={hasError ? `${name}-error` : undefined}
           className={`
             peer w-full appearance-none rounded-lg border bg-white py-2.5
-            text-sm text-gray-800 outline-none transition-all duration-200
+            text-xs text-gray-800 outline-none transition-all duration-200
 
              focus:ring-2 focus:ring-primary/20
 
@@ -117,7 +117,7 @@ const Select = ({
           <option value="" disabled={required} hidden={required}>
             {loading ? "Loading..." : placeholder}
           </option>
-          {typeof(options) === 'array' && options.map((item) => (
+          {options?.length>0 && options?.map((item) => (
             <option key={item[valueKey]} value={item[valueKey]}>
               {item[labelKey]}
             </option>

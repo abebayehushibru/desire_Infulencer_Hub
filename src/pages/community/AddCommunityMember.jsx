@@ -5,6 +5,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import TextArea from "../../components/common/TextArea";
+import Title from "../../components/common/Titel";
 
 export default function AddCommunityMember() {
   const navigate = useNavigate();
@@ -14,21 +15,20 @@ export default function AddCommunityMember() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <button
+         
+
+       
+          <Title titel={"Add Influencer to Community"} disc={" Search an influencer and assign them to this community."}>
+             <button
             onClick={() => navigate(-1)}
             className="flex items-center text-gray-500 hover:text-primary mb-2"
           >
             <ArrowLeft size={18} className="mr-2" />
             Back
           </button>
+          </Title>
 
-          <h1 className="text-2xl font-bold text-primary">
-            Add Influencer to Community
-          </h1>
-
-          <p className="text-gray-500 mt-1">
-            Search an influencer and assign them to this community.
-          </p>
+        
         </div>
       </div>
 

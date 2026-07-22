@@ -37,7 +37,7 @@ const menus = [
 ];
 
 export default function MobileBottomNav() {
-      const [params] = useParams();
+      const params = useParams();
  const checkForActive = (path) => {
   // 1. Remove slash at index 0 from current URL path if it exists
   const currentPath = location.pathname.startsWith('/') 

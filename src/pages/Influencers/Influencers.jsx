@@ -7,6 +7,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Title from "../../components/common/Titel";
+import Pagination from "../../components/Pagination";
 
 export default function Influencers() {
   const navigate = useNavigate();
@@ -75,6 +76,7 @@ export default function Influencers() {
           active={active}
           setActive={setActive}
           onEdit={() => navigate(`/influencers/edit/${row.id}`)}
+          onView={() => navigate(`/influencers/view/${row.id}`)}
           onDelete={() => console.log(row)}
         />
       ),
@@ -112,7 +114,7 @@ export default function Influencers() {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-full">
+    <div className="bg-gray-50/10 min-h-full">
       <div className="flex justify-between items-center mb-4">
         <Title titel={"Influencers"} disc={"Manage all registered influencers."}>
           <Button
@@ -126,7 +128,7 @@ export default function Influencers() {
 
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-4 justify-between mb-5">
           <Input
@@ -163,6 +165,7 @@ export default function Influencers() {
         </div>
 
         <Table columns={columns} data={influencers} />
+           <Pagination/>
       </div>
     </div>
   );

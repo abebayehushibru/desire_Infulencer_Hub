@@ -125,7 +125,7 @@ export default function BusinessHome() {
   ];
 
   return (
-    <div className="min-h-full bg-gray-50 text-primary">
+    <div className="min-h-full bg-gray-50/10 text-primary">
       {/* Greeting */}
       <div className="mb-5">
         <h1 className="text-xl font-bold">{greeting}, Desire!</h1>

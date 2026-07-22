@@ -5,6 +5,7 @@ import { ArrowLeft, Building2, Mail, Phone, Lock, Save, Clock, Calendar } from "
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
+import Title from "../../components/common/Titel";
 
 // Stand-in for a record loaded from the API — swap for a real fetch by :id.
 const SAMPLE_BUSINESS = {
@@ -70,23 +71,18 @@ export default function EditBusiness() {
   };
 
   return (
-    <div className="min-h-full bg-gray-50">
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="mb-4 flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-700"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+    <div className="min-h-full bg-gray-50/10">
+    
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-primary">Edit Business</h1>
-        <p className="mt-1 text-gray-500">Update {form.name_or_company_name || "this business"}'s account.</p>
+      <div className="mb-4">
+        <Title titel={"Edit Business"} disc={`Update ${form.name_or_company_name || "this business"}'s account.`}/>
+        <h1 className="text-2xl font-bold text-primary"></h1>
+
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+        className="max-w-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
       >
         <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400">
           Account Details

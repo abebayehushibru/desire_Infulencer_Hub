@@ -46,6 +46,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { Link } from "react-router-dom";
 
 /* ---------------------------------------------------------
    Brand tokens
@@ -290,10 +291,10 @@ function ProfileHeader() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button className="flex items-center gap-1.5 rounded-lg bg-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary)]">
+          <Link to={"/influencers/edit/1"} className="flex  cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary)]">
             <UserPlus className="h-4 w-4" /> Edit Profile
-          </button>
-          <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+          </Link>
+          <button className="flex  cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
             <Star className="h-4 w-4" /> Add Review
           </button>
         </div>

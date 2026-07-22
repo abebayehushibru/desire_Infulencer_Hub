@@ -139,11 +139,11 @@ export default function CreateBusiness() {
     };
 
     return (
-        <div className=" relative min-h-full bg-gray-50 flex flex-col gap-4 w-fit mx-auto">
+        <div className=" relative min-h-full min-w-full bg-gray-50/10 flex flex-col gap-4 w-fit mx-auto">
             <Titel titel={"Add Business"} disc={"Complete the pipeline to provision a custom dashboard portal."}/>
            
             {/* ── Stepper Block Component Architecture ── */}
-            <div className="flex mx-auto min-w-[600px] mt-2 ">
+            <div className="flex mx-auto min-w-[600px] mt-1 ">
                 <div className="w-full flex items-center">
 
                     {steps.map((s, i) => {

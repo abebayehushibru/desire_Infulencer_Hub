@@ -7,6 +7,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Titel from "../../components/common/Titel";
+import Pagination from "../../components/Pagination";
 
 const STATUS_STYLE = {
   Active: "bg-green-100 text-green-700",
@@ -69,6 +70,8 @@ export default function Businesses() {
           active={active}
           setActive={setActive}
           onEdit={() => navigate(`/businesses/edit/${row.id}`)}
+           onView={() => navigate(`/businesses/view/${row.id}`)}
+         
           onDelete={() => console.log("Delete", row)}
         />
       ),
@@ -127,7 +130,7 @@ export default function Businesses() {
   }, [search, status]);
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-gray-50/10">
       <div className="mb-4 flex items-center justify-between">
         <Titel titel={"Add Businesses"} disc={"Manage all registered business accounts."}>
                 <Button leftIcon={<Plus size={18} />} onClick={() => navigate("/businesses/create")}>
@@ -169,6 +172,7 @@ export default function Businesses() {
         </div>
 
         <Table columns={columns} data={filteredBusinesses} />
+           <Pagination/>
       </div>
     </div>
   );

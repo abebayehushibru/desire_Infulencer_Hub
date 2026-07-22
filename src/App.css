@@ -13,3 +13,14 @@
   background-repeat: no-repeat;
   background-position: center;
 }
+
+.scroll-container {
+          /* Allows scrolling when content overflows */
+  scrollbar-width: none;       /* Hides scrollbar in Firefox */
+  -ms-overflow-style: none;    /* Hides scrollbar in IE and Edge */
+}
+
+/* Hides scrollbar for Chrome, Safari, and Opera */
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}

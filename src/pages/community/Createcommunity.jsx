@@ -17,7 +17,10 @@ import {
   Gem,
   Percent,
   Wallet,
+DollarSign
 } from "lucide-react";
+import Title from "../../components/common/Titel";
+import Input from "../../components/common/Input";
 
 /* ---------------------------------------------------------
    Brand tokens
@@ -88,7 +91,7 @@ const initialForm = {
 function Field({ label, required, error, children, hint }) {
   return (
     <label className="block">
-      <span className="mb-1.5 flex items-baseline gap-1 text-sm font-medium text-slate-700">
+      <span className="mb-1.5 text-xs flex items-baseline gap-1 text-xs font-medium text-slate-700">
         {label}
         {required && <span className="text-rose-500">*</span>}
         {hint && <span className="ml-1 text-xs font-normal text-slate-400">{hint}</span>}
@@ -109,7 +112,7 @@ function TextInput({ icon: Icon, error, ...props }) {
       {Icon && <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />}
       <input
         {...props}
-        className={`w-full rounded-lg border bg-white py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
+        className={`w-full rounded-lg border bg-white py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
           Icon ? "pl-9 pr-3" : "px-3"
         } ${error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"}`}
       />
@@ -121,7 +124,7 @@ function TextArea({ error, ...props }) {
   return (
     <textarea
       {...props}
-      className={`w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
+      className={`w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
         error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
       }`}
     />
@@ -131,7 +134,7 @@ function TextArea({ error, ...props }) {
 function FileDrop({ label, value, onChange, optional, hint }) {
   return (
     <label className="block cursor-pointer">
-      <span className="mb-1.5 flex items-baseline gap-1 text-sm font-medium text-slate-700">
+      <span className="mb-1.5 flex items-baseline gap-1 text-xs font-medium text-slate-700">
         {label} {!optional && <span className="text-rose-500">*</span>}
         {optional && <span className="ml-1 text-xs font-normal text-slate-400">(Optional)</span>}
         {hint && <span className="ml-1 text-xs font-normal text-slate-400">{hint}</span>}
@@ -163,8 +166,8 @@ function Toggle({ checked, onChange, label, description }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 px-4 py-3">
       <div>
-        <div className="text-sm font-medium text-slate-700">{label}</div>
-        {description && <div className="text-xs text-slate-400">{description}</div>}
+        <div className="text-xs font-medium text-slate-700">{label}</div>
+        {description && <div className="text-[10px] text-slate-400">{description}</div>}
       </div>
       <button
         type="button"
@@ -191,7 +194,7 @@ function Stepper({ step }) {
           <React.Fragment key={s.label}>
             <div className="flex flex-col items-center gap-2">
               <div
-                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${
+                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${
                   done
                     ? "border-[var(--color-tertiary)] bg-[var(--color-tertiary)] text-[var(--color-primary)]"
                     : active
@@ -201,12 +204,12 @@ function Stepper({ step }) {
               >
                 {done ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-              <span className={`hidden text-xs font-medium sm:block ${active ? "text-[var(--color-secondary)]" : done ? "text-slate-600" : "text-slate-400"}`}>
+              <span className={`hidden text-[10px] font-medium sm:block ${active ? "text-[var(--color-secondary)]" : done ? "text-slate-600" : "text-slate-400"}`}>
                 {s.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={` mb-6 h-0.5 flex-1 rounded transition-colors sm:mb-6 ${i < step ? "bg-[var(--color-tertiary)]" : "bg-slate-200"}`} />
+              <div className={` mb-4 h-0.5 flex-1 rounded transition-colors sm:mb-6 ${i < step ? "bg-[var(--color-tertiary)]" : "bg-slate-200"}`} />
             )}
           </React.Fragment>
         );
@@ -316,9 +319,9 @@ export default function CreateCommunity() {
 
   return (
     <div style={BRAND} className="mx-auto w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-800">Create Community</h1>
-        <p className="text-sm text-slate-500">Set up a new community in three quick steps.</p>
+      <div className="mb-4">
+        <Title titel={"Create Community"} disc={"Set up a new community in three quick steps."}/>
+      
       </div>
 
       <Stepper step={step} />
@@ -421,7 +424,7 @@ export default function CreateCommunity() {
           </section>
 
           <section>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
               Categories <span className="text-rose-500">*</span>
             </h3>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -450,7 +453,7 @@ export default function CreateCommunity() {
           </section>
 
           <section>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
               Platforms <span className="text-rose-500">*</span>
             </h3>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
@@ -510,43 +513,48 @@ export default function CreateCommunity() {
                 : "Commission is charged as a flat amount per campaign."}
             </p>
 
-            <div className="mt-4 max-w-xs">
-              {form.commissionType === "Rate" ? (
-                <Field label="Commission Rate" required error={errors.commissionValue}>
+            <div className="mt-4 grid grid-cols-2 gap-4 max-w-md">
+              
                   <div className="relative">
-                    <input
+                    <Input
+                    label="Commission Rate" 
+                    required 
+                    error={errors.commission_rate}
                       type="number"
                       min="0"
                       max="100"
                       step="0.1"
-                      placeholder="e.g. 10"
-                      value={form.commissionValue}
+                      placeholder="e.g. 10%"
+                      value={form.commission_rate}
                       onChange={(e) => set("commissionValue", e.target.value)}
                       className={`w-full rounded-lg border bg-white py-2.5 pl-3 pr-9 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
-                        errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
+                        errors.commission_rate ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
                       }`}
                     />
                     <Percent className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   </div>
-                </Field>
-              ) : (
-                <Field label="Commission Amount" required error={errors.commissionValue}>
-                  <div className="relative">
+               
+              
+                 <div className="relative">
+                    
                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">ETB</span>
-                    <input
+                    <Input
+                    label="Commission Amount"
                       type="number"
                       min="0"
                       step="1"
+                      required
+                      leftIcon={<DollarSign size={18}/>}
                       placeholder="e.g. 500"
                       value={form.commissionValue}
                       onChange={(e) => set("commissionValue", e.target.value)}
                       className={`w-full rounded-lg border bg-white py-2.5 pl-11 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
                         errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
                       }`}
+                    error={errors.commissionValue}
                     />
                   </div>
-                </Field>
-              )}
+            
             </div>
           </section>
 

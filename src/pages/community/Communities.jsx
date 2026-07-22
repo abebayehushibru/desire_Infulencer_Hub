@@ -7,6 +7,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Title from "../../components/common/Titel";
+import Pagination from "../../components/Pagination";
 
 export default function Communities() {
   const navigate = useNavigate();
@@ -80,6 +81,7 @@ export default function Communities() {
           active={active}
           setActive={setActive}
           onEdit={() => navigate(`/communities/edit/${row.id}`)}
+              onView={() => navigate(`/communities/view/${row.id}`)}
           onDelete={() => console.log(row)}
         />
       ),
@@ -138,7 +140,7 @@ export default function Communities() {
   }, [search, category, tier, status]);
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-gray-50/10">
       <div className="mb-4 flex items-center justify-between">
         <Title titel={"Communities"} disc={"Manage all registered communities."}>
 
@@ -213,6 +215,7 @@ export default function Communities() {
         </div>
 
         <Table columns={columns} data={filteredCommunities} />
+           <Pagination/>
       </div>
     </div>
   );
