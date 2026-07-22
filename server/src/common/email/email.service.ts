@@ -6,7 +6,6 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
 import { env } from '../../config/env';
 import logger from '../logger/logger';
-
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -220,6 +219,48 @@ class EmailService {
     await this.send({
       to: params.to,
       subject: 'Your InfluenceHub password was changed',
+      html: this.baseTemplate(content),
+    });
+  }
+
+  // ── FR08 Business Verification Email ────────────────────────────────────────
+  async sendBusinessVerificationEmail(params: {
+    to: string;
+    firstName: string;
+    action: 'approved' | 'rejected';
+    businessName: string;
+    reason?: string;
+  }): Promise<void> {
+    const safeName  = this.escapeHtml(this.sanitize(params.firstName));
+    const safeBiz   = this.escapeHtml(this.sanitize(params.businessName));
+    const isApproved = params.action === 'approved';
+
+    const content = isApproved
+      ? `
+        <p>Hi <strong>${safeName}</strong>,</p>
+        <p>Great news! Your business <strong>${safeBiz}</strong> has been <span style="color:#16a34a;font-weight:700">verified and approved</span>.</p>
+        <p>You can now access all Business Owner features on InfluenceHub.</p>
+        <a href="${env.IS_PRODUCTION ? 'https://app.influencehub.com' : 'http://localhost:3000'}/dashboard" class="btn">
+          Go to Dashboard →
+        </a>
+      `
+      : `
+        <p>Hi <strong>${safeName}</strong>,</p>
+        <p>We have reviewed your business <strong>${safeBiz}</strong> and unfortunately your verification was <span style="color:#dc2626;font-weight:700">rejected</span>.</p>
+        <div class="warning">
+          <strong>Reason:</strong> ${this.escapeHtml(params.reason || 'No reason provided')}
+        </div>
+        <p>Please review the feedback, update your documents, and resubmit for verification.</p>
+        <a href="${env.IS_PRODUCTION ? 'https://app.influencehub.com' : 'http://localhost:3000'}/business/profile" class="btn">
+          Update Profile →
+        </a>
+      `;
+
+    await this.send({
+      to:      params.to,
+      subject: isApproved
+        ? `✅ Business Verified — ${safeBiz}`
+        : `❌ Business Verification Rejected — ${safeBiz}`,
       html: this.baseTemplate(content),
     });
   }

@@ -52,11 +52,12 @@ jest.mock('../../modules/auth/repositories/auth.repository', () => ({
 
 jest.mock('../../common/email/email.service', () => ({
   emailService: {
-    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
-    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
-    verifyConnection: jest.fn().mockResolvedValue(true),
+    sendVerificationEmail:            jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetEmail:           jest.fn().mockResolvedValue(undefined),
+    sendWelcomeEmail:                 jest.fn().mockResolvedValue(undefined),
+    sendPasswordChangedEmail:         jest.fn().mockResolvedValue(undefined),
+    sendBusinessVerificationEmail:    jest.fn().mockResolvedValue(undefined),
+    verifyConnection:                 jest.fn().mockResolvedValue(true),
   },
 }));
 

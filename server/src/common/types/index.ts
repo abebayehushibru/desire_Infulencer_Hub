@@ -45,7 +45,7 @@ export interface SafeUser {
 }
 
 // ── Pagination ────────────────────────────────────────────────────────────────
-export interface PaginationMeta {
+export interface PaginationMeta extends Record<string, unknown> {
   page: number;
   limit: number;
   total: number;

@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// InfluenceHub — Prisma Schema
-// Production-ready schema with soft deletes, audit logs, RBAC
+// InfluenceHub — Prisma Schema v2
+// Auth module (FR01–FR05) + User Management & Profiles (FR06–FR10)
 // ─────────────────────────────────────────────────────────────────────────────
 
 generator client {
@@ -32,6 +32,18 @@ enum UserStatus {
   PENDING_VERIFICATION
 }
 
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InfluencerTier {
+  DIAMOND
+  GOLD
+  SILVER
+}
+
 enum AuditAction {
   REGISTER
   LOGIN
@@ -49,10 +61,27 @@ enum AuditAction {
   PROFILE_UPDATED
   PASSWORD_CHANGED
   SUSPICIOUS_ACTIVITY
+  // FR06
+  USER_CREATED
+  USER_UPDATED
+  USER_DEACTIVATED
+  USER_REACTIVATED
+  TIER_ASSIGNED
+  // FR08
+  BUSINESS_APPROVED
+  BUSINESS_REJECTED
+}
+
+enum NotificationType {
+  BUSINESS_APPROVED
+  BUSINESS_REJECTED
+  TIER_CHANGED
+  ACCOUNT_STATUS_CHANGED
+  GENERAL
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// USER
+// USER — Extended with profile relations
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
@@ -73,11 +102,20 @@ model User {
   updatedAt            DateTime  @updatedAt @map("updated_at")
   deletedAt            DateTime? @map("deleted_at")
 
-  // Relations
+  // Auth relations
   refreshTokens        RefreshToken[]
   passwordResets       PasswordReset[]
   emailVerifications   EmailVerification[]
   auditLogs            AuditLog[]
+
+  // Profile relations (FR06–FR10)
+  businessProfile      BusinessProfile?
+  influencerProfile    InfluencerProfile?
+  agentProfile         AgentProfile?
+  notifications        Notification[]
+  createdByAdmin       User?     @relation("AdminCreatedUsers", fields: [createdBy], references: [id])
+  createdBy            String?   @map("created_by") @db.Uuid
+  managedUsers         User[]    @relation("AdminCreatedUsers")
 
   @@index([email])
   @@index([role])
@@ -87,7 +125,162 @@ model User {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// REFRESH TOKEN — Device Sessions
+// BUSINESS PROFILE — FR07 Business Owner Registration
+// ─────────────────────────────────────────────────────────────────────────────
+
+model BusinessProfile {
+  id                   String             @id @default(uuid()) @db.Uuid
+  userId               String             @unique @map("user_id") @db.Uuid
+  businessName         String             @map("business_name") @db.VarChar(255)
+  businessType         String?            @map("business_type") @db.VarChar(100)
+  registrationNumber   String?            @map("registration_number") @db.VarChar(100)
+  taxId                String?            @map("tax_id") @db.VarChar(100)
+  website              String?            @db.VarChar(500)
+  phone                String?            @db.VarChar(30)
+  address              String?            @db.VarChar(500)
+  city                 String?            @db.VarChar(100)
+  country              String?            @db.VarChar(100)
+  description          String?            @db.Text
+  verificationStatus   VerificationStatus @default(PENDING) @map("verification_status")
+  verifiedAt           DateTime?          @map("verified_at")
+  verifiedBy           String?            @map("verified_by") @db.Uuid  // Admin user ID
+  rejectionReason      String?            @map("rejection_reason") @db.Text
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  deletedAt            DateTime?          @map("deleted_at")
+
+  // Relations
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents            BusinessDocument[]
+
+  @@index([userId])
+  @@index([verificationStatus])
+  @@index([businessName])
+  @@map("business_profiles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BUSINESS DOCUMENT — FR07 Secure document storage
+// ─────────────────────────────────────────────────────────────────────────────
+
+model BusinessDocument {
+  id                String   @id @default(uuid()) @db.Uuid
+  businessProfileId String   @map("business_profile_id") @db.Uuid
+  documentType      String   @map("document_type") @db.VarChar(100)  // e.g. "business_license", "tax_cert"
+  fileName          String   @map("file_name") @db.VarChar(255)
+  fileSize          Int      @map("file_size")                        // bytes
+  mimeType          String   @map("mime_type") @db.VarChar(100)
+  storagePath       String   @map("storage_path") @db.VarChar(1000)  // private storage path/key
+  uploadedAt        DateTime @default(now()) @map("uploaded_at")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  // Relations
+  businessProfile   BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+
+  @@index([businessProfileId])
+  @@map("business_documents")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INFLUENCER PROFILE — FR09 Influencer Tiers
+// ─────────────────────────────────────────────────────────────────────────────
+
+model InfluencerProfile {
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @unique @map("user_id") @db.Uuid
+  currentTier       InfluencerTier @default(SILVER) @map("current_tier")
+  isCommunityLeader Boolean        @default(false) @map("is_community_leader") // Only DIAMOND can be true
+  bio               String?        @db.Text
+  niche             String?        @db.VarChar(100)        // e.g. "fashion", "tech", "fitness"
+  socialHandles     Json?          @map("social_handles")  // { instagram, tiktok, youtube, etc. }
+  followerCount     Int?           @map("follower_count")
+  engagementRate    Float?         @map("engagement_rate")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  deletedAt         DateTime?      @map("deleted_at")
+
+  // Relations
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tierHistory       InfluencerTierHistory[]
+
+  @@index([userId])
+  @@index([currentTier])
+  @@map("influencer_profiles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INFLUENCER TIER HISTORY — FR09 Audit trail for tier changes
+// ─────────────────────────────────────────────────────────────────────────────
+
+model InfluencerTierHistory {
+  id                  String         @id @default(uuid()) @db.Uuid
+  influencerProfileId String         @map("influencer_profile_id") @db.Uuid
+  previousTier        InfluencerTier? @map("previous_tier")
+  newTier             InfluencerTier @map("new_tier")
+  changedBy           String         @map("changed_by") @db.Uuid  // Admin user ID
+  reason              String?        @db.VarChar(500)
+  createdAt           DateTime       @default(now()) @map("created_at")
+  updatedAt           DateTime       @updatedAt @map("updated_at")
+  deletedAt           DateTime?      @map("deleted_at")
+
+  // Relations
+  influencerProfile   InfluencerProfile @relation(fields: [influencerProfileId], references: [id], onDelete: Cascade)
+
+  @@index([influencerProfileId])
+  @@index([createdAt])
+  @@map("influencer_tier_history")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AGENT PROFILE — FR10 Agent Role
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AgentProfile {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @map("user_id") @db.Uuid
+  agencyName  String?   @map("agency_name") @db.VarChar(255)
+  phone       String?   @db.VarChar(30)
+  bio         String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("agent_profiles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTIFICATION — FR08 In-app notifications
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  title     String           @db.VarChar(255)
+  message   String           @db.Text
+  isRead    Boolean          @default(false) @map("is_read")
+  metadata  Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  deletedAt DateTime?        @map("deleted_at")
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH MODELS (unchanged from FR01–FR05)
 // ─────────────────────────────────────────────────────────────────────────────
 
 model RefreshToken {
@@ -98,13 +291,12 @@ model RefreshToken {
   ipAddress   String?   @map("ip_address") @db.VarChar(45)
   userAgent   String?   @map("user_agent") @db.VarChar(500)
   isRevoked   Boolean   @default(false) @map("is_revoked")
-  family      String?   @db.VarChar(100)  // For token family rotation (stolen token detection)
+  family      String?   @db.VarChar(100)
   expiresAt   DateTime  @map("expires_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
 
-  // Relations
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -113,10 +305,6 @@ model RefreshToken {
   @@index([family])
   @@map("refresh_tokens")
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PASSWORD RESET
-// ─────────────────────────────────────────────────────────────────────────────
 
 model PasswordReset {
   id        String    @id @default(uuid()) @db.Uuid
@@ -128,17 +316,12 @@ model PasswordReset {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  // Relations
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
   @@map("password_resets")
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EMAIL VERIFICATION
-// ─────────────────────────────────────────────────────────────────────────────
 
 model EmailVerification {
   id        String    @id @default(uuid()) @db.Uuid
@@ -150,17 +333,12 @@ model EmailVerification {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  // Relations
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])
   @@map("email_verifications")
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AUDIT LOG — Immutable Security Audit Trail
-// ─────────────────────────────────────────────────────────────────────────────
 
 model AuditLog {
   id          String      @id @default(uuid()) @db.Uuid
@@ -174,7 +352,6 @@ model AuditLog {
   updatedAt   DateTime    @updatedAt @map("updated_at")
   deletedAt   DateTime?   @map("deleted_at")
 
-  // Relations
   user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])

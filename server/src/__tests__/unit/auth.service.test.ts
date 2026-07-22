@@ -86,6 +86,7 @@ const makeUser = (overrides = {}) => ({
   lockedUntil: null,
   profileImage: null,
   isSuspended: false,
+  createdBy: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   deletedAt: null,

@@ -17,6 +17,7 @@ import logger from './common/logger/logger';
 // ── Route imports ─────────────────────────────────────────────────────────────
 import authRoutes  from './modules/auth/routes/auth.routes';
 import adminRoutes from './modules/auth/routes/admin.routes';
+import userRoutes  from './modules/users/routes/user-management.routes';
 
 // ── Swagger ───────────────────────────────────────────────────────────────────
 import swaggerUi from 'swagger-ui-express';
@@ -55,9 +56,10 @@ app.use(compression());
 // ── Cookie Parser ─────────────────────────────────────────────────────────────
 app.use(cookieParser());
 
-// ── Body Parsing (auth endpoints only need small payloads) ───────────────────
-app.use(express.json({ limit: '50kb' }));
-app.use(express.urlencoded({ extended: true, limit: '50kb' }));
+// ── Body Parsing ─────────────────────────────────────────────────────────────
+// 50kb for auth endpoints, but user management allows slightly larger for profiles
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // ── Trust proxy (for accurate IP behind reverse proxy) ───────────────────────
 app.set('trust proxy', 1);
@@ -104,6 +106,7 @@ const API_PREFIX = `/api/${env.API_VERSION}`;
 
 app.use(`${API_PREFIX}/auth`,  authRoutes);
 app.use(`${API_PREFIX}/admin`, adminRoutes);
+app.use(`${API_PREFIX}/users`, userRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

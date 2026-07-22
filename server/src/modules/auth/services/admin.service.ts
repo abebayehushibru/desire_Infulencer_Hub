@@ -64,10 +64,10 @@ class AdminService {
 
     await authRepository.createAuditLog({
       userId: adminId,
-      action: 'PROFILE_UPDATED', // closest existing audit action for "view users"
+      action: 'PROFILE_UPDATED', // LIST_USERS view — reusing closest action (no dedicated LIST_USERS audit action)
       ipAddress: context.ip,
       userAgent: context.userAgent,
-      metadata: { action: 'LIST_USERS' },
+      metadata: { action: 'ADMIN_LIST_USERS', count: users.length },
     });
 
     return users.map((u) => ({
