@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, LogOut, Search, Settings } from "lucide-react";
+import { Bell, ChevronDown, Lock, LogOut, Search, Settings } from "lucide-react";
 import Input from "./common/Input";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -70,14 +71,22 @@ export default function Navbar() {
 
           {open && (
             <div className="absolute w-full right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
-              <button
-                type="button"
+              <Link
+                to="/settings"
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
               >
                 <Settings size={16} />
                 <span>Settings</span>
-              </button>
+              </Link>
+              <Link
+                to="/settings/password"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
+              >
+                <Lock size={16} />
+                <span>Change Password</span>
+              </Link>
 
               <div className="border-t border-gray-100" />
 

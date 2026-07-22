@@ -69,7 +69,8 @@ export default function Campaigns() {
           index={index}
           active={active}
           setActive={setActive}
-          onEdit={() => navigate(`/campaigns/${row.id}/overview`)}
+           onView={() => navigate(`/campaigns/${row.id}/overview`)}
+          onEdit={() => navigate(`/campaigns/${row.id}/edit`)}
           onDelete={() => console.log("Delete", row)}
         />
       ),

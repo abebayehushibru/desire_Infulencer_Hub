@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
-import CreateCampaign from "../pages/campaign/CreateCampaign";
+import CreateCampaign from "../pages/campaign/Editcampaign";
 import CampaignDetail from "../pages/campaign/CampaignDetail";
 import Contents from "../pages/campaign/Contents";
 import Chat from "../pages/campaign/Chat";
@@ -37,6 +37,7 @@ import EditPayment from "../pages/payments/EditPayment";
 import Notification from "../pages/notifications/Notifications";
 import Setting from "../pages/settings/Settings";
 import PasswordSetting from "../pages/settings/Passwordsetting ";
+import EditCampaign from "../pages/campaign/Editcampaign";
 export default function AppRouter() {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -53,8 +54,11 @@ export default function AppRouter() {
             <Route index element={<Campaigns />} />
             <Route path="create" element={<CreateCampaign />} />
             <Route path="claims" element={<Campaignclaims />} />
+             <Route path=":id/edit" element={<EditCampaign />} />
+            
 
             <Route path=":id" element={isMobile ? <ClaimDetail /> : <CampaignDetail />}>
+
               <Route index element={isMobile ? <MobileOverview /> : <Overview />} />
 
               <Route path="overview" index element={isMobile ? <MobileOverview /> : <Overview />} />
