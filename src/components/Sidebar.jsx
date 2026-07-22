@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import logo from "../assets/logos/logo7.png";
+import logo10 from "../assets/logos/logo10.png";
 import { Link, useLocation } from "react-router-dom";
 
 const NAV_GROUPS = [
@@ -73,9 +74,10 @@ export default function Sidebar() {
       </button>
 
       {/* Logo */}
-      <div className="flex h-20 items-center gap-3 border-b border-gray-400/50 px-6">
-        <div className="flex w-full shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-sm shadow-primary/10">
-          <img src={logo} alt="InfluenceHub" className="h-full w-full object-contain" />
+      <div className="flex h-20 items-center gap-3 border-b border-gray-400/50 px-4">
+        <div className="flex w-full shrink-0 items-center justify-start overflow-hidden rounded-xl shadow-sm shadow-primary/10">
+          {!collapsed &&<img src={logo} alt="InfluenceHub" className="bg-teritary -mx-4 h-full w-full object-contain" />}
+          {collapsed && <img src={logo10} alt="InfluenceHub" className="h-full w-full object-contain" />}
         </div>
         {!collapsed && (
           <h2 className="truncate  text-lg font-bold tracking-tight text-white">Influence Hub</h2>

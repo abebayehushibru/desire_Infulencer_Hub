@@ -8,8 +8,8 @@ const  Header = () => {
 
   return   <header className="sticky top-0 z-50 bg-violet-50/80 backdrop-blur-md border-b border-violet-950/10">
                 <div className="max-w-full mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
-                    <div className="flex  h-full items-center gap-3 border-b border-gray-100 px-6">
-                        <div className="flex h-full items-center justify-start overflow-hidden rounded-xl ">
+                    <div className="flex  h-full gap-3 border-b border-gray-100 px-6">
+                        <div className="flex h-full items-start justify-start overflow-hidden rounded-xl ">
                             <img src={logo} alt="InfluenceHub" className="h-full min-w-full object-cover " />
                         </div>
                         {/* <h2 className="text-lg font-bold tracking-tight text-primary">influenceHub</h2> */}

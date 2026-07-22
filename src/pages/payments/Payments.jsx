@@ -162,24 +162,19 @@ export default function Payments() {
             Export
         </Button>
 
-        <Button
-            leftIcon={<Plus size={18}/>}
-            onClick={()=>navigate("/payments/create")}
-        >
-            New Payment
-        </Button>
+      
 
     </div>
 
 </Title>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-4">
 
     <StatsCard
         title="Total Payments"
         number="1,284,000"
         color="green"
-         currency={"ETB"}
+        currency={"ETB"}
     />
 
     <StatsCard

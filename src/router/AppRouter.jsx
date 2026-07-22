@@ -33,6 +33,10 @@ import Register from "../pages/Register";
 import AddConversion from "../pages/campaign/Addconversion";
 import EditConversion from "../pages/campaign/Editconversion";
 import Payments from "../pages/payments/Payments";
+import EditPayment from "../pages/payments/EditPayment";
+import Notification from "../pages/notifications/Notifications";
+import Setting from "../pages/settings/Settings";
+import PasswordSetting from "../pages/settings/Passwordsetting ";
 export default function AppRouter() {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -65,8 +69,8 @@ export default function AppRouter() {
             </Route>
             <Route path="*" element={<h1>404 - Page Not Found</h1>} />
           </Route>
-            <Route path="campaigns/:id/conversions/add" element={<AddConversion />} />
-                      <Route path="campaigns/:id/conversions/edit/:id2" element={<EditConversion />} />
+          <Route path="campaigns/:id/conversions/add" element={<AddConversion />} />
+          <Route path="campaigns/:id/conversions/edit/:id2" element={<EditConversion />} />
           <Route path="influencers" element={<Influencers />} />
           <Route path="influencers/create" element={<CreateInfluencer />} />
           <Route path="influencers/edit/:id" element={<EditInfluencer />} />
@@ -79,9 +83,15 @@ export default function AppRouter() {
           <Route path="businesses/create" element={<CreateBusiness />} />
           <Route path="businesses/edit/:id" element={<EditBusiness />} />
           <Route path="businesses/view/:id" element={<BusinessDetail />} />
-<Route path="payments" element={<Payments />} />
+          <Route path="payments" element={<Payments />} />
+<Route path="payments/view/:id" element={<EditPayment />} />
+<Route path="notifications" element={<Notification/>}/>
+<Route path="settings" element={<Setting/>}/>
+<Route path="settings/password" element={<PasswordSetting/>}/>
 
-          <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+
+
+          <Route paths="*" element={<h1>404 - Page Not Found</h1>} />
         </Route>
         <Route path="login" element={<Login />} />
 
