@@ -19,6 +19,7 @@ import { useState } from "react";
 import logo from "../assets/logos/logo7.png";
 import logo10 from "../assets/logos/logo10.png";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const NAV_GROUPS = [
   {
@@ -57,6 +58,7 @@ export default function Sidebar() {
   const [showCard, setShowCard] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+    const {user}=useAuth()
 
   return (
     <aside
@@ -182,18 +184,24 @@ export default function Sidebar() {
 
           {/* User */}
           <button
-            onClick={() => setShowCard(true)}
+            onClick={() => {
+              if (user?.role=="business_owner") {
+                 setShowCard(true)
+              }
+             }}
             title={collapsed ? "Desire Online School" : undefined}
             className={`group flex w-full items-center gap-3 rounded-xl p-2 text-left transition bg-gray-50/5 hover:bg-gray-50/20 ${
               collapsed ? "justify-center" : ""
             }`}
           >
             <div className="relative shrink-0">
-              <img
+              {user?.avatar?<img
                 src="https://i.pravatar.cc/150?img=12"
                 alt="Account avatar"
                 className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
-              />
+              />:  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary font-semibold text-primary">
+             { user?.firstName?.split("")?.[0]}
+            </div>}
               <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
             </div>
 

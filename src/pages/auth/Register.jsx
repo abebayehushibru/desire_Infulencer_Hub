@@ -1,9 +1,9 @@
-import Header from "../components/header"
-import CreateBusiness from "./business/Createbusiness"
+
+import CreateBusiness from "../business/Createbusiness"
 
 const Register =()=>{
     return <div className="">
-        <Header/>
+      
         <div className="mx-auto my-6  p-4 rounded-lg max-w-7xl shadow-md bg-white ">
              <CreateBusiness/>
 

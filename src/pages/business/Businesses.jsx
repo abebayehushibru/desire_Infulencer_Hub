@@ -28,7 +28,7 @@ export default function Businesses() {
       key: "name_or_company_name",
       label: "Business",
       render: (value, row) => (
-        <Link to={`/businesses/${row.id}`} className="flex flex-col hover:underline">
+        <Link to={`/businesses/view/${row.id}`} className="flex flex-col hover:underline">
           <span className="font-medium text-primary">{value}</span>
           <span className="text-xs text-gray-400">{row.email}</span>
         </Link>

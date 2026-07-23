@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom"
-import logo from "../assets/logos/logo9.png"
+import logo from "../assets/logos/logo13.png"
 import { Menu, X } from "lucide-react"
 import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 const  Header = () => { 
   const [menuOpen, setMenuOpen] = useState(false);
+  const {isAuthenticated,user}=useAuth()
 
   return   <header className="sticky top-0 z-50 bg-violet-50/80 backdrop-blur-md border-b border-violet-950/10">
                 <div className="max-w-full mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
@@ -19,16 +21,17 @@ const  Header = () => {
                         <Link to="/" className="text-primary font-semibold border-b-2 border-amber-400 pb-1">
                             Home
                         </Link>
-                        <Link to="/#deals" className="hover:text-primary transition">
+                        {/* <Link to="/#deals" className="hover:text-primary transition">
                             Deals
                         </Link>
                         <Link to="/#contact" className="hover:text-primary transition">
                             Contact
-                        </Link>
+                        </Link> */}
                     </nav>
 
                     <div className="flex items-center gap-5">
-                        <Link to="/login" className="hidden md:inline text-sm font-semibold hover:text-violet-800 transition">
+                       {!user?<>
+                        <Link to="/auth/login" className="hidden md:inline text-sm font-semibold hover:text-violet-800 transition">
                             Log in
                         </Link>
                         <Link
@@ -37,6 +40,13 @@ const  Header = () => {
                         >
                             Register for Free
                         </Link>
+                       
+                       </>:<Link
+                            to="/dashboard"
+                            className="hidden sm:inline-flex items-center rounded-full bg-amber-400 text-violet-950 font-semibold text-sm px-6 py-3 shadow-md hover:bg-amber-500 hover:-translate-y-0.5 transition"
+                        >
+                            Dashboard
+                        </Link>}
                         <button
                             onClick={() => setMenuOpen((v) => !v)}
                             aria-label="Toggle menu"

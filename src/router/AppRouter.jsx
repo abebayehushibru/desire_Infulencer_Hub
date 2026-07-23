@@ -15,7 +15,7 @@ import ClaimDetail from "../pages/campaign/ClaimDetail";
 import { useMediaQuery } from 'react-responsive';
 import Overview from "../pages/campaign/Overview";
 import MobileOverview from "../pages/campaign/MobileOverview";
-import Login from "../pages/Login";
+
 import Influencers from "../pages/Influencers/Influencers";
 import CreateInfluencer from "../pages/Influencers/CreateInfluencer";
 import EditInfluencer from "../pages/Influencers/Editinfluencer";
@@ -29,7 +29,7 @@ import EditBusiness from "../pages/business/Editbusiness";
 import BusinessDetail from "../pages/business/Businessdetail";
 import Businesses from "../pages/business/Businesses";
 import TheHubLanding from "../pages/Landing";
-import Register from "../pages/Register";
+
 import AddConversion from "../pages/campaign/Addconversion";
 import EditConversion from "../pages/campaign/Editconversion";
 import Payments from "../pages/payments/Payments";
@@ -38,6 +38,14 @@ import Notification from "../pages/notifications/Notifications";
 import Setting from "../pages/settings/Settings";
 import PasswordSetting from "../pages/settings/Passwordsetting ";
 import EditCampaign from "../pages/campaign/Editcampaign";
+import VerifyEmail from "../pages/auth/VerifyEmail";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import VerifyResetCode from "../pages/auth/VerifyResetCode";
+import ResetPassword from "../pages/auth/ResetPassword";
+import Auth from "../pages/auth/Auth";
+import Register from "../pages/auth/Register";
+import Login from "../pages/auth/Login";
+
 export default function AppRouter() {
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -46,7 +54,18 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<TheHubLanding />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="auth" element={<Auth />}>
+
+          <Route path="verify-email" element={<VerifyEmail />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="verify-reset-code" element={<VerifyResetCode />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+
+        </Route>
+
         <Route path="/" element={<ResponsiveLayout />}>
 
           <Route path="dashboard" element={<Home />} />
@@ -54,8 +73,8 @@ export default function AppRouter() {
             <Route index element={<Campaigns />} />
             <Route path="create" element={<CreateCampaign />} />
             <Route path="claims" element={<Campaignclaims />} />
-             <Route path=":id/edit" element={<EditCampaign />} />
-            
+            <Route path=":id/edit" element={<EditCampaign />} />
+
 
             <Route path=":id" element={isMobile ? <ClaimDetail /> : <CampaignDetail />}>
 
@@ -88,10 +107,10 @@ export default function AppRouter() {
           <Route path="businesses/edit/:id" element={<EditBusiness />} />
           <Route path="businesses/view/:id" element={<BusinessDetail />} />
           <Route path="payments" element={<Payments />} />
-<Route path="payments/view/:id" element={<EditPayment />} />
-<Route path="notifications" element={<Notification/>}/>
-<Route path="settings" element={<Setting/>}/>
-<Route path="settings/password" element={<PasswordSetting/>}/>
+          <Route path="payments/view/:id" element={<EditPayment />} />
+          <Route path="notifications" element={<Notification />} />
+          <Route path="settings" element={<Setting />} />
+          <Route path="settings/password" element={<PasswordSetting />} />
 
 
 
