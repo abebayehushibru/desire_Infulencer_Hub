@@ -85,7 +85,8 @@ class CommunityController {
   // ── FR12 — Get commission rules ───────────────────────────────────────────
   async getCommission(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const commission = await svc.getCommission(req.params.id);
+      const { sub: requesterId, role } = auth(req);
+      const commission = await svc.getCommission(req.params.id, requesterId, role);
       sendSuccess({ res, message: 'Commission rules retrieved', data: commission });
     } catch (e) { next(e); }
   }

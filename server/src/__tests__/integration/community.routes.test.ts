@@ -65,6 +65,7 @@ jest.mock('../../modules/community/repositories/community.repository', () => ({
     findActiveCommunityByLeader:  jest.fn(),
     addMember:                    jest.fn(),
     findMembership:               jest.fn(),
+    findMembershipById:           jest.fn(),
     findActiveMembership:         jest.fn(),
     removeMember:                 jest.fn(),
     listMembers:                  jest.fn(),
@@ -303,7 +304,8 @@ describe('FR12: Commission', () => {
     expect(res.status).toBe(200);
   });
 
-  it('GET /communities/:id/commission — 200 for Community Leader', async () => {
+  it('GET /communities/:id/commission — 200 for Community Leader (own community)', async () => {
+    // diamondToken sub = LEADER_UUID; community.communityLeaderId = LEADER_UUID — exact match
     repo().findCommunityById.mockResolvedValue(mockCommunity());
     repo().getCommission.mockResolvedValue({ platformFee: 20, leaderPercentage: 30, memberPercentage: 70 });
 
@@ -313,6 +315,18 @@ describe('FR12: Commission', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.platformFee).toBe(20);
+  });
+
+  it('GET /communities/:id/commission — 403 for a DIAMOND not leading this community', async () => {
+    // Community leader is someone else, not the diamondToken user
+    const otherLeaderCommunity = { ...mockCommunity(), communityLeaderId: 'a0eebc99-9c0b-4ef8-bb6d-000000000001' };
+    repo().findCommunityById.mockResolvedValue(otherLeaderCommunity);
+
+    const res = await request(app)
+      .get(`/api/v1/communities/${COMM_UUID}/commission`)
+      .set('Authorization', `Bearer ${diamondToken()}`);
+
+    expect(res.status).toBe(403);
   });
 
   it('GET /communities/:id/commission/history — 403 for non-admin', async () => {
@@ -418,7 +432,7 @@ describe('FR13: Members', () => {
 
   it('DELETE /communities/:id/members/:memberId — 200 removes member', async () => {
     repo().findCommunityById.mockResolvedValue(mockCommunity());
-    repo().findMembership.mockResolvedValue({ id: MEMBER_ROW_ID, userId: MEMBER_UUID, status: 'ACTIVE' });
+    repo().findMembershipById.mockResolvedValue({ id: MEMBER_ROW_ID, communityId: COMM_UUID, userId: MEMBER_UUID, status: 'ACTIVE' });
     repo().removeMember.mockResolvedValue({ id: MEMBER_ROW_ID, status: 'REMOVED', leftAt: new Date() });
 
     const res = await request(app)
@@ -534,5 +548,201 @@ describe('Response Format Contract', () => {
     expect(res.body).toHaveProperty('message');
     expect(res.body).toHaveProperty('data');
     expect(res.body).toHaveProperty('timestamp');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bug Fix Coverage
+// ─────────────────────────────────────────────────────────────────────────────
+describe('Bug fix: PENDING_VERIFICATION user blocked from membership', () => {
+  it('POST /communities/:id/members — 400 for PENDING_VERIFICATION user', async () => {
+    repo().findCommunityById.mockResolvedValue(mockCommunity());
+    repo().findUserById.mockResolvedValue({
+      id: MEMBER_UUID, role: 'GOLD_INFLUENCER', status: 'PENDING_VERIFICATION',
+    });
+
+    const res = await request(app)
+      .post(`/api/v1/communities/${COMM_UUID}/members`)
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .send({ userId: MEMBER_UUID });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/pending_verification/i);
+  });
+});
+
+describe('Bug fix: updateCommunity empty body rejected', () => {
+  it('PATCH /communities/:id — 400 when body has no valid update fields', async () => {
+    repo().findCommunityById.mockResolvedValue(mockCommunity());
+    repo().findCommunityByTitleExcluding.mockResolvedValue(null);
+
+    const res = await request(app)
+      .patch(`/api/v1/communities/${COMM_UUID}`)
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .send({});
+
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('Bug fix: cross-community membership removal blocked', () => {
+  it('DELETE /communities/:id/members/:memberId — 404 if membership belongs to different community', async () => {
+    repo().findCommunityById.mockResolvedValue(mockCommunity());
+    repo().findMembershipById.mockResolvedValue({
+      id: MEMBER_ROW_ID,
+      communityId: 'a0eebc99-9c0b-4ef8-bb6d-000000000099', // different community
+      userId: MEMBER_UUID,
+      status: 'ACTIVE',
+    });
+
+    const res = await request(app)
+      .delete(`/api/v1/communities/${COMM_UUID}/members/${MEMBER_ROW_ID}`)
+      .set('Authorization', `Bearer ${adminToken()}`);
+
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('Security: commission float precision via API', () => {
+  it('PATCH /communities/:id/commission — 400 when percentages sum to 99.9', async () => {
+    repo().findCommunityById.mockResolvedValue(mockCommunity());
+
+    const res = await request(app)
+      .patch(`/api/v1/communities/${COMM_UUID}/commission`)
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .send({ platformFee: 10, leaderPercentage: 33.3, memberPercentage: 66.6 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/equal 100/i);
+  });
+
+  it('PATCH /communities/:id/commission — 200 accepts 33.33 + 66.67 = 100', async () => {
+    repo().findCommunityById.mockResolvedValue(mockCommunity());
+    repo().upsertCommission.mockResolvedValue({
+      platformFee: 10, leaderPercentage: 33.33, memberPercentage: 66.67,
+    });
+    repo().createCommissionHistory.mockResolvedValue({});
+
+    const res = await request(app)
+      .patch(`/api/v1/communities/${COMM_UUID}/commission`)
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .send({ platformFee: 10, leaderPercentage: 33.33, memberPercentage: 66.67 });
+
+    expect(res.status).toBe(200);
+  });
+});
+
+describe('Security: XSS in community title/description', () => {
+  it('POST /communities — strips HTML from title and description', async () => {
+    repo().findCommunityByTitle.mockResolvedValue(null);
+    repo().createCommunity.mockResolvedValue({ id: COMM_UUID });
+    repo().findCommunityById.mockResolvedValue({
+      ...mockCommunity(),
+      title: 'alert(1)Fashion Hub',
+      description: 'Welcome',
+    });
+
+    const res = await request(app)
+      .post('/api/v1/communities')
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .send({
+        title: '<script>alert(1)</script>Fashion Hub',
+        description: '<img src=x onerror=alert(1)>Welcome',
+      });
+
+    expect(res.status).toBe(201);
+    // Service strips HTML before persisting — verify createCommunity called with sanitized values
+    expect(repo().createCommunity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: expect.not.stringContaining('<script>'),
+        description: expect.not.stringContaining('<img'),
+      })
+    );
+  });
+});
+
+describe('Edge cases: pagination and sorting', () => {
+  it('GET /communities — respects limit and page params', async () => {
+    repo().listCommunities.mockResolvedValue({ communities: [], total: 0 });
+
+    const res = await request(app)
+      .get('/api/v1/communities?page=2&limit=5&sortBy=title&sortOrder=asc')
+      .set('Authorization', `Bearer ${adminToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(repo().listCommunities).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2, limit: 5, sortBy: 'title', sortOrder: 'asc' })
+    );
+  });
+
+  it('GET /communities — 422 for limit > 100', async () => {
+    const res = await request(app)
+      .get('/api/v1/communities?limit=200')
+      .set('Authorization', `Bearer ${adminToken()}`);
+    expect(res.status).toBe(422);
+  });
+
+  it('GET /communities/rankings — respects sortBy memberCount', async () => {
+    repo().getCommunityRankings.mockResolvedValue({ rankings: [], total: 0 });
+
+    const res = await request(app)
+      .get('/api/v1/communities/rankings?sortBy=memberCount&sortOrder=desc')
+      .set('Authorization', `Bearer ${adminToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(repo().getCommunityRankings).toHaveBeenCalledWith(
+      expect.objectContaining({ sortBy: 'memberCount', sortOrder: 'desc' })
+    );
+  });
+
+  it('GET /communities/:id/leaderboard — respects sortBy totalEarnings desc', async () => {
+    repo().findCommunityById.mockResolvedValue(mockCommunity());
+    repo().getLeaderboard.mockResolvedValue({ entries: [], total: 0 });
+
+    const res = await request(app)
+      .get(`/api/v1/communities/${COMM_UUID}/leaderboard?sortBy=totalEarnings&sortOrder=desc`)
+      .set('Authorization', `Bearer ${adminToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(repo().getLeaderboard).toHaveBeenCalledWith(
+      COMM_UUID,
+      expect.objectContaining({ sortBy: 'totalEarnings', sortOrder: 'desc' })
+    );
+  });
+});
+
+describe('RBAC edge cases', () => {
+  it('GET /communities/:id — 401 without token', async () => {
+    const res = await request(app).get(`/api/v1/communities/${COMM_UUID}`);
+    expect(res.status).toBe(401);
+  });
+
+  it('PATCH /communities/:id/commission — 401 without token', async () => {
+    const res = await request(app)
+      .patch(`/api/v1/communities/${COMM_UUID}/commission`)
+      .send({ platformFee: 10, leaderPercentage: 50, memberPercentage: 50 });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /communities/:id/deactivate — 403 for DIAMOND_INFLUENCER', async () => {
+    const res = await request(app)
+      .post(`/api/v1/communities/${COMM_UUID}/deactivate`)
+      .set('Authorization', `Bearer ${diamondToken()}`);
+    expect(res.status).toBe(403);
+  });
+
+  it('GET /communities/:id/commission/history — 403 for DIAMOND_INFLUENCER', async () => {
+    const res = await request(app)
+      .get(`/api/v1/communities/${COMM_UUID}/commission/history`)
+      .set('Authorization', `Bearer ${diamondToken()}`);
+    expect(res.status).toBe(403);
+  });
+
+  it('POST /communities/:id/members — 422 for invalid communityId UUID', async () => {
+    const res = await request(app)
+      .post('/api/v1/communities/not-a-uuid/members')
+      .set('Authorization', `Bearer ${adminToken()}`)
+      .send({ userId: MEMBER_UUID });
+    expect(res.status).toBe(422);
   });
 });

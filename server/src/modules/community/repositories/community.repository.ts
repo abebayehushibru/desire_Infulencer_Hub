@@ -143,6 +143,12 @@ export class CommunityRepository {
     });
   }
 
+  async findMembershipById(id: string) {
+    return prisma.communityMember.findFirst({
+      where: { id, deletedAt: null },
+    });
+  }
+
   async findActiveMembership(communityId: string, userId: string) {
     return prisma.communityMember.findFirst({
       where: { communityId, userId, status: 'ACTIVE', deletedAt: null },

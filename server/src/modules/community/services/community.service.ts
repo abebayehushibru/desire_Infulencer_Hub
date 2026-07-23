@@ -20,6 +20,17 @@ import type {
 const MEMBER_ELIGIBLE_ROLES = ['GOLD_INFLUENCER', 'SILVER_INFLUENCER'];
 const LEADER_ELIGIBLE_ROLE   = 'DIAMOND_INFLUENCER';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Strip HTML tags to prevent stored XSS in community text fields */
+const stripHtml = (input: string): string =>
+  input.replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim();
+
+const sanitizeText = (value?: string): string | undefined =>
+  value !== undefined ? stripHtml(value) : undefined;
+
 class CommunityService {
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -38,11 +49,11 @@ class CommunityService {
     }
 
     const community = await repo.createCommunity({
-      title:            dto.title.trim(),
-      description:      dto.description?.trim(),
-      rules:            dto.rules?.trim(),
+      title:             stripHtml(dto.title.trim()),
+      description:       sanitizeText(dto.description),
+      rules:             sanitizeText(dto.rules),
       communityLeaderId: dto.communityLeaderId,
-      createdBy:        adminId,
+      createdBy:         adminId,
     });
 
     // Notify leader if assigned
@@ -110,11 +121,16 @@ class CommunityService {
     }
 
     const updateData: Record<string, any> = {};
-    if (dto.title       !== undefined) updateData.title            = dto.title.trim();
-    if (dto.description !== undefined) updateData.description      = dto.description?.trim() ?? null;
-    if (dto.rules       !== undefined) updateData.rules            = dto.rules?.trim() ?? null;
+    if (dto.title       !== undefined) updateData.title            = stripHtml(dto.title.trim());
+    if (dto.description !== undefined) updateData.description      = dto.description ? stripHtml(dto.description.trim()) : null;
+    if (dto.rules       !== undefined) updateData.rules            = dto.rules ? stripHtml(dto.rules.trim()) : null;
     if (dto.status      !== undefined) updateData.status           = dto.status;
     if (dto.communityLeaderId !== undefined) updateData.communityLeaderId = dto.communityLeaderId ?? null;
+
+    // Guard: at least one field must be changing
+    if (Object.keys(updateData).length === 0) {
+      throw ApiError.badRequest('At least one field must be provided to update');
+    }
 
     const updated = await repo.updateCommunity(id, updateData);
 
@@ -177,10 +193,12 @@ class CommunityService {
     await this.findOrThrow(communityId);
 
     // Business rule: leader% + member% must equal exactly 100
-    const sum = parseFloat((dto.leaderPercentage + dto.memberPercentage).toFixed(10));
-    if (sum !== 100) {
+    // Use integer arithmetic to avoid IEEE 754 floating-point drift (e.g. 33.3 + 66.7 ≠ 100 exactly)
+    const leaderCents = Math.round(dto.leaderPercentage * 100);
+    const memberCents = Math.round(dto.memberPercentage * 100);
+    if (leaderCents + memberCents !== 10000) {
       throw ApiError.badRequest(
-        `leaderPercentage + memberPercentage must equal 100. Got ${sum.toFixed(2)}.`
+        `leaderPercentage + memberPercentage must equal 100. Got ${((leaderCents + memberCents) / 100).toFixed(2)}.`
       );
     }
 
@@ -239,8 +257,14 @@ class CommunityService {
     return commission;
   }
 
-  async getCommission(communityId: string) {
-    await this.findOrThrow(communityId);
+  async getCommission(communityId: string, requesterId?: string, requesterRole?: string) {
+    const community = await this.findOrThrow(communityId);
+    // SYSTEM_ADMIN always allowed. DIAMOND must be the actual leader of THIS community.
+    if (requesterRole !== 'SYSTEM_ADMIN') {
+      if (community.communityLeaderId !== requesterId) {
+        throw ApiError.forbidden('Only the community leader or SYSTEM_ADMIN can view commission rules');
+      }
+    }
     const commission = await repo.getCommission(communityId);
     if (!commission) throw ApiError.notFound('No commission rules found for this community');
     return commission;
@@ -279,7 +303,7 @@ class CommunityService {
     }
 
     // Block suspended or inactive users
-    if (targetUser.status === 'SUSPENDED' || targetUser.status === 'INACTIVE') {
+    if (targetUser.status === 'SUSPENDED' || targetUser.status === 'INACTIVE' || targetUser.status === 'PENDING_VERIFICATION') {
       throw ApiError.badRequest(`Cannot add a ${targetUser.status.toLowerCase()} user to a community`);
     }
 
@@ -320,8 +344,10 @@ class CommunityService {
     // Requester must be SYSTEM_ADMIN or the community leader
     this.assertCanManageMembers(community, requesterId, requesterRole);
 
-    const membership = await repo.findMembership(communityId, memberId);
+    // memberId is the CommunityMember row ID — look it up directly and verify it belongs to this community
+    const membership = await repo.findMembershipById(memberId);
     if (!membership) throw ApiError.notFound('Membership not found');
+    if (membership.communityId !== communityId) throw ApiError.notFound('Membership not found in this community');
     if (membership.status === 'REMOVED') throw ApiError.badRequest('Member has already been removed');
 
     const removed = await repo.removeMember(membership.id, requesterId);
