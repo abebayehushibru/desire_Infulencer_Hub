@@ -1,12 +1,14 @@
 import { useEffect, useRef } from "react";
 import { MoreVertical, Pencil, Trash2, Inbox, EyeIcon } from "lucide-react";
 
-export default function Table({ columns, data }) {
+export default function Table({ columns, data, loading = false }) {
+  const skeletonRows = 5;
+
   return (
-    <div className="overflow-hidden rounded-lg  border border-gray-100">
-      <div className=" relative overflow-x-auto scroll-container">
+    <div className="overflow-hidden rounded-lg border border-gray-100">
+      <div className="relative overflow-x-auto scroll-container">
         <table className="w-full">
-          <thead className=" sticky bg-primary">
+          <thead className="sticky top-0 z-10 bg-primary">
             <tr>
               {columns.map((column) => (
                 <th
@@ -20,27 +22,47 @@ export default function Table({ columns, data }) {
           </thead>
 
           <tbody className="divide-y divide-gray-100">
-            {data.map((row, rowIndex) => (
-              <tr key={rowIndex} className={`${rowIndex%2==1?"":"bg-primary/10"} cursor-pointer transition-colors text-gray-700 hover:text-gray-100  hover:bg-tertiary/50`}>
-                {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-2 text-sm ">
-                    {column.render
-                      ? column.render(row[column.key], row, rowIndex)
-                      : row[column.key]}
-                  </td>
+            {loading ? (
+              Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+                <tr
+                  key={`skeleton-${rowIndex}`}
+                  className={rowIndex % 2 === 1 ? "" : "bg-primary/10"}
+                >
+                  {columns.map((column) => (
+                    <td key={column.key} className="px-4 py-3 text-sm">
+                      <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <>
+                {data.map((row, rowIndex) => (
+                  <tr
+                    key={rowIndex}
+                    className={`${rowIndex % 2 == 1 ? "" : "bg-primary/10"} cursor-pointer transition-colors text-gray-700 hover:text-gray-100 hover:bg-tertiary/50`}
+                  >
+                    {columns.map((column) => (
+                      <td key={column.key} className="px-4 py-2 text-sm">
+                        {column.render
+                          ? column.render(row[column.key], row, rowIndex)
+                          : row[column.key]}
+                      </td>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
 
-            {!data.length && (
-              <tr>
-                <td colSpan={columns.length} className="py-14 text-center">
-                  <div className="flex flex-col items-center gap-2 text-gray-400">
-                    <Inbox size={28} strokeWidth={1.5} />
-                    <span className="text-sm">No data found.</span>
-                  </div>
-                </td>
-              </tr>
+                {!data.length && (
+                  <tr>
+                    <td colSpan={columns.length} className="py-14 text-center">
+                      <div className="flex flex-col items-center gap-2 text-gray-400">
+                        <Inbox size={28} strokeWidth={1.5} />
+                        <span className="text-sm">No data found.</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </>
             )}
           </tbody>
         </table>
@@ -48,7 +70,6 @@ export default function Table({ columns, data }) {
     </div>
   );
 }
-
 /* ----------------------------
    Reusable Action Menu
 -----------------------------*/

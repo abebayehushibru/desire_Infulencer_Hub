@@ -8,6 +8,7 @@ import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Titel from "../../components/common/Titel";
 import Pagination from "../../components/Pagination";
+import useApi from "../../hooks/useApi";
 
 const STATUS_STYLE = {
   Active: "bg-green-100 text-green-700",
@@ -19,9 +20,20 @@ const STATUS_STYLE = {
 export default function Businesses() {
   const navigate = useNavigate();
   const [active, setActive] = useState(false);
-
+ const [pagination, setPagination] = useState({
+  page:1,
+  total:0,
+  totalPages:1
+ });
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+ const businessApi = useApi({
+        request: (payload) => ({
+            method: "GET",
+            path: "/business",
+            query: payload,
+        }),
+    });
 
   const columns = [
     {
@@ -78,56 +90,14 @@ export default function Businesses() {
     },
   ];
 
-  const businesses = [
-    {
-      id: "b1f0c2b2-2f3a-4a5b-9e2a-6d1f2c3a4b5c",
-      name_or_company_name: "Desire Online School",
-      email: "info@desire.et",
-      phone_1: "0911223344",
-      status: "Active",
-      login_attempts: 0,
-      created_at: "2025-11-02T09:14:00Z",
-    },
-    {
-      id: "c2a1d3e4-3f4b-4b5c-8f3b-7e2f3d4b5c6d",
-      name_or_company_name: "Addis Tech Hub",
-      email: "contact@addistech.et",
-      phone_1: "0922334455",
-      status: "Pending",
-      login_attempts: 1,
-      created_at: "2026-06-18T11:20:00Z",
-    },
-    {
-      id: "d3b2e4f5-4a5c-4c6d-9a4c-8f3a4e5c6d7e",
-      name_or_company_name: "Nile Retail Group",
-      email: "hello@nileretail.com",
-      phone_1: "0933445566",
-      status: "Suspended",
-      login_attempts: 5,
-      created_at: "2026-02-27T08:05:00Z",
-    },
-    {
-      id: "e4c3f5a6-5b6d-4d7e-8b5d-9a4b5f6d7e8f",
-      name_or_company_name: "Habesha Foods PLC",
-      email: "admin@habeshafoods.com",
-      phone_1: "0944556677",
-      status: "Inactive",
-      login_attempts: 0,
-      created_at: "2025-08-14T16:40:00Z",
-    },
-  ];
+  
 
-  const filteredBusinesses = useMemo(() => {
+  const filteredBusinesses = () => {
     const q = search.trim().toLowerCase();
-    return businesses.filter((b) => {
-      const matchesSearch =
-        !q ||
-        b.name_or_company_name.toLowerCase().includes(q) ||
-        b.email.toLowerCase().includes(q);
-      const matchesStatus = !status || b.status.toLowerCase() === status;
-      return matchesSearch && matchesStatus;
-    });
-  }, [search, status]);
+    const result=businessApi.execute({
+      search,status,page:pagination
+    })
+  }
 
   return (
     <div className="min-h-full bg-gray-50/10">
@@ -171,8 +141,16 @@ export default function Businesses() {
           </div>
         </div>
 
-        <Table columns={columns} data={filteredBusinesses} />
-           <Pagination/>
+        <Table columns={columns} data={businessApi?.data?.data} loading={true} />
+           <Pagination  onPageChange={(pg)=>{
+            setPagination(prev=>({
+              ...prev,page:pg
+            }))
+           }}
+           total={pagination.total}
+           totalPages={pagination.totalPages}
+           
+           />
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ const  Header = () => {
                 <div className="max-w-7xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
                     <div className="flex  h-full gap-3 border-b border-gray-100 px-6">
                         <div className="flex h-full items-start justify-start overflow-hidden rounded-xl ">
-                            <img src={logo} alt="InfluenceHub" className="h-full min-w-full object-cover " />
+                            <img src={logo} alt="InfluenceHub" className="h-full min-w-full object-cover scale-80" />
                         </div>
                         {/* <h2 className="text-lg font-bold tracking-tight text-primary">influenceHub</h2> */}
                     </div>
@@ -35,7 +35,7 @@ const  Header = () => {
                             Log in
                         </Link>
                         <Link
-                            to="/register"
+                            to="/auth/register"
                             className="hidden sm:inline-flex items-center rounded-full bg-amber-400 text-violet-950 font-semibold text-sm px-6 py-3 shadow-md hover:bg-amber-500 hover:-translate-y-0.5 transition"
                         >
                             Register for Free
@@ -63,17 +63,17 @@ const  Header = () => {
                         <a href="#" className="py-3 border-b border-violet-950/5 font-medium">
                             Home
                         </a>
-                        <a href="#deals" className="py-3 border-b border-violet-950/5 font-medium">
+                        {/* <a href="#deals" className="py-3 border-b border-violet-950/5 font-medium">
                             Deals
                         </a>
                         <a href="#contact" className="py-3 border-b border-violet-950/5 font-medium">
                             Contact
-                        </a>
+                        </a> */}
                         <div className="flex gap-3 mt-4">
                             <a href="#" className="flex-1 text-center rounded-full border border-violet-950/20 py-3 text-sm font-semibold">
                                 Log in
                             </a>
-                            <a href="#" className="flex-1 text-center rounded-full bg-amber-400 text-violet-950 py-3 text-sm font-semibold">
+                            <a href="/auth/register" className="flex-1 text-center rounded-full bg-amber-400 text-violet-950 py-3 text-sm font-semibold">
                                 Register
                             </a>
                         </div>

@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { data, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Building2, Mail, Phone, Lock, Save, Clock, Calendar } from "lucide-react";
 
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
 import Title from "../../components/common/Titel";
+import useApi from "../../hooks/useApi";
+import PageLoader from "../../components/PageLoader";
 
 // Stand-in for a record loaded from the API — swap for a real fetch by :id.
 const SAMPLE_BUSINESS = {
@@ -30,7 +32,21 @@ export default function EditBusiness() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
+ const businessApi = useApi({
+        request: () => ({
+            method: "GET",
+            path: "/business/id",
+           
+        }),
+    });
+     const updateBApi = useApi({
+            request: (payload) => ({
+                method: "PUT",
+                path: "/business/id",
+                data:payload
+               
+            }),
+        });
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const validate = () => {
@@ -62,6 +78,7 @@ export default function EditBusiness() {
         status: form.status,
         ...(changePassword ? { password } : {}),
       };
+      await updateBApi.execute(payload)
       console.log("Update business payload:", payload);
       // await api.patch(`/users/${id}`, payload);
       navigate(`/businesses/${id ?? form.id}`);
@@ -74,6 +91,7 @@ export default function EditBusiness() {
     <div className="min-h-full bg-gray-50/10">
     
 
+     {businessApi.loading?<PageLoader label="Loading Business Detail"/>: <>
       <div className="mb-4">
         <Title titel={"Edit Business"} disc={`Update ${form.name_or_company_name || "this business"}'s account.`}/>
         <h1 className="text-2xl font-bold text-primary"></h1>
@@ -217,11 +235,11 @@ export default function EditBusiness() {
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Cancel
           </Button>
-          <Button type="submit" leftIcon={<Save size={18} />} disabled={submitting}>
-            {submitting ? "Saving..." : "Save Changes"}
+          <Button type="submit" leftIcon={<Save size={18} />} disabled={updateBApi.loading }>
+            {updateBApi.loading ? "Saving..." : "Save Changes"}
           </Button>
         </div>
-      </form>
+      </form></>}
     </div>
   );
 }

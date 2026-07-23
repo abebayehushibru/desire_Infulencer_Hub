@@ -2,18 +2,29 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     ArrowLeft, Building2, Mail, Phone, Lock, Check, MapPin,
-    Layers, Globe, Send, Video, FileText, Upload, Eye
+    Layers, Globe, Send, Video, FileText, Upload, Eye,
+    EyeClosed
 } from "lucide-react";
 
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
 import Titel from "../../components/common/Titel";
+import useApi from "../../hooks/useApi";
+import toast from "react-hot-toast";
 
 export default function CreateBusiness() {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
+    const [show, setShow] = useState(false)
     const steps = ["User Information", "Business Profile", "Subscription Type", "Review"];
+    const businessApi = useApi({
+        request: (body) => ({
+            method: "POST",
+            path: "/business",
+            data: body,
+        }),
+    });
 
     // Unified application form state schema
     const [form, setForm] = useState({
@@ -43,7 +54,7 @@ export default function CreateBusiness() {
     });
 
     const [errors, setErrors] = useState({});
-    const [submitting, setSubmitting] = useState(false);
+    const [createAndGoBack, setCreateAndGoBack] = useState(false);
 
     // Text state field updates handler
     const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -114,34 +125,56 @@ export default function CreateBusiness() {
             return;
         }
 
-        setSubmitting(true);
-        try {
-            // Package components into a native HTTP FormData payload stack
-            const formData = new FormData();
-            Object.keys(form).forEach((key) => {
-                formData.append(key, form[key]);
-            });
-            formData.append("role", "business");
+        // Package components into a native HTTP FormData payload stack
+        const formData = new FormData();
+        Object.keys(form).forEach((key) => {
+            formData.append(key, form[key]);
+        });
+        formData.append("role", "business");
+        formData.append("successMsg", "business");
 
-            console.log("Submitting Multi-part FormData object payload structure:");
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
+        // Mock network execution processing pipeline
+        const result = await businessApi.execute(formData);
+        if (result?.success) {
+            if (createAndGoBack) {
+                navigate("/businesses");
             }
+            else{
+                setForm({
+        // Step 1: User Information Fields
+        name_or_company_name: "",
+        email: "",
+        phone_1: "",
+        phone_2: "",
+        password: "",
+        confirm_password: "",
+        status: "pending",
 
-            // Mock network execution processing pipeline
-            // await api.post("/users", formData);
-            navigate("/businesses");
-        } catch (err) {
-            console.error("Submission failed:", err);
-        } finally {
-            setSubmitting(false);
+        // Step 2: Business Profile Fields
+        company_address: "",
+        business_category: "",
+        website: "",
+        facebook: "",
+        instagram: "",
+        telegram: "",
+        tiktok: "",
+        company_description: "",
+        company_logo: null,
+        business_license: null,
+
+        // Step 3: Subscription Allocation
+        subscription_type: "free",
+    })
+            }
+            
         }
-    };
+
+    }
 
     return (
         <div className=" relative min-h-full min-w-full bg-gray-50/10 flex flex-col gap-4 w-fit mx-auto">
-            <Titel titel={"Add Business"} disc={"Complete the pipeline to provision a custom dashboard portal."}/>
-           
+            <Titel titel={"Add Business"} disc={"Complete the pipeline to provision a custom dashboard portal."} />
+
             {/* ── Stepper Block Component Architecture ── */}
             <div className="flex mx-auto min-w-[600px] mt-1 ">
                 <div className="w-full flex items-center">
@@ -167,7 +200,7 @@ export default function CreateBusiness() {
                                     </span>
                                 </div>
                                 {i < steps.length - 1 && (
-                                    <div className={`  h-0.5 flex-1 rounded transition-colors  ${i < currentStep-1 ? "bg-[var(--color-tertiary)]" : "bg-slate-200"}`} />
+                                    <div className={`  h-0.5 flex-1 rounded transition-colors  ${i < currentStep - 1 ? "bg-[var(--color-tertiary)]" : "bg-slate-200"}`} />
                                 )}
                             </div>
                         );
@@ -189,17 +222,17 @@ export default function CreateBusiness() {
                         </div>
 
                         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                               <Input
-                                    label="Company Name"
-                                    name="name_or_company_name"
-                                    required
-                                    leftIcon={<Building2 size={18} />}
-                                    placeholder="Desire Online School"
-                                    value={form.name_or_company_name}
-                                    onChange={set("name_or_company_name")}
-                                    error={errors.name_or_company_name}
-                                />
-                           
+                            <Input
+                                label="Company Name"
+                                name="name_or_company_name"
+                                required
+                                leftIcon={<Building2 size={18} />}
+                                placeholder="Desire Online School"
+                                value={form.name_or_company_name}
+                                onChange={set("name_or_company_name")}
+                                error={errors.name_or_company_name}
+                            />
+
 
                             <Input
                                 label="Email Address"
@@ -213,7 +246,7 @@ export default function CreateBusiness() {
                                 error={errors.email}
                             />
 
-                            
+
 
                             <Input
                                 label="Primary Phone Number"
@@ -244,22 +277,32 @@ export default function CreateBusiness() {
                                 <Input
                                     label="Password"
                                     name="password"
-                                    type="password"
+                                    type={show ? "txet" : "password"}
                                     required
                                     leftIcon={<Lock size={18} />}
                                     placeholder="At least 8 characters"
                                     value={form.password}
+                                    rightIcon={!show ? <EyeClosed className="z-10 cursor-pointer" size={18} onClick={() => {
+                                        setShow(true)
+                                    }} /> : <Eye className="z-10 cursor-pointer" size={18} onClick={() => {
+                                        setShow(false)
+                                    }} />}
                                     onChange={set("password")} error={errors.password} />
                                 <Input
                                     label="Confirm Password"
                                     name="confirm_password"
-                                    type="password"
                                     required
+
                                     leftIcon={<Lock size={18} />}
                                     placeholder="Re-enter password"
                                     value={form.confirm_password}
                                     onChange={set("confirm_password")}
                                     error={errors.confirm_password}
+                                    rightIcon={!show ? <EyeClosed className="z-10 cursor-pointer" size={18} onClick={() => {
+                                        setShow(true)
+                                    }} /> : <Eye size={18} className="z-10 cursor-pointer" onClick={() => {
+                                        setShow(false)
+                                    }} />}
                                 />
                             </div>
                         </div>
@@ -497,11 +540,45 @@ export default function CreateBusiness() {
                     </div>
                 }
                 <div className="flex justify-end w-full  gap-4 mt-6 ">
-                    
-                
-                <Button type="button" variant="outline" onClick={currentStep === 1 ? () => navigate(-1) : handleBack}>{currentStep === 1 ? "Cancel" : "Back"}</Button>
-                {currentStep < 4 ? <Button type="button"  onClick={handleNext}>Continue</Button> : <Button type="submit" disabled={submitting} onClick={handleSubmit}>{submitting ? "Processing..." : "Complete Setup"}</Button>}
-            </div>
+
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={currentStep === 1 ? () => navigate(-1) : handleBack}
+                    >
+                        {currentStep === 1 ? "Cancel" : "Back"}
+                    </Button>
+
+                    {currentStep < 4 ? (
+                        <Button type="button" onClick={handleNext}>
+                            Continue
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                type="submit"
+                                disabled={businessApi.loading}
+                                onClick={(e)=>{
+                                    setCreateAndGoBack(true)
+                                    handleSubmit(e)
+                                }}
+                            >
+                                {businessApi.loading ? "Processing..." : "Create"}
+                            </Button>
+
+                            <Button
+                                type="submit"
+                                disabled={businessApi.loading}
+                                 onClick={(e)=>{
+                                    setCreateAndGoBack(false)
+                                    handleSubmit(e)
+                                }}
+                            >
+                                {businessApi.loading ? "Processing..." : "Create And Stay"}
+                            </Button>
+                        </>
+                    )}
+                </div>
             </div>
 
         </div>

@@ -66,20 +66,18 @@ export default function Login() {
       return;
     }
 
-    const result = await loginApi.execute(form);
+    const result = await loginApi.execute({...form,successMsg:"Welcome back!"});
     // console.log("result",result);
 
 
     if (result.success) {
-      toast.success("Welcome back!");
+  
       const destination = location.state?.from?.pathname || "/dashboard";
-const data = result.data
+      const data = result.data
       await login(data?.data.user,data?.data?.accessToken);
       
     return navigate(destination, { replace: true });
-    } else {
-      toast.error(result.message || "Login failed");
-    }
+    } 
   };
 
   if (isAuthenticated) {
@@ -87,7 +85,7 @@ const data = result.data
     // return navigate(destination, { replace: true });
   }
   return (
-    <div className="h-full md:my-auto bg-gray-100 flex items-center justify-center md:p-4  p-4">
+    <div className="h-full md:my-auto bg-gray-100 flex items-center justify-center md:px-16  p-4">
 
       <div className="w-full min-h-[400px]  max-w-6xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
 

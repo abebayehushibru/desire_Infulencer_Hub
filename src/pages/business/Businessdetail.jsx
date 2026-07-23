@@ -30,6 +30,8 @@ import {
 import Button from "../../components/common/Button";
 import Table, { ActionMenu } from "../../components/common/Table";
 import StatsCard from "../../components/common/StatsCard.";
+import PageLoader from "../../components/PageLoader";
+import useApi from "../../hooks/useApi";
 
 // Stand-in for a record loaded from the API — swap for a real fetch by :id.
 const SAMPLE_BUSINESS = {
@@ -108,12 +110,19 @@ export default function BusinessDetail() {
   const business = SAMPLE_BUSINESS; // TODO: fetch by id
   const [tab, setTab] = useState("Detail");
   const [active, setActive] = useState(false);
-
+ const businessApi = useApi({
+        request: () => ({
+            method: "GET",
+            path: "/business/id",
+           
+        }),
+    });
   const isSuspended = business.status === "suspended";
 
   return (
-    <div className="min-h-full bg-gray-50">
-
+    
+    <div className="min-h-full bg-gray-50/20 flex flex-col">
+ {true?<PageLoader label="Loading Businesses Detail..." />:
 
       <div className="max-w-full space-y-4">
         {/* ---------------- SUMMARY ---------------- */}
@@ -424,7 +433,7 @@ export default function BusinessDetail() {
             </div>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }
