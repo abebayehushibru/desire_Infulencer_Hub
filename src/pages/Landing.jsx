@@ -47,7 +47,7 @@ export default function InfulencerHubLanding() {
     };
 
     return (
-        <div className="min-h-full poppins bg-white text-primary font-sans">
+        <div className="min-h-full poppins bg-white text-primary font-sans ">
             {/* ============ HEADER ============ */}
             <Header />
             {/* ============ HERO ============ */}
