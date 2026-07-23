@@ -19,6 +19,7 @@ import authRoutes      from './modules/auth/routes/auth.routes';
 import adminRoutes     from './modules/auth/routes/admin.routes';
 import userRoutes      from './modules/users/routes/user-management.routes';
 import communityRoutes from './modules/community/routes/community.routes';
+import campaignRoutes  from './modules/campaign/routes/campaign.routes';
 
 // ── Swagger ───────────────────────────────────────────────────────────────────
 import swaggerUi from 'swagger-ui-express';
@@ -37,19 +38,27 @@ app.use(helmet({
 }));
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-app.use(cors({
+const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, Postman)
+    // Allow requests with no origin (mobile apps, curl, Postman, server-to-server)
     if (!origin) return callback(null, true);
+
     if (env.ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
-    callback(new Error(`CORS policy: Origin ${origin} not allowed`));
+
+    // Return null (blocked) — do NOT throw; throwing causes a 500 on OPTIONS preflight
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-}));
+  optionsSuccessStatus: 204,   // some legacy browsers (IE11) choke on 204 → use 200 if needed
+};
+
+// Handle OPTIONS preflight first — before any other middleware or rate limiters
+app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 // ── Compression ───────────────────────────────────────────────────────────────
 app.use(compression());
@@ -109,6 +118,7 @@ app.use(`${API_PREFIX}/auth`,        authRoutes);
 app.use(`${API_PREFIX}/admin`,       adminRoutes);
 app.use(`${API_PREFIX}/users`,       userRoutes);
 app.use(`${API_PREFIX}/communities`, communityRoutes);
+app.use(`${API_PREFIX}/campaigns`,   campaignRoutes);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

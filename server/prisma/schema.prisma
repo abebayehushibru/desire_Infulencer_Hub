@@ -79,6 +79,22 @@ enum AuditAction {
   COMMUNITY_MEMBER_ADDED
   COMMUNITY_MEMBER_REMOVED
   COMMUNITY_COMMISSION_UPDATED
+  // FR16–FR23
+  CAMPAIGN_CREATED
+  CAMPAIGN_UPDATED
+  CAMPAIGN_DELETED
+  CAMPAIGN_SUBMITTED
+  CAMPAIGN_ADMIN_APPROVED
+  CAMPAIGN_ADMIN_REJECTED
+  CAMPAIGN_LEADER_ACCEPTED
+  CAMPAIGN_LEADER_REJECTED
+  CAMPAIGN_ACTIVATED
+  CAMPAIGN_PAUSED
+  CAMPAIGN_COMPLETED
+  CAMPAIGN_ASSIGNED
+  CONVERSION_ADDED
+  CONVERSION_UPDATED
+  CONVERSION_DELETED
 }
 
 enum NotificationType {
@@ -92,6 +108,15 @@ enum NotificationType {
   COMMUNITY_MEMBER_ADDED
   COMMUNITY_MEMBER_REMOVED
   COMMUNITY_COMMISSION_UPDATED
+  // FR16–FR23
+  CAMPAIGN_SUBMITTED
+  CAMPAIGN_APPROVED
+  CAMPAIGN_REJECTED
+  CAMPAIGN_ACCEPTED
+  CAMPAIGN_LEADER_REJECTED
+  CAMPAIGN_ACTIVATED
+  CAMPAIGN_PAUSED
+  CAMPAIGN_COMPLETED
   GENERAL
 }
 
@@ -107,6 +132,38 @@ enum CommunityStatus {
 enum CommunityMemberStatus {
   ACTIVE
   REMOVED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FR16–FR23 ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CampaignType {
+  SALES
+  AWARENESS
+  GROWTH
+}
+
+enum CampaignStatus {
+  DRAFT
+  PENDING_ADMIN_APPROVAL
+  PENDING_LEADER_APPROVAL
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+enum TrackingMethod {
+  UNIQUE_LINK
+  REFERRAL_CODE
+  MANUAL
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -149,6 +206,13 @@ model User {
   // Community relations (FR11–FR15)
   ledCommunities       Community[]       @relation("CommunityLeader")
   communityMemberships CommunityMember[]
+
+  // Campaign relations (FR16–FR23)
+  campaigns            Campaign[]        @relation("CampaignOwner")
+  campaignApprovals    CampaignApproval[]
+  trackingLinks        TrackingLink[]
+  referralCodes        ReferralCode[]
+  manualConversions    ManualConversion[]
 
   @@index([email])
   @@index([role])
@@ -414,6 +478,8 @@ model Community {
   members           CommunityMember[]
   commission        CommunityCommission?
   commissionHistory CommunityCommissionHistory[]
+  campaigns         Campaign[]
+  manualConversions ManualConversion[]
 
   @@index([status])
   @@index([communityLeaderId])
@@ -497,4 +563,153 @@ model CommunityCommissionHistory {
   @@index([communityId])
   @@index([effectiveFrom])
   @@map("community_commission_history")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAMPAIGN — FR16 Campaign Creation
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Campaign {
+  id                   String         @id @default(uuid()) @db.Uuid
+  ownerId              String         @map("owner_id") @db.Uuid            // BUSINESS_OWNER user id
+  title                String         @db.VarChar(255)
+  description          String?        @db.Text
+  type                 CampaignType
+  budget               Float                                               // must be > 0
+  targetPlatform       String         @map("target_platform") @db.VarChar(100)
+  startDate            DateTime       @map("start_date")
+  endDate              DateTime       @map("end_date")                     // must be > startDate
+  status               CampaignStatus @default(DRAFT)
+  // FR17 — SALES campaign fields
+  payoutPerConversion  Float?         @map("payout_per_conversion")        // required for SALES
+  trackingMethod       TrackingMethod? @map("tracking_method")             // required for SALES
+  // FR19/FR20 — rejection tracking
+  adminRejectionReason  String?       @map("admin_rejection_reason") @db.Text
+  leaderRejectionReason String?       @map("leader_rejection_reason") @db.Text
+  // FR18 — assigned community
+  communityId          String?        @map("community_id") @db.Uuid
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+  deletedAt            DateTime?      @map("deleted_at")
+
+  // Relations
+  owner                User           @relation("CampaignOwner", fields: [ownerId], references: [id])
+  community            Community?     @relation(fields: [communityId], references: [id])
+  approvals            CampaignApproval[]
+  trackingLinks        TrackingLink[]
+  referralCodes        ReferralCode[]
+  manualConversions    ManualConversion[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([type])
+  @@index([communityId])
+  @@index([deletedAt])
+  @@map("campaigns")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAMPAIGN APPROVAL — FR19/FR20 Admin + Leader approval
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CampaignApproval {
+  id           String         @id @default(uuid()) @db.Uuid
+  campaignId   String         @map("campaign_id") @db.Uuid
+  reviewerId   String         @map("reviewer_id") @db.Uuid               // admin or community leader
+  reviewerRole String         @map("reviewer_role") @db.VarChar(50)      // 'SYSTEM_ADMIN' | 'DIAMOND_INFLUENCER'
+  status       ApprovalStatus
+  reason       String?        @db.Text                                   // mandatory on rejection
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  deletedAt    DateTime?      @map("deleted_at")
+
+  // Relations
+  campaign     Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  reviewer     User           @relation(fields: [reviewerId], references: [id])
+
+  @@index([campaignId])
+  @@index([reviewerId])
+  @@index([status])
+  @@map("campaign_approvals")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRACKING LINK — FR21 Unique per campaign + per influencer
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TrackingLink {
+  id           String    @id @default(uuid()) @db.Uuid
+  campaignId   String    @map("campaign_id") @db.Uuid
+  influencerId String    @map("influencer_id") @db.Uuid                  // community member user id
+  code         String    @unique @db.VarChar(64)                         // secure random, globally unique
+  url          String    @db.VarChar(1000)                               // full tracking URL
+  clickCount   Int       @default(0) @map("click_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  campaign     Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  influencer   User      @relation(fields: [influencerId], references: [id])
+
+  @@unique([campaignId, influencerId])    // one link per influencer per campaign
+  @@index([campaignId])
+  @@index([influencerId])
+  @@index([code])
+  @@map("tracking_links")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REFERRAL CODE — FR21 Unique per campaign + per influencer
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ReferralCode {
+  id           String    @id @default(uuid()) @db.Uuid
+  campaignId   String    @map("campaign_id") @db.Uuid
+  influencerId String    @map("influencer_id") @db.Uuid
+  code         String    @unique @db.VarChar(32)                         // secure random uppercase alphanumeric
+  useCount     Int       @default(0) @map("use_count")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  campaign     Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  influencer   User      @relation(fields: [influencerId], references: [id])
+
+  @@unique([campaignId, influencerId])    // one code per influencer per campaign
+  @@index([campaignId])
+  @@index([influencerId])
+  @@index([code])
+  @@map("referral_codes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MANUAL CONVERSION — FR23 Manual tracking entry by Business Owner
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ManualConversion {
+  id             String    @id @default(uuid()) @db.Uuid
+  campaignId     String    @map("campaign_id") @db.Uuid
+  communityId    String    @map("community_id") @db.Uuid
+  influencerId   String    @map("influencer_id") @db.Uuid
+  amount         Float                                                    // payout amount for this conversion
+  note           String?   @db.VarChar(500)
+  convertedAt    DateTime  @map("converted_at")
+  createdBy      String    @map("created_by") @db.Uuid                   // BUSINESS_OWNER id
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  // Relations
+  campaign       Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  community      Community @relation(fields: [communityId], references: [id])
+  influencer     User      @relation(fields: [influencerId], references: [id])
+
+  @@index([campaignId])
+  @@index([communityId])
+  @@index([influencerId])
+  @@index([createdBy])
+  @@index([convertedAt])
+  @@map("manual_conversions")
 }

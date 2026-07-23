@@ -13,7 +13,8 @@ import { generateOtp, hashOtp, verifyOtp, getOtpExpiry, isOtpExpired } from '../
 import { securityLogger } from '../../../common/logger/logger';
 import redisClient from '../../../config/redis';
 import { REDIS_KEYS, AUTH } from '../../../common/constants';
-import { SafeUser, TokenPair } from '../../../common/types';
+import { TokenPair } from '../../../common/types';
+import { AuthUserResponseDto, toAuthUserResponse } from '../dto/auth.dto';
 
 import type {
   RegisterDto,
@@ -25,28 +26,16 @@ import type {
   ResendVerificationDto,
 } from '../dto/auth.dto';
 
-// ── Strip sensitive fields from user ─────────────────────────────────────────
-const toSafeUser = (user: User): SafeUser => ({
-  id: user.id,
-  firstName: user.firstName,
-  lastName: user.lastName,
-  email: user.email,
-  role: user.role,
-  status: user.status,
-  emailVerified: user.emailVerified,
-  lastLogin: user.lastLogin,
-  profileImage: user.profileImage,
-  isSuspended: user.isSuspended,
-  createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
-});
+// ── Strip sensitive fields — internal helper for intra-service use only ───────
+// toAuthUserResponse() from auth.dto.ts is the public-facing mapper.
+const toSafeUser = toAuthUserResponse;
 
 class AuthService {
   // ── FR01 Register ────────────────────────────────────────────────────────────
   async register(
     dto: RegisterDto,
     context: { ip: string; userAgent: string }
-  ): Promise<{ user: SafeUser }> {
+  ): Promise<{ user: AuthUserResponseDto }> {
     // Check for duplicate email
     const existing = await authRepository.findUserByEmail(dto.email);
     if (existing) {
@@ -77,7 +66,7 @@ class AuthService {
   async login(
     dto: LoginDto,
     context: { ip: string; userAgent: string; deviceInfo?: string }
-  ): Promise<{ user: SafeUser; tokens: TokenPair }> {
+  ): Promise<{ user: AuthUserResponseDto; tokens: TokenPair }> {
     // Find user — always fetch (timing-safe: we do password check regardless)
     const user = await authRepository.findUserByEmail(dto.email);
 
@@ -458,7 +447,7 @@ class AuthService {
   async verifyEmail(
     dto: VerifyEmailDto,
     context: { ip: string; userAgent: string }
-  ): Promise<{ user: SafeUser }> {
+  ): Promise<{ user: AuthUserResponseDto }> {
     const user = await authRepository.findUserByEmail(dto.email);
     if (!user) throw ApiError.badRequest('Invalid verification request');
 
@@ -527,10 +516,10 @@ class AuthService {
   }
 
   // ── Get Current User (me) ─────────────────────────────────────────────────────
-  async getMe(userId: string): Promise<SafeUser> {
+  async getMe(userId: string): Promise<AuthUserResponseDto> {
     const user = await authRepository.findUserById(userId);
     if (!user) throw ApiError.notFound('User not found');
-    return toSafeUser(user);
+    return toAuthUserResponse(user);
   }
 
   // ── Internal: send verification OTP helper ────────────────────────────────────

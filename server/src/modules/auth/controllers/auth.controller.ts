@@ -10,7 +10,6 @@ import { getIpAddress, getUserAgent } from '../../../common/utils/request.util';
 import { extractBearerToken } from '../../../common/utils/jwt.util';
 import { AuthenticatedRequest } from '../../../common/types';
 import { COOKIE, AUTH } from '../../../common/constants';
-import { env } from '../../../config/env';
 
 // Helper to build context from request
 const ctx = (req: Request) => ({
@@ -48,7 +47,7 @@ class AuthController {
         { ...ctx(req), deviceInfo: getUserAgent(req) }
       );
 
-      // Set refresh token as HttpOnly cookie
+      // Refresh token travels only via HttpOnly cookie — never in the body
       res.cookie(COOKIE.REFRESH_TOKEN, result.tokens.refreshToken, {
         ...COOKIE.OPTIONS,
         maxAge: AUTH.REFRESH_TOKEN_EXPIRES_MS,
@@ -58,8 +57,8 @@ class AuthController {
         res,
         message: 'Login successful',
         data: {
-          user: result.user,
-          accessToken: result.tokens.accessToken,
+          user:                result.user,          // AuthUserResponseDto — no sensitive fields
+          accessToken:         result.tokens.accessToken,
           accessTokenExpiresAt: result.tokens.accessTokenExpiresAt,
         },
       });

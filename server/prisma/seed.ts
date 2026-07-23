@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Prisma Seed — Creates / updates System Admin user
+// Prisma Seed — Creates / updates test users for all roles
 // Run: npm run prisma:seed
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -8,53 +8,109 @@ import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-// ── Admin credentials — change ADMIN_PASSWORD to your desired password ────────
-const ADMIN_EMAIL    = 'admin@influencehub.com';
-const ADMIN_PASSWORD = 'Admin@InfluenceHub2024';   // ← change this anytime & re-run seed
+// ── Seed users ────────────────────────────────────────────────────────────────
+const SEED_USERS = [
+  {
+    firstName: 'System',
+    lastName:  'Admin',
+    email:     'admin@influencehub.com',
+    password:  'Admin@InfluenceHub2024',
+    role:      'SYSTEM_ADMIN' as const,
+  },
+  {
+    firstName: 'Silver',
+    lastName:  'Influencer',
+    email:     'silver@influencehub.com',
+    password:  'Silver@Pass2024',
+    role:      'SILVER_INFLUENCER' as const,
+  },
+  {
+    firstName: 'Gold',
+    lastName:  'Influencer',
+    email:     'gold@influencehub.com',
+    password:  'Gold@Pass2024',
+    role:      'GOLD_INFLUENCER' as const,
+  },
+  {
+    firstName: 'Diamond',
+    lastName:  'Influencer',
+    email:     'diamond@influencehub.com',
+    password:  'Diamond@Pass2024',
+    role:      'DIAMOND_INFLUENCER' as const,
+  },
+  {
+    firstName: 'Business',
+    lastName:  'Owner',
+    email:     'business@influencehub.com',
+    password:  'Business@Pass2024',
+    role:      'BUSINESS_OWNER' as const,
+  },
+  {
+    firstName: 'Agent',
+    lastName:  'User',
+    email:     'agent@influencehub.com',
+    password:  'Agent@Pass2024',
+    role:      'AGENT' as const,
+  },
+];
 
-async function main(): Promise<void> {
-  console.log('Seeding database...');
-
-  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
-
-  const existing = await prisma.user.findFirst({ where: { email: ADMIN_EMAIL } });
+async function upsertUser(data: typeof SEED_USERS[number]): Promise<void> {
+  const passwordHash = await bcrypt.hash(data.password, 12);
+  const existing = await prisma.user.findFirst({ where: { email: data.email } });
 
   if (!existing) {
-    const admin = await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        firstName:    'System',
-        lastName:     'Admin',
-        email:        ADMIN_EMAIL,
+        firstName:          data.firstName,
+        lastName:           data.lastName,
+        email:              data.email,
         passwordHash,
-        role:         'SYSTEM_ADMIN',
-        status:       'ACTIVE',
-        emailVerified: true,
+        role:               data.role,
+        status:             'ACTIVE',
+        emailVerified:      true,
+        isSuspended:        false,
+        failedLoginAttempts: 0,
       },
     });
-    console.log(`✅ System Admin created: ${admin.email}`);
-    console.log(`   ID: ${admin.id}`);
+    console.log(`✅  Created  [${data.role.padEnd(20)}]  ${user.email}`);
+    console.log(`            ID: ${user.id}`);
   } else {
-    // Update password and ensure active
     await prisma.user.update({
       where: { id: existing.id },
       data: {
         passwordHash,
-        status:        'ACTIVE',
-        emailVerified: true,
-        isSuspended:   false,
-        lockedUntil:   null,
+        status:             'ACTIVE',
+        emailVerified:      true,
+        isSuspended:        false,
+        lockedUntil:        null,
         failedLoginAttempts: 0,
       },
     });
-    console.log(`✅ System Admin updated: ${ADMIN_EMAIL}`);
-    console.log(`   ID: ${existing.id}`);
+    console.log(`🔄  Updated  [${data.role.padEnd(20)}]  ${data.email}`);
+    console.log(`            ID: ${existing.id}`);
+  }
+}
+
+async function main(): Promise<void> {
+  console.log('─────────────────────────────────────────');
+  console.log('  InfluenceHub — Database Seed');
+  console.log('─────────────────────────────────────────\n');
+
+  for (const user of SEED_USERS) {
+    await upsertUser(user);
   }
 
-  console.log(`\n📋 Login credentials:`);
-  console.log(`   Email:    ${ADMIN_EMAIL}`);
-  console.log(`   Password: ${ADMIN_PASSWORD}`);
-  console.log(`   Role:     SYSTEM_ADMIN`);
-  console.log('\nSeeding complete.');
+  console.log('\n─────────────────────────────────────────');
+  console.log('  Login Credentials');
+  console.log('─────────────────────────────────────────');
+  for (const u of SEED_USERS) {
+    console.log(`\n  Role:     ${u.role}`);
+    console.log(`  Email:    ${u.email}`);
+    console.log(`  Password: ${u.password}`);
+  }
+  console.log('\n─────────────────────────────────────────');
+  console.log('  Seeding complete.');
+  console.log('─────────────────────────────────────────\n');
 }
 
 main()
