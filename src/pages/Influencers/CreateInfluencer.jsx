@@ -21,7 +21,12 @@ import {
   Gem,
   Check,
   X,
+  EyeClosed,
+  Eye,
 } from "lucide-react";
+import useApi from "../../hooks/useApi";
+import Input from "../../components/common/Input";
+import Button from "../../components/common/Button";
 
 /* ---------------------------------------------------------
    Static data
@@ -228,11 +233,18 @@ function Stepper({ step }) {
 --------------------------------------------------------- */
 
 export default function CreateInfluencer() {
+  const [show, setShow] = useState(false)
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-
+const influencerApi = useApi({
+        request: (payload) => ({
+            method: "POST",
+            path: "/Influencers",
+            query: payload,
+        }),
+    });
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const toggleInList = (key, item) => {
@@ -306,7 +318,7 @@ export default function CreateInfluencer() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  const submit = () => {
+  const submit = async () => {
     // Payload shaped for influencer_profiles + influencer_audience_locations
     const payload = {
       user: {
@@ -340,8 +352,11 @@ export default function CreateInfluencer() {
           : []),
       ],
     };
-    console.log("Create Influencer payload:", payload);
+const res =await  influencerApi.execute({...payload,successMsg:"Infulencer created successfully!"})
+  if (res.success) {
     setSubmitted(true);
+  }
+    
   };
 
   const platformIcon = PLATFORMS.find((p) => p.value === form.mainPlatform)?.icon || Globe;
@@ -436,23 +451,34 @@ export default function CreateInfluencer() {
                 />
               </Field>
               <Field label="Password" required error={errors.password}>
-                <TextInput
+                <Input
                   icon={Lock}
-                  type="password"
+                   type={show ? "txet" : "password"}
                   placeholder="At least 8 characters"
                   value={form.password}
                   onChange={(e) => set("password", e.target.value)}
                   error={errors.password}
+                  rightIcon={!show ? <EyeClosed className="z-10 cursor-pointer" size={18} onClick={() => {
+                                        setShow(true)
+                                    }} /> : <Eye size={18} className="z-10 cursor-pointer" onClick={() => {
+                                        setShow(false)
+                                    }} />}
+                                    
                 />
               </Field>
               <Field label="Confirm Password" required error={errors.confirmPassword}>
-                <TextInput
+                <Input
                   icon={Lock}
-                  type="password"
+                    type={show ? "txet" : "password"}
                   placeholder="Re-enter password"
                   value={form.confirmPassword}
                   onChange={(e) => set("confirmPassword", e.target.value)}
                   error={errors.confirmPassword}
+                  rightIcon={!show ? <EyeClosed className="z-10 cursor-pointer" size={18} onClick={() => {
+                                        setShow(true)
+                                    }} /> : <Eye size={18} className="z-10 cursor-pointer" onClick={() => {
+                                        setShow(false)
+                                    }} />}
                 />
               </Field>
             </div>
@@ -844,13 +870,15 @@ export default function CreateInfluencer() {
             Next <ChevronRight className="h-4 w-4" />
           </button>
         ) : (
-          <button
+          <Button
             type="button"
             onClick={submit}
+            loading={influencerApi.loading}
+            disabled={influencerApi.loading}
             className="flex items-center gap-1.5 rounded-lg bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--color-primary)]"
           >
             <Check className="h-4 w-4" /> Create Influencer
-          </button>
+          </Button>
         )}
       </div>
     </div>

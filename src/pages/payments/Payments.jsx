@@ -103,7 +103,7 @@ export default function Payments() {
         index={index}
         active={active}
         setActive={setActive}
-        onEdit={() => navigate(`/payments/${row.id}`)}
+        onEdit={() => navigate(`/payments/view/${row.id}`)}
         onDelete={() => console.log(row)}
       />
     ),

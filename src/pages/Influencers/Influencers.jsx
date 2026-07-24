@@ -8,11 +8,28 @@ import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Title from "../../components/common/Titel";
 import Pagination from "../../components/Pagination";
+import useApi from "../../hooks/useApi";
 
 export default function Influencers() {
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    search:"",
+    platform:"",
+    level:""
+  });
   const [active, setActive] = useState(false);
-
+   const [pagination, setPagination] = useState({
+  page:1,
+  total:0,
+  totalPages:1
+ });
+const influencerApi = useApi({
+        request: (payload) => ({
+            method: "GET",
+            path: "/Influencers",
+            query: payload,
+        }),
+    });
   const columns = [
     {
       key: "name",
@@ -113,6 +130,16 @@ export default function Influencers() {
     },
   ];
 
+  const fetchInfluencers=async ()=>{
+    const res= await influencerApi.execute(
+      {
+        page:pagination.page,
+
+
+      }
+    )
+  }
+
   return (
     <div className="bg-gray-50/10 min-h-full">
       <div className="flex justify-between items-center mb-4">
@@ -133,13 +160,18 @@ export default function Influencers() {
         <div className="flex flex-col md:flex-row gap-4 justify-between mb-5">
           <Input
             name="search"
+            value={filters.search}
             placeholder="Search influencer..."
             className="w-full md:w-80"
+            onChange={(e)=>{
+              setFilters(prev=>({...prev,search:e?.target?.value}))
+            }}
           />
 
           <div className="w-sm">
             <Select
               name="platform"
+              value={filters.platform}
               data={[
                 { label: "All Platforms", value: "" },
                 { label: "TikTok", value: "tiktok" },
@@ -148,23 +180,31 @@ export default function Influencers() {
                 { label: "YouTube", value: "youtube" },
                 { label: "Telegram", value: "telegram" },
               ]}
+
+               onChange={(e)=>{
+              setFilters(prev=>({...prev,platform:e?.target?.value}))
+            }}
             />
           </div>
 
           <div className="w-sm">
             <Select
               name="level"
+              value={filters.level}
               data={[
                 { label: "All Levels", value: "" },
                 { label: "Diamond", value: "diamond" },
                 { label: "Gold", value: "gold" },
                 { label: "Silver", value: "silver" },
               ]}
+               onChange={(e)=>{
+              setFilters(prev=>({...prev,level:e?.target?.value}))
+            }}
             />
           </div>
         </div>
 
-        <Table columns={columns} data={influencers} />
+        <Table columns={columns} data={influencerApi?.data?.data||[]} loading={influencerApi.loading} />
            <Pagination/>
       </div>
     </div>

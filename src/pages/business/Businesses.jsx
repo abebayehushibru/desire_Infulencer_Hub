@@ -141,7 +141,7 @@ export default function Businesses() {
           </div>
         </div>
 
-        <Table columns={columns} data={businessApi?.data?.data} loading={true} />
+        <Table columns={columns} data={businessApi?.data?.data||[]} loading={businessApi.loading} />
            <Pagination  onPageChange={(pg)=>{
             setPagination(prev=>({
               ...prev,page:pg

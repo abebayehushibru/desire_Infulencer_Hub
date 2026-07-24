@@ -152,7 +152,7 @@ const revenueData = [
           number={3248}
           compare={8}
           icon={UserCheck}
-          color="bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+         color="bg-blue-100 text-blue-600"
         />
 
         <StatsCard
@@ -160,7 +160,7 @@ const revenueData = [
           number={186}
           compare={4}
           icon={Users}
-          color="bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]"
+                  color="bg-emerald-100 text-emerald-600"
         />
 
         <StatsCard

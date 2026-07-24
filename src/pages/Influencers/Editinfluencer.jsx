@@ -23,6 +23,7 @@ import {
   X,
   Save,
 } from "lucide-react";
+import useApi from "../../hooks/useApi";
 
 /* ---------------------------------------------------------
    Static data
@@ -267,7 +268,21 @@ export default function EditInfluencer({ influencer = SAMPLE_INFLUENCER }) {
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
-
+const influcerApi = useApi({
+        request: () => ({
+            method: "GET",
+            path: "/business/id",
+           
+        }),
+    });
+     const updateIApi = useApi({
+            request: (payload) => ({
+                method: "PUT",
+                path: "/influcers/id",
+                data:payload
+               
+            }),
+        });
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const toggleInList = (key, item) => {

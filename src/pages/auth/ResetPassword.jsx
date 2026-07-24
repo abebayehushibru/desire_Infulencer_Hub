@@ -64,7 +64,7 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
 
   // Redirect if landed here without state (direct URL access)
-  if (!email || !otp) {
+  if (!email || !otp ) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -102,12 +102,10 @@ export default function ResetPassword() {
       return;
     }
 
-    const result = await resetApi.execute({ email,token, newPassword: form.newPassword, confirmPassword: form.confirmPassword });
+    const result = await resetApi.execute({ email,otp, newPassword: form.newPassword, confirmPassword: form.confirmPassword,successMsg:"Password reset successfully!" });
     if (result.success) {
       setSuccess(true);
-      toast.success("Password reset successfully!");
-    } else {
-      toast.error(result.message || "Reset failed. Please try again.");
+
     }
   };
 
@@ -137,16 +135,16 @@ export default function ResetPassword() {
         {/* LEFT */}
         <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-16 flex flex-col justify-between">
           <div className="absolute h-full flex items-end justify-center">
-            <img src={loginImage} alt="" className="w-full mt-4 scale-80" />
+            <img src={loginImage} alt="" className="w-full mt-4 scale-60" />
           </div>
           <div>
             <h4 className="text-xl font-semibold mb-4">Almost done! 🔒</h4>
-            <h1 className="text-5xl font-bold leading-tight">
+            <h1 className="text-3xl font-bold leading-tight">
               Create
               <br />
               New Password
             </h1>
-            <p className="mt-4 text-lg opacity-90">
+            <p className="mt-4 text-sm opacity-90">
               Choose a strong password. It must contain uppercase, lowercase, a number and a special character.
             </p>
           </div>
@@ -156,16 +154,27 @@ export default function ResetPassword() {
         {/* RIGHT */}
         <div className="p-12 flex items-center">
           <div className="w-full">
-            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
-              <Lock className="text-primary" size={28} />
+            <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+              <Lock className="text-primary" size={18} />
             </div>
 
-            <h2 className="text-4xl text-gray-800 font-bold mb-1">New password</h2>
-            <p className="text-gray-500 mb-6">
-              Resetting password for <strong>{email}</strong>
+            <h2 className="text-2xl text-gray-800 font-bold mb-1">New password{otp}</h2>
+            <p className="text-gray-500 mb-4">
+              Resetting password for <strong>{email.split("").map((chr,index)=>{
+                  
+                    if (index<=1|| index >=email.length-1) {
+                      return chr
+                    }
+                    else if (index<10) {
+                       return "*"
+                    }
+                  
+                }
+                  
+                )}</strong>.
             </p>
 
-            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
 
               <div>
                 <Input
@@ -216,7 +225,7 @@ export default function ResetPassword() {
                 required
               />
 
-              <Button type="submit" fullWidth loading={loading} disabled={loading}>
+              <Button type="submit" fullWidth loading={resetApi.loading} disabled={resetApi.loading}>
                 Reset Password
               </Button>
 

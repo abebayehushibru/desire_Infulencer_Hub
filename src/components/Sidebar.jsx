@@ -209,9 +209,9 @@ export default function Sidebar() {
               <>
                 <div className="min-w-0 flex-1">
                   <h4 className="truncate text-sm font-semibold text-gray-300">
-                    Desire Online School
+                    {user?.firstName} {user?.lastName}
                   </h4>
-                  <p className="text-xs text-gray-400">Business</p>
+                  <p className="text-xs text-gray-400">{user?.role}</p>
                 </div>
 
                 {!showCard ? (

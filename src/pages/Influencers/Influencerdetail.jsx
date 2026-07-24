@@ -47,6 +47,8 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Link } from "react-router-dom";
+import Modal from "../../components/Modal";
+import AddReview from "../../components/AddReview";
 
 /* ---------------------------------------------------------
    Brand tokens
@@ -265,7 +267,7 @@ function StatusBadge({ status }) {
    Sections
 --------------------------------------------------------- */
 
-function ProfileHeader() {
+function ProfileHeader({setShow }) {
   return (
     <Card>
       <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
@@ -294,7 +296,7 @@ function ProfileHeader() {
           <Link to={"/influencers/edit/1"} className="flex  cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--color-secondary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary)]">
             <UserPlus className="h-4 w-4" /> Edit Profile
           </Link>
-          <button className="flex  cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
+          <button onClick={()=>setShow(true)} className="flex  cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">
             <Star className="h-4 w-4" /> Add Review
           </button>
         </div>
@@ -734,6 +736,7 @@ function Sidebar() {
 --------------------------------------------------------- */
 
 export default function InfluencerDetail() {
+  const [show,setShow]=useState(false)
   return (
     <div style={BRAND} className="min-h-full ">
       {/* soft brand-tinted gradient backdrop */}
@@ -742,7 +745,10 @@ export default function InfluencerDetail() {
         style={{ background: "linear-gradient(180deg, #F8FAFC 0%, #F1F0FB 100%)" }}
       />
       <div className="mx-auto max-w-[1440px] space-y-4">
-        <ProfileHeader />
+        <ProfileHeader setShow={()=>
+          setShow(true)
+        } />
+        {JSON.stringify(show)}
         <StatsRow />
         <SocialPlatforms />
         <AudienceAnalytics />
@@ -763,6 +769,10 @@ export default function InfluencerDetail() {
           <Sidebar />
         </div>
       </div>
+
+     {show&& <Modal title={"Add Review"} close={setShow}>
+        <AddReview/> 
+      </Modal>}
     </div>
   );
 }

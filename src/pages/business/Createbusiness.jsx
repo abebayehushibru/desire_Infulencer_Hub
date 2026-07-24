@@ -292,7 +292,7 @@ export default function CreateBusiness() {
                                     label="Confirm Password"
                                     name="confirm_password"
                                     required
-
+   type={show ? "txet" : "password"}
                                     leftIcon={<Lock size={18} />}
                                     placeholder="Re-enter password"
                                     value={form.confirm_password}

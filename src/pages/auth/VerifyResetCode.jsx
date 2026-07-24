@@ -76,7 +76,7 @@ export default function VerifyResetCode() {
     });
     if (result.success) {
       toast.success("Code verified! Set your new password.");
-      navigate("/auth/reset-password", { state: { email: email.trim().toLowerCase() } });
+      navigate("/auth/reset-password", { state: { email: email.trim().toLowerCase(),otp:code } });
     } else {
       setError(result.message || "Invalid or expired code");
       setOtp(["", "", "", "", "", ""]);

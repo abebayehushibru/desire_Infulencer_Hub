@@ -78,8 +78,8 @@ export default function EditBusiness() {
         status: form.status,
         ...(changePassword ? { password } : {}),
       };
-      await updateBApi.execute(payload)
-      console.log("Update business payload:", payload);
+      await updateBApi.execute({...payload,successMsg:"Business updated successfully"})
+   
       // await api.patch(`/users/${id}`, payload);
       navigate(`/businesses/${id ?? form.id}`);
     } finally {
