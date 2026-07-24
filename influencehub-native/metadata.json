@@ -1,6 +1,5 @@
 {
   "name": "Influencer Hub",
   "description": "Influencer Hub mobile influencer workspace application.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "requestFramePermissions": []
 }

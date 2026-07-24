@@ -23,10 +23,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+import com.example.ui.theme.*
+import androidx.compose.ui.graphics.Brush
 
 // ---------------------- DATA MODELS ----------------------
 data class ChatThreadItem(
@@ -207,7 +211,7 @@ fun ChatHubScreen(
                     text = "Start Conversation",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF110D59)
+                    color = MidnightIndigo
                 )
             },
             text = {
@@ -225,7 +229,7 @@ fun ChatHubScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     
-                    Text("Select Chat Type:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF110D59))
+                    Text("Select Chat Type:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MidnightIndigo)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -237,8 +241,8 @@ fun ChatHubScreen(
                                 onClick = { newThreadCategory = type },
                                 label = { Text(label, fontSize = 11.sp) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Color(0xFFFEB209).copy(alpha = 0.2f),
-                                    selectedLabelColor = Color(0xFF110D59)
+                                    selectedContainerColor = SoftBlueTint,
+                                    selectedLabelColor = MidnightIndigo
                                 )
                             )
                         }
@@ -279,7 +283,7 @@ fun ChatHubScreen(
                             Toast.makeText(context, "All fields are required.", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF110D59))
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo)
                 ) {
                     Text("Start", color = Color.White)
                 }
@@ -301,12 +305,13 @@ fun ChatHubScreen(
                 .background(Color.White)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Header with custom primary dark blue background (Matches Profile & Home screens)
+                // Header with Midnight Indigo background
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF0A1140)) // Top bold navy blue
-                        .padding(top = 48.dp, start = 20.dp, end = 20.dp, bottom = 24.dp)
+                        .background(MidnightIndigo)
+                        .statusBarsPadding()
+                        .padding(start = 20.dp, end = 20.dp, bottom = 24.dp)
                 ) {
                     Text(
                         text = "Vite Messenger",
@@ -316,12 +321,12 @@ fun ChatHubScreen(
                     )
                     Spacer(modifier = Modifier.height(14.dp))
                     
-                    // Full-width Search Bar with rounded corners & yellow magnifying glass icon
+                    // Search Bar with soft Telegram-style light blue tint
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
-                            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(24.dp))
+                            .background(SoftBlueTint.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
                             .border(1.dp, Color.White.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
                             .padding(horizontal = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -329,7 +334,7 @@ fun ChatHubScreen(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
-                            tint = Color(0xFFFEB209), // Tertiary Yellow Accent
+                            tint = TelegramBlue,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
@@ -471,7 +476,7 @@ fun ChatHubScreen(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF110D59)) // Brand navy
+                        .background(MidnightIndigo) // Brand navy
                         .clickable { showNewThreadDialog = true }
                         .border(1.5.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
@@ -479,7 +484,7 @@ fun ChatHubScreen(
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "New Thread",
-                        tint = Color(0xFFFEB209), // Tertiary Yellow Accent
+                        tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -512,13 +517,17 @@ fun ChatHubScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
+                .windowInsetsPadding(WindowInsets.ime)
+                .imePadding()
+                .navigationBarsPadding()
         ) {
             // Detailed Chat Header with intense corporate navy
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF0A1140)) // Primary intense dark navy blue
-                    .padding(top = 48.dp, start = 8.dp, end = 16.dp, bottom = 16.dp),
+                    .background(MidnightIndigo) // Primary intense dark navy blue
+                    .statusBarsPadding()
+                    .padding(start = 8.dp, end = 16.dp, bottom = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { selectedThreadId = null }) {
@@ -558,12 +567,12 @@ fun ChatHubScreen(
                         }
                     } else if (currentThread.avatarText != null) {
                         Box(
-                            modifier = Modifier.fillMaxSize().background(Color(0xFFFEB209)),
+                            modifier = Modifier.fillMaxSize().background(TelegramBlue),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "ETB",
-                                color = Color(0xFF0A1140),
+                                color = Color.White,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -622,7 +631,7 @@ fun ChatHubScreen(
                                     modifier = Modifier
                                         .size(32.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF110D59))
+                                        .background(MidnightIndigo)
                                         .border(1.5.dp, Color.White, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -643,7 +652,7 @@ fun ChatHubScreen(
                                 Card(
                                     modifier = Modifier.widthIn(max = 280.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = if (isYou) Color(0xFF110D59) else Color.White
+                                        containerColor = if (isYou) MidnightIndigo else Color.White
                                     ),
                                     shape = RoundedCornerShape(
                                         topStart = 16.dp,
@@ -664,7 +673,7 @@ fun ChatHubScreen(
                                                 text = msg.senderName,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (isYou) Color(0xFFFEB209) else Color(0xFF110D59)
+                                                color = if (isYou) TelegramBlue else MidnightIndigo
                                             )
                                             Spacer(modifier = Modifier.width(16.dp))
                                             Text(
@@ -708,14 +717,14 @@ fun ChatHubScreen(
                                                     modifier = Modifier
                                                         .size(32.dp)
                                                         .background(
-                                                            if (isYou) Color.White.copy(alpha = 0.2f) else Color(0xFF110D59).copy(alpha = 0.1f),
+                                                            if (isYou) Color.White.copy(alpha = 0.2f) else MidnightIndigo.copy(alpha = 0.1f),
                                                             CircleShape
                                                         )
                                                 ) {
                                                     Icon(
                                                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                                         contentDescription = null,
-                                                        tint = if (isYou) Color.White else Color(0xFF110D59),
+                                                        tint = if (isYou) Color.White else MidnightIndigo,
                                                         modifier = Modifier.size(18.dp)
                                                     )
                                                 }
@@ -736,7 +745,7 @@ fun ChatHubScreen(
                                                                 .fillMaxHeight()
                                                                 .fillMaxWidth(fraction)
                                                                 .background(
-                                                                    if (isYou) Color.White else Color(0xFF110D59),
+                                                                    if (isYou) Color.White else MidnightIndigo,
                                                                     RoundedCornerShape(2.dp)
                                                                 )
                                                         )
@@ -786,18 +795,18 @@ fun ChatHubScreen(
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
-                                .background(Color.Red, CircleShape)
+                                .background(LogoutRed, CircleShape)
                         )
                         Text(
                             text = "Voice Recording... ${recordingSeconds}s",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Red
+                            color = LogoutRed
                         )
                     }
 
                     IconButton(onClick = { isRecordingVoice = false }) {
-                        Icon(imageVector = Icons.Default.Delete, contentDescription = null, tint = Color.Red)
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = null, tint = LogoutRed)
                     }
 
                     IconButton(
@@ -847,11 +856,15 @@ fun ChatHubScreen(
                         value = typedMessage,
                         onValueChange = { typedMessage = it },
                         placeholder = { Text("Write your message...", color = Color(0xFF5F5C8C).copy(alpha = 0.6f), fontSize = 13.sp) },
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            color = MidnightIndigo,
+                            fontSize = 14.sp
+                        ),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Transparent,
                             unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = Color(0xFF110D59),
-                            unfocusedTextColor = Color(0xFF110D59),
+                            focusedTextColor = MidnightIndigo,
+                            unfocusedTextColor = MidnightIndigo,
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent
                         ),
@@ -861,7 +874,7 @@ fun ChatHubScreen(
 
                     if (typedMessage.isBlank()) {
                         IconButton(onClick = { isRecordingVoice = true }) {
-                            Icon(imageVector = Icons.Default.Mic, contentDescription = null, tint = Color(0xFF110D59))
+                            Icon(imageVector = Icons.Default.Mic, contentDescription = null, tint = MidnightIndigo)
                         }
                     } else {
                         IconButton(
@@ -893,7 +906,7 @@ fun ChatHubScreen(
                                 }
                             }
                         ) {
-                            Icon(imageVector = Icons.Default.Send, contentDescription = null, tint = Color(0xFF110D59))
+                            Icon(imageVector = Icons.Default.Send, contentDescription = null, tint = MidnightIndigo)
                         }
                     }
                 }
@@ -901,6 +914,7 @@ fun ChatHubScreen(
         }
     }
 }
+
 
 // ---------------------- LIST SUB-COMPONENTS ----------------------
 
@@ -916,14 +930,14 @@ fun SectionHeader(title: String, icon: ImageVector) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color(0xFF110D59).copy(alpha = 0.6f),
+            tint = MidnightIndigo.copy(alpha = 0.6f),
             modifier = Modifier.size(16.dp)
         )
         Text(
             text = title,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF110D59).copy(alpha = 0.6f)
+            color = MidnightIndigo.copy(alpha = 0.6f)
         )
     }
 }
@@ -968,24 +982,24 @@ fun ThreadListItemRow(
                 )
             } else if (thread.avatarIcon != null) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(Color(0xFF110D59).copy(alpha = 0.08f)),
+                    modifier = Modifier.fillMaxSize().background(MidnightIndigo.copy(alpha = 0.08f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = thread.avatarIcon,
                         contentDescription = null,
-                        tint = Color(0xFF110D59),
+                        tint = MidnightIndigo,
                         modifier = Modifier.size(20.dp)
                     )
                 }
             } else if (thread.avatarText != null) {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(Color(0xFFFEB209).copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxSize().background(TelegramBlue.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "ETB",
-                        color = Color(0xFF110D59),
+                        color = MidnightIndigo,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -1002,7 +1016,7 @@ fun ThreadListItemRow(
                 text = thread.name,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF110D59)
+                color = MidnightIndigo
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
@@ -1024,14 +1038,14 @@ fun ThreadListItemRow(
                 Box(
                     modifier = Modifier
                         .size(18.dp)
-                        .background(Color(0xFFFEB209), CircleShape), // Yellow unread count
+                        .background(TelegramBlue, CircleShape), // Soft Blue unread count
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = thread.unreadCount.toString(),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF110D59)
+                        color = Color.White
                     )
                 }
             }
@@ -1039,10 +1053,18 @@ fun ThreadListItemRow(
                 Icon(
                     imageVector = Icons.Default.PushPin,
                     contentDescription = null,
-                    tint = Color(0xFFFEB209),
+                    tint = TelegramBlue,
                     modifier = Modifier.size(12.dp)
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ChatHubScreenPreview() {
+    MyApplicationTheme {
+        ChatHubScreen()
     }
 }

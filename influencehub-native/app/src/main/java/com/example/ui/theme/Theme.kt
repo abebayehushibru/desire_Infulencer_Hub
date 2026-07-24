@@ -17,13 +17,13 @@ import androidx.compose.ui.graphics.Color
 
 private val DarkColorScheme =
   darkColorScheme(
-    primary = SecondaryBrand,
-    secondary = TertiaryAccent,
-    tertiary = PrimaryDark,
+    primary = TelegramBlue,
+    secondary = SoftBlueTint,
+    tertiary = MidnightIndigo,
     background = DarkBackground,
     surface = SurfaceDark,
     onPrimary = Color.White,
-    onSecondary = Color.Black,
+    onSecondary = MidnightIndigo,
     onTertiary = Color.White,
     onBackground = OnSurfaceDark,
     onSurface = OnSurfaceDark
@@ -31,14 +31,14 @@ private val DarkColorScheme =
 
 private val LightColorScheme =
   lightColorScheme(
-    primary = SecondaryBrand,
-    secondary = TertiaryAccent,
-    tertiary = PrimaryDark,
+    primary = MidnightIndigo,
+    secondary = TelegramBlue,
+    tertiary = SoftBlueTint,
     background = LightBackground,
     surface = SurfaceLight,
     onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onTertiary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = MidnightIndigo,
     onBackground = OnSurfaceLight,
     onSurface = OnSurfaceLight
   )
@@ -47,7 +47,7 @@ private val LightColorScheme =
 fun MyApplicationTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
   // Dynamic color is available on Android 12+
-  dynamicColor: Boolean = true,
+  dynamicColor: Boolean = false, // Disabled dynamic color to strictly follow brand guidelines
   content: @Composable () -> Unit,
 ) {
   val colorScheme =

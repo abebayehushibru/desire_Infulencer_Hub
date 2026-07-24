@@ -1,5 +1,6 @@
 package com.example
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -10,9 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.example.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,6 +110,7 @@ fun DashboardShell(
 
     // Dynamic Navigation Routing Handlers
     Scaffold(
+        contentWindowInsets = WindowInsets.ime,
         topBar = {
             if (activeTab == MainTab.HOME && selectedCampaignId == null) {
                 TopAppBar(
@@ -114,15 +119,15 @@ fun DashboardShell(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            InfluenceHubFullLogo(
-                                symbolSize = 34.dp,
-                                isDarkBackground = true,
-                                showSlogan = false
+                            Image(
+                                painter = painterResource(id = R.drawable.dashboard_logo),
+                                contentDescription = "Dashboard Logo",
+                                modifier = Modifier.height(34.dp)
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF110D59),
+                        containerColor = MidnightIndigo,
                         titleContentColor = Color.White
                     )
                 )
@@ -147,11 +152,11 @@ fun DashboardShell(
                         icon = { Icon(Icons.Default.Dashboard, contentDescription = "Dashboard") },
                         label = { Text("Home", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF2E1C8D),
-                            selectedTextColor = Color(0xFF2E1C8D),
-                            indicatorColor = Color(0xFFFEB209).copy(alpha = 0.2f),
-                            unselectedIconColor = Color(0xFF5F5C8C),
-                            unselectedTextColor = Color(0xFF5F5C8C)
+                            selectedIconColor = MidnightIndigo,
+                            selectedTextColor = MidnightIndigo,
+                            indicatorColor = SoftBlueTint,
+                            unselectedIconColor = NeutralGrey,
+                            unselectedTextColor = NeutralGrey
                         )
                     )
 
@@ -167,11 +172,11 @@ fun DashboardShell(
                         icon = { Icon(Icons.Default.Campaign, contentDescription = "Campaigns") },
                         label = { Text("Campaigns", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF2E1C8D),
-                            selectedTextColor = Color(0xFF2E1C8D),
-                            indicatorColor = Color(0xFFFEB209).copy(alpha = 0.2f),
-                            unselectedIconColor = Color(0xFF5F5C8C),
-                            unselectedTextColor = Color(0xFF5F5C8C)
+                            selectedIconColor = MidnightIndigo,
+                            selectedTextColor = MidnightIndigo,
+                            indicatorColor = SoftBlueTint,
+                            unselectedIconColor = NeutralGrey,
+                            unselectedTextColor = NeutralGrey
                         )
                     )
 
@@ -187,11 +192,11 @@ fun DashboardShell(
                         icon = { Icon(Icons.Default.Chat, contentDescription = "Chat Hub") },
                         label = { Text("Chat", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF2E1C8D),
-                            selectedTextColor = Color(0xFF2E1C8D),
-                            indicatorColor = Color(0xFFFEB209).copy(alpha = 0.2f),
-                            unselectedIconColor = Color(0xFF5F5C8C),
-                            unselectedTextColor = Color(0xFF5F5C8C)
+                            selectedIconColor = MidnightIndigo,
+                            selectedTextColor = MidnightIndigo,
+                            indicatorColor = SoftBlueTint,
+                            unselectedIconColor = NeutralGrey,
+                            unselectedTextColor = NeutralGrey
                         )
                     )
 
@@ -208,11 +213,11 @@ fun DashboardShell(
                         icon = { Icon(Icons.Default.AccountBalanceWallet, contentDescription = "Earnings Hub") },
                         label = { Text("Earnings", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF2E1C8D),
-                            selectedTextColor = Color(0xFF2E1C8D),
-                            indicatorColor = Color(0xFFFEB209).copy(alpha = 0.2f),
-                            unselectedIconColor = Color(0xFF5F5C8C),
-                            unselectedTextColor = Color(0xFF5F5C8C)
+                            selectedIconColor = MidnightIndigo,
+                            selectedTextColor = MidnightIndigo,
+                            indicatorColor = SoftBlueTint,
+                            unselectedIconColor = NeutralGrey,
+                            unselectedTextColor = NeutralGrey
                         )
                     )
 
@@ -229,11 +234,11 @@ fun DashboardShell(
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile", fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF2E1C8D),
-                            selectedTextColor = Color(0xFF2E1C8D),
-                            indicatorColor = Color(0xFFFEB209).copy(alpha = 0.2f),
-                            unselectedIconColor = Color(0xFF5F5C8C),
-                            unselectedTextColor = Color(0xFF5F5C8C)
+                            selectedIconColor = MidnightIndigo,
+                            selectedTextColor = MidnightIndigo,
+                            indicatorColor = SoftBlueTint,
+                            unselectedIconColor = NeutralGrey,
+                            unselectedTextColor = NeutralGrey
                         )
                     )
                 }
@@ -248,9 +253,9 @@ fun DashboardShell(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF0A1140), // Start (Top): Rich, deep, bold navy blue
-                            Color(0xFF110D59), // Middle (Center): Intense brand navy
-                            Color(0xFFFFFFFF)  // End (Bottom): Crisp, bright White fade
+                            MidnightIndigo, // Start (Top): Deep Midnight Indigo
+                            MidnightIndigo, // Middle
+                            Color.White      // End (Bottom): Crisp White fade
                         )
                     )
                 )
@@ -294,5 +299,16 @@ fun DashboardShell(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardShellPreview() {
+    MyApplicationTheme {
+        DashboardShell(
+            loggedInPhone = "test@example.com",
+            onLogout = {}
+        )
     }
 }

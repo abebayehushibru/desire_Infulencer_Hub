@@ -27,50 +27,46 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
 
+import com.example.ui.theme.*
+import androidx.compose.ui.graphics.drawscope.clipRect
+
 @Composable
-fun ProfileWaveHeader(modifier: Modifier = Modifier) {
+fun GeometricBackground(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
-
-        // Background Wave (Lighter Purple/Lavender accent)
-        val path1 = Path().apply {
-            moveTo(0f, height)
-            lineTo(0f, height * 0.2f)
-            cubicTo(
-                width * 0.25f, height * -0.3f,
-                width * 0.75f, height * 0.8f,
-                width, height * 0.3f
+        
+        // Draw geometric accent lines
+        val linePaint = Color.White.copy(alpha = 0.05f)
+        val strokeWidth = 1.dp.toPx()
+        
+        // Diagonal grid lines
+        for (i in -10..20) {
+            drawLine(
+                color = linePaint,
+                start = androidx.compose.ui.geometry.Offset(i * 100f, 0f),
+                end = androidx.compose.ui.geometry.Offset(i * 100f + height, height),
+                strokeWidth = strokeWidth
             )
-            lineTo(width, height)
-            close()
-        }
-        drawPath(path1, color = Color(0xFF2E1C8D).copy(alpha = 0.35f))
-
-        // Foreground Wave (Dark Navy, blending into the content section background)
-        val path2 = Path().apply {
-            moveTo(0f, height)
-            lineTo(0f, height * 0.5f)
-            cubicTo(
-                width * 0.35f, height * 0.1f,
-                width * 0.65f, height * 1.1f,
-                width, height * 0.4f
+            drawLine(
+                color = linePaint,
+                start = androidx.compose.ui.geometry.Offset(i * 100f, height),
+                end = androidx.compose.ui.geometry.Offset(i * 100f + height, 0f),
+                strokeWidth = strokeWidth
             )
-            lineTo(width, height)
-            close()
         }
-        drawPath(path2, color = Color(0xFF110D59))
     }
 }
 
 @Composable
 fun ChevronRightIcon(
     modifier: Modifier = Modifier,
-    color: Color = Color(0xFF16115A)
+    color: Color = MidnightIndigo
 ) {
     Canvas(modifier = modifier) {
         val width = size.width
@@ -104,7 +100,7 @@ fun ProfileMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 4.dp),
+            .padding(vertical = 16.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -112,11 +108,11 @@ fun ProfileMenuItem(
             text = title,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF110D59)
+            color = MidnightIndigo
         )
         ChevronRightIcon(
             modifier = Modifier.size(18.dp),
-            color = Color(0xFF110D59)
+            color = MidnightIndigo
         )
     }
 }
@@ -206,14 +202,14 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     Icon(
                         imageVector = Icons.Default.Security,
                         contentDescription = "Security Status",
-                        tint = Color(0xFF2E1C8D),
+                        tint = TelegramBlue,
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
                         text = "Secure Session Center",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF16115A)
+                        color = MidnightIndigo
                     )
                 }
             },
@@ -270,7 +266,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
             confirmButton = {
                 Button(
                     onClick = { showSecureSessionDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E1C8D))
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo)
                 ) {
                     Text("Close Panel")
                 }
@@ -296,7 +292,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     text = "Edit Personal Info",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16115A)
+                    color = MidnightIndigo
                 )
             },
             text = {
@@ -337,7 +333,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                         showPersonalInfoDialog = false
                         Toast.makeText(context, "Personal Info Updated!", Toast.LENGTH_SHORT).show()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E1C8D))
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo)
                 ) {
                     Text("Save Changes")
                 }
@@ -359,7 +355,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     text = "Bank Account Info",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16115A)
+                    color = MidnightIndigo
                 )
             },
             text = {
@@ -393,7 +389,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                         showBankInfoDialog = false
                         Toast.makeText(context, "Bank Details Updated!", Toast.LENGTH_SHORT).show()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E1C8D))
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo)
                 ) {
                     Text("Save")
                 }
@@ -415,7 +411,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     text = "Return Address Info",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16115A)
+                    color = MidnightIndigo
                 )
             },
             text = {
@@ -456,7 +452,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                         showReturnAddressDialog = false
                         Toast.makeText(context, "Return Address Updated!", Toast.LENGTH_SHORT).show()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E1C8D))
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo)
                 ) {
                     Text("Save")
                 }
@@ -478,7 +474,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     text = "Change Security Password",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16115A)
+                    color = MidnightIndigo
                 )
             },
             text = {
@@ -518,7 +514,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                             Toast.makeText(context, "Password changed successfully!", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E1C8D))
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo)
                 ) {
                     Text("Update Password")
                 }
@@ -540,7 +536,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     text = "Update Email Address",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF16115A)
+                    color = MidnightIndigo
                 )
             },
             text = {
@@ -569,7 +565,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                             Toast.makeText(context, "Email Address Updated!", Toast.LENGTH_SHORT).show()
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E1C8D))
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo)
                 ) {
                     Text("Update Email")
                 }
@@ -589,16 +585,20 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // 1. HEADER SECTION (Navy Blue Background with Row Layout)
+        // 1. HEADER SECTION (Midnight Indigo Background with Geometric accents)
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF110D59))
-                    .padding(top = 48.dp, bottom = 48.dp, start = 24.dp, end = 24.dp)
+                    .background(MidnightIndigo)
+                    .statusBarsPadding()
             ) {
+                GeometricBackground(modifier = Modifier.matchParentSize())
+                
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp, bottom = 48.dp, start = 24.dp, end = 24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Profile Image Container with thick solid white circular ring
@@ -631,7 +631,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Edit Profile Image",
-                                tint = Color(0xFF110D59),
+                                tint = MidnightIndigo,
                                 modifier = Modifier.size(14.dp)
                             )
                         }
@@ -659,7 +659,7 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
             }
         }
 
-        // 2. THE LOWER SETTINGS SECTION (Account Setting / Bank Setting with solid contrast text)
+        // 2. THE LOWER SETTINGS SECTION (Modern elevated white cards)
         item {
             Column(
                 modifier = Modifier
@@ -672,21 +672,20 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     text = "Account Setting",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF110D59),
+                    color = MidnightIndigo,
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(0.5.dp, Color(0xFFE2E8F0)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         ProfileMenuItem(
                             title = "Personal Info",
@@ -702,7 +701,8 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(1.dp)
-                                .background(Color(0xFFE2E8F0))
+                                .background(Color(0xFFF1F5F9))
+                                .padding(horizontal = 16.dp)
                         )
 
                         ProfileMenuItem(
@@ -722,21 +722,20 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
                     text = "Bank Setting",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF110D59),
+                    color = MidnightIndigo,
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(0.5.dp, Color(0xFFE2E8F0)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         ProfileMenuItem(
                             title = "Bank Account Info",
@@ -757,24 +756,40 @@ fun ProfileScreen(loggedInPhone: String, onLogout: () -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
                     onClick = onLogout,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = LogoutRed),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Logout,
                         contentDescription = "Logout",
                         tint = Color.White
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Logout", color = Color.White, style = MaterialTheme.typography.labelLarge)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Logout",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ProfileScreenPreview() {
+    MyApplicationTheme {
+        ProfileScreen(
+            loggedInPhone = "test@example.com",
+            onLogout = {}
+        )
     }
 }

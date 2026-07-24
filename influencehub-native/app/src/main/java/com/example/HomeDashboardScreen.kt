@@ -14,10 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+import com.example.ui.theme.*
 
 @Composable
 fun HomeDashboardScreen(
@@ -28,18 +32,19 @@ fun HomeDashboardScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Transparent) // Transparent background to let parent gradient show through
+            .background(Color.Transparent)
+            .statusBarsPadding()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Welcome User Card (Matches Vite Portal stats layout)
+        // Welcome User Card
         item {
             ScrollEntranceTransition(index = 0) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .liftOnInteraction(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0x0FFFFFFF)),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f)),
                     shape = RoundedCornerShape(16.dp),
                     border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.15f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -51,14 +56,14 @@ fun HomeDashboardScreen(
                         }
                         Text(
                             text = greeting,
-                            fontSize = 18.sp, // Scale down to 18.sp max
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color.White // White directly on dark/shimmer background
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = "Here's what's happening with your Ethiopian campaigns today.",
-                            fontSize = 12.sp, // Scale down to 12.sp
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
                             color = Color.White.copy(alpha = 0.85f)
                         )
@@ -67,7 +72,7 @@ fun HomeDashboardScreen(
             }
         }
 
-        // 4 Grid Stats: Duplicated exactly from our Visual Blueprint Web Overview
+        // 4 Grid Stats: Expanded cleanly across top
         item {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ScrollEntranceTransition(index = 1) {
@@ -78,7 +83,7 @@ fun HomeDashboardScreen(
                         DashboardStatCard(
                             title = "Active Campaigns",
                             value = "8",
-                            sub = "+2 this week",
+                            sub = "+18% this week",
                             subPositive = true,
                             modifier = Modifier.weight(1f)
                         )
@@ -120,9 +125,10 @@ fun HomeDashboardScreen(
             ScrollEntranceTransition(index = 3) {
                 Text(
                     text = "Recent Campaigns",
-                    fontSize = 18.sp, // Scale down to 18.sp max
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF110D59), // High contrast dark navy on light background
+                    fontStyle = FontStyle.Italic,
+                    color = MidnightIndigo,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp, bottom = 8.dp)
@@ -130,7 +136,7 @@ fun HomeDashboardScreen(
             }
         }
 
-        // List of recent campaigns mirroring the table
+        // List of recent campaigns in a white card container for better readability
         items(campaigns.size) { index ->
             val campaign = campaigns[index]
             val cardInteractionSource = remember { MutableInteractionSource() }
@@ -144,15 +150,15 @@ fun HomeDashboardScreen(
                             interactionSource = cardInteractionSource,
                             indication = androidx.compose.foundation.LocalIndication.current
                         ) { onSelectCampaign(campaign.id) },
-                    colors = CardDefaults.cardColors(containerColor = Color(0x0FFFFFFF)),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(0.5.dp, Color(0xFF110D59).copy(alpha = 0.15f)),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    border = BorderStroke(1.dp, Color(0xFFF1F5F9)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
+                            .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -161,7 +167,7 @@ fun HomeDashboardScreen(
                                 text = campaign.title,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF110D59), // Deep high-contrast dark navy
+                                color = MidnightIndigo,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -169,21 +175,21 @@ fun HomeDashboardScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
                                     modifier = Modifier
-                                        .background(Color(0xFF110D59).copy(alpha = 0.08f), RoundedCornerShape(4.dp))
+                                        .background(TelegramBlue.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
                                         text = campaign.category,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF110D59) // Clear dark category label
+                                        color = TelegramBlue
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "By ${campaign.brandName}",
                                     fontSize = 11.sp,
-                                    color = Color(0xFF475569) // Contrasting slate gray
+                                    color = Color(0xFF64748B)
                                 )
                             }
                         }
@@ -193,7 +199,7 @@ fun HomeDashboardScreen(
                                 text = Formatters.formatCurrency(campaign.rewardAmount),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF110D59) // High contrast reward amount
+                                color = MidnightIndigo
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
@@ -201,10 +207,10 @@ fun HomeDashboardScreen(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = when (campaign.status) {
-                                    "Open" -> Color(0xFF15803D) // Darker high-contrast forest green
-                                    "Claimed" -> Color(0xFFB45309) // High-contrast amber
-                                    "Completed" -> Color(0xFF475569) // Dark slate gray
-                                    else -> Color(0xFFB91C1C) // Deep dark red
+                                    "Open" -> Color(0xFF10B981)
+                                    "Claimed" -> TelegramBlue
+                                    "Completed" -> Color(0xFF64748B)
+                                    else -> LogoutRed
                                 }
                             )
                         }
@@ -231,7 +237,7 @@ fun DashboardStatCard(
                 interactionSource = interactionSource,
                 indication = androidx.compose.foundation.LocalIndication.current
             ) { /* Stat detail click */ },
-        colors = CardDefaults.cardColors(containerColor = Color(0x0FFFFFFF)),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f)),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.15f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -239,21 +245,21 @@ fun DashboardStatCard(
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
                 text = title,
-                fontSize = 11.sp, // Sub-label: Scale down to 11.sp
+                fontSize = 11.sp,
                 color = Color.White.copy(alpha = 0.7f),
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = value,
-                fontSize = 15.sp, // Card content value: 15.sp max
+                fontSize = 18.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = sub,
-                fontSize = 11.sp, // Sub-label: Scale down to 11.sp
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (subPositive) Color(0xFF4ADE80) else Color(0xFFF87171)
             )
@@ -261,3 +267,45 @@ fun DashboardStatCard(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun HomeDashboardScreenPreview() {
+    val sampleCampaigns = listOf(
+        Campaign(
+            id = "c1",
+            title = "Online English Course",
+            brandName = "Desire Online School",
+            category = "Sales",
+            rewardAmount = 500.00,
+            status = "Open",
+            conversions = 320,
+            totalSpendETB = 32000.00,
+            guidelines = listOf(
+                "Publish 1 tutorial review of the English Course.",
+                "Include special coupon SARA01 in description.",
+                "Highlight ETB milestone commission rates."
+            )
+        ),
+        Campaign(
+            id = "c2",
+            title = "Addis Tech Event 2024",
+            brandName = "Tech Addis",
+            category = "Awareness",
+            rewardAmount = 300.00,
+            status = "Open",
+            conversions = 210,
+            totalSpendETB = 21000.00,
+            guidelines = listOf(
+                "Highlight registration steps and event schedules.",
+                "Target tech graduates and software developers.",
+                "Use hashtag #AddisTech2024 and mention @TechAddis."
+            )
+        )
+    )
+    MyApplicationTheme {
+        HomeDashboardScreen(
+            campaigns = sampleCampaigns,
+            onSelectCampaign = {}
+        )
+    }
+}

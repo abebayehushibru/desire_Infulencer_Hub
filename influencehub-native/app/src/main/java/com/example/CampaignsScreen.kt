@@ -44,6 +44,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.rememberScrollState
@@ -53,6 +54,9 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import androidx.compose.foundation.interaction.MutableInteractionSource
+
+import com.example.ui.theme.*
+import androidx.compose.ui.graphics.Brush
 
 // ---------------------- 2. CAMPAIGNS LIST SCREEN ----------------------
 @Composable
@@ -76,13 +80,14 @@ fun CampaignsListScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Transparent)
-            .padding(16.dp)
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         // Search & Filter header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp),
+                .padding(bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -90,14 +95,14 @@ fun CampaignsListScreen(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 placeholder = { Text("Search campaigns...", color = Color(0xFF5F5C8C).copy(alpha = 0.6f), fontSize = 14.sp) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF5F5C8C)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TelegramBlue) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
-                    focusedBorderColor = Color(0xFF2E1C8D),
+                    focusedBorderColor = TelegramBlue,
                     unfocusedBorderColor = Color(0xFFCBD5E1),
-                    focusedTextColor = Color(0xFF16115A),
-                    unfocusedTextColor = Color(0xFF16115A)
+                    focusedTextColor = MidnightIndigo,
+                    unfocusedTextColor = MidnightIndigo
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f),
@@ -107,52 +112,41 @@ fun CampaignsListScreen(
             IconButton(
                 onClick = { /* Toggle filters */ },
                 modifier = Modifier
-                    .background(Color(0xFF2E1C8D), RoundedCornerShape(12.dp))
+                    .background(MidnightIndigo, RoundedCornerShape(12.dp))
                     .size(48.dp)
             ) {
                 Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color.White)
             }
         }
 
-        // Horizontal Category Tabs matching the unified capsule design: a card with rounded segments, no yellow border/background
-        Card(
+        // Horizontal Category Tabs with soft blue/neutral pill indicators
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0x1AFFFFFF)),
-            shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.15f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                categories.forEach { category ->
-                    val isSelected = selectedCategoryFilter == category
-                    val bgColor = if (isSelected) Color.White.copy(alpha = 0.2f) else Color.Transparent
-                    val textColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f)
+            categories.forEach { category ->
+                val isSelected = selectedCategoryFilter == category
+                val bgColor = if (isSelected) TelegramBlue else Color.White.copy(alpha = 0.1f)
+                val textColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.7f)
 
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(bgColor, RoundedCornerShape(8.dp))
-                            .clickable { selectedCategoryFilter = category }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = category.uppercase(Locale.getDefault()),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textColor,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(bgColor)
+                        .clickable { selectedCategoryFilter = category }
+                        .padding(vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = category.uppercase(Locale.getDefault()),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor
+                    )
                 }
             }
         }
@@ -198,7 +192,7 @@ fun CampaignsListScreen(
                                     Icon(
                                         imageVector = if (campaign.category == "Sales") Icons.Default.TrendingUp else Icons.Default.Campaign,
                                         contentDescription = null,
-                                        tint = Color(0xFFFEB209),
+                                        tint = TelegramBlue,
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
@@ -215,8 +209,8 @@ fun CampaignsListScreen(
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = when (campaign.status) {
-                                        "Open" -> Color(0xFF4ADE80)
-                                        "Claimed" -> Color(0xFFFEB209)
+                                        "Open" -> TelegramBlue
+                                        "Claimed" -> TelegramBlue
                                         else -> Color.White.copy(alpha = 0.6f)
                                     }
                                 )
@@ -263,8 +257,8 @@ fun CampaignsListScreen(
                                 Button(
                                     onClick = { onSelectCampaign(campaign.id) },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (campaign.status == "Open") Color(0xFFFEB209) else Color.White.copy(alpha = 0.15f),
-                                        contentColor = if (campaign.status == "Open") Color(0xFF110D59) else Color.White
+                                        containerColor = if (campaign.status == "Open") TelegramBlue else Color.White.copy(alpha = 0.15f),
+                                        contentColor = if (campaign.status == "Open") Color.White else Color.White
                                     ),
                                     shape = RoundedCornerShape(8.dp),
                                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -297,38 +291,38 @@ fun CampaignDetailsWorkspaceScreen(
     val context = LocalContext.current
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF110D59))
-    ) {
-        // Custom Back Header View
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF110D59))
-                .padding(horizontal = 8.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
-            }
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MidnightIndigo)
+                            ) {
+                                // Custom Back Header View
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(MidnightIndigo)
+                                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    IconButton(onClick = onBack) {
+                                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                                    }
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = campaign.title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = campaign.brandName,
-                    fontSize = 11.sp,
-                    color = Color(0xFFFEB209)
-                )
-            }
-        }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = campaign.title,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = campaign.brandName,
+                                            fontSize = 11.sp,
+                                            color = TelegramBlue
+                                        )
+                                    }
+                                }
 
         // Custom Tab Row matching blueprint image: a rounded horizontal card/row floating on a light background with an active sliding tracker underline
         Card(
@@ -345,11 +339,11 @@ fun CampaignDetailsWorkspaceScreen(
             TabRow(
                 selectedTabIndex = selectedIndex,
                 containerColor = Color.White,
-                contentColor = Color(0xFF2E1C8D),
+                contentColor = TelegramBlue,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
                         modifier = Modifier.tabIndicatorOffset(tabPositions[selectedIndex]),
-                        color = Color(0xFF2E1C8D)
+                        color = TelegramBlue
                     )
                 },
                 divider = {}
@@ -369,7 +363,7 @@ fun CampaignDetailsWorkspaceScreen(
                                 },
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color(0xFF2E1C8D) else Color(0xFF5F5C8C),
+                                color = if (isSelected) TelegramBlue else Color(0xFF5F5C8C),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -577,7 +571,7 @@ fun generateAndSavePdf(context: android.content.Context, pdfType: String): java.
             titlePaint.color = android.graphics.Color.WHITE
             canvas.drawText("CAMPAIGN BRIEF", 40f, 50f, titlePaint)
             
-            titlePaint.color = android.graphics.Color.rgb(254, 178, 9) // #FEB209
+            titlePaint.color = android.graphics.Color.rgb(36, 161, 222) // TelegramBlue #24A1DE
             titlePaint.textSize = 14f
             canvas.drawText("ONLINE ENGLISH COURSE PROMOTION", 40f, 80f, titlePaint)
             
@@ -637,7 +631,7 @@ fun generateAndSavePdf(context: android.content.Context, pdfType: String): java.
             titlePaint.color = android.graphics.Color.WHITE
             canvas.drawText("BRAND GUIDELINES", 40f, 50f, titlePaint)
             
-            titlePaint.color = android.graphics.Color.rgb(254, 178, 9) // #FEB209
+            titlePaint.color = android.graphics.Color.rgb(36, 161, 222) // TelegramBlue #24A1DE
             titlePaint.textSize = 14f
             canvas.drawText("DESIRE ONLINE SCHOOL IDENTITY RULES", 40f, 80f, titlePaint)
             
@@ -752,7 +746,7 @@ fun PdfPreviewDialog(pdfType: String, onDismiss: () -> Unit) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = if (pdfType == "pdf_1") "ONLINE ENGLISH COURSE PROMOTION" else "DESIRE ONLINE SCHOOL IDENTITY RULES",
-                            color = Color(0xFFFEB209),
+                            color = TelegramBlue,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -824,8 +818,8 @@ fun PdfPreviewDialog(pdfType: String, onDismiss: () -> Unit) {
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Card(
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFBEB)),
-                            border = BorderStroke(1.dp, Color(0xFFFDE68A)),
+                            colors = CardDefaults.cardColors(containerColor = SoftBlueTint),
+                            border = BorderStroke(1.dp, TelegramBlue.copy(alpha = 0.3f)),
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -834,13 +828,13 @@ fun PdfPreviewDialog(pdfType: String, onDismiss: () -> Unit) {
                                     text = "Milestone Payout Note:",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFB45309)
+                                    color = MidnightIndigo
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "All tracking infrastructure employs full \"Link & Code Matching.\" Payout conversions settle directly into the Influencer Hub Ledger automatically upon audited completion of a student checkout.",
                                     fontSize = 11.sp,
-                                    color = Color(0xFF78350F),
+                                    color = MidnightIndigo.copy(alpha = 0.8f),
                                     lineHeight = 16.sp
                                 )
                             }
@@ -1022,7 +1016,7 @@ fun VideoPlayerDialog(videoUrl: String, thumbnailRes: Int, onDismiss: () -> Unit
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            CircularProgressIndicator(color = Color(0xFFFEB209))
+                            CircularProgressIndicator(color = TelegramBlue)
                             Text("Buffering Guideline Stream...", color = Color.White, fontSize = 11.sp)
                         }
                     }
@@ -1147,7 +1141,7 @@ fun CampaignWorkspaceContentTab(
                                 Icon(
                                     imageVector = Icons.Default.InsertDriveFile,
                                     contentDescription = "PDF Document",
-                                    tint = if (selectedPdf == "pdf_1") Color(0xFFFEB209) else Color(0xFF5F5C8C),
+                                    tint = if (selectedPdf == "pdf_1") TelegramBlue else Color(0xFF5F5C8C),
                                     modifier = Modifier.size(36.dp)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -1188,7 +1182,7 @@ fun CampaignWorkspaceContentTab(
                                 Icon(
                                     imageVector = Icons.Default.InsertDriveFile,
                                     contentDescription = "PDF Document",
-                                    tint = if (selectedPdf == "pdf_2") Color(0xFFFEB209) else Color(0xFF5F5C8C),
+                                    tint = if (selectedPdf == "pdf_2") TelegramBlue else Color(0xFF5F5C8C),
                                     modifier = Modifier.size(36.dp)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -1257,7 +1251,7 @@ fun CampaignWorkspaceContentTab(
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEB209)),
+                            colors = ButtonDefaults.buttonColors(containerColor = TelegramBlue),
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.weight(1f),
                             enabled = !isDownloadingPdf
@@ -1355,7 +1349,7 @@ fun CampaignWorkspaceContentTab(
                                 .size(60.dp)
                                 .clip(CircleShape)
                                 .background(Color.White.copy(alpha = 0.9f))
-                                .border(2.dp, Color(0xFFFEB209), CircleShape),
+                                .border(2.dp, TelegramBlue, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -1471,7 +1465,7 @@ fun CampaignWorkspaceContentTab(
                                     }
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEB209)),
+                            colors = ButtonDefaults.buttonColors(containerColor = TelegramBlue),
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.weight(1f),
                             enabled = !isDownloadingVideo
@@ -1728,14 +1722,14 @@ fun CampaignWorkspaceChatTab(chatMessages: MutableList<ChatMessage>) {
                             modifier = Modifier
                                 .size(36.dp)
                                 .background(
-                                    color = if (msg.senderRole == "Leader") Color(0xFFFEB209) else Color(0xFF2E1C8D),
+                                    color = if (msg.senderRole == "Leader") TelegramBlue else MidnightIndigo,
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = msg.senderName.take(1),
-                                color = if (msg.senderRole == "Leader") Color(0xFF16115A) else Color.White,
+                                color = Color.White,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -1776,11 +1770,11 @@ fun CampaignWorkspaceChatTab(chatMessages: MutableList<ChatMessage>) {
                                         Spacer(modifier = Modifier.width(6.dp))
                                         
                                         // Dynamic Indicator badge: Leader, Gold Tier
-                                        val badgeColor = if (msg.senderRole == "Leader") Color(0xFFFEB209) else {
-                                            if (isYou) Color.White.copy(alpha = 0.2f) else Color(0xFFE2E8F0)
+                                        val badgeColor = if (msg.senderRole == "Leader") TelegramBlue else {
+                                            if (isYou) Color.White.copy(alpha = 0.2f) else SoftBlueTint
                                         }
-                                        val textColor = if (msg.senderRole == "Leader") Color(0xFF16115A) else {
-                                            if (isYou) Color.White else Color(0xFF5F5C8C)
+                                        val textColor = if (msg.senderRole == "Leader") Color.White else {
+                                            if (isYou) Color.White else MidnightIndigo
                                         }
                                         
                                         Box(
@@ -1793,7 +1787,7 @@ fun CampaignWorkspaceChatTab(chatMessages: MutableList<ChatMessage>) {
                                                     Icon(
                                                         imageVector = Icons.Default.Star,
                                                         contentDescription = "Leader Icon",
-                                                        tint = Color(0xFF16115A),
+                                                        tint = Color.White,
                                                         modifier = Modifier.size(8.dp)
                                                     )
                                                     Spacer(modifier = Modifier.width(2.dp))
@@ -1872,14 +1866,14 @@ fun CampaignWorkspaceChatTab(chatMessages: MutableList<ChatMessage>) {
                             modifier = Modifier
                                 .size(36.dp)
                                 .background(
-                                    color = Color(0xFFFEB209), // Gold/Tertiary accent
+                                    color = TelegramBlue,
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "Y",
-                                color = Color(0xFF16115A),
+                                color = Color.White,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -2035,5 +2029,88 @@ fun CampaignWorkspaceEarningsTab(campaign: Campaign) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CampaignsListScreenPreview() {
+    val sampleCampaigns = listOf(
+        Campaign(
+            id = "c1",
+            title = "Online English Course",
+            brandName = "Desire Online School",
+            category = "Sales",
+            rewardAmount = 500.00,
+            status = "Open",
+            conversions = 320,
+            totalSpendETB = 32000.00,
+            guidelines = listOf(
+                "Publish 1 tutorial review of the English Course.",
+                "Include special coupon SARA01 in description.",
+                "Highlight ETB milestone commission rates."
+            )
+        ),
+        Campaign(
+            id = "c2",
+            title = "Addis Tech Event 2024",
+            brandName = "Tech Addis",
+            category = "Awareness",
+            rewardAmount = 300.00,
+            status = "Open",
+            conversions = 210,
+            totalSpendETB = 21000.00,
+            guidelines = listOf(
+                "Highlight registration steps and event schedules.",
+                "Target tech graduates and software developers.",
+                "Use hashtag #AddisTech2024 and mention @TechAddis."
+            )
+        )
+    )
+    MyApplicationTheme {
+        CampaignsListScreen(
+            campaigns = sampleCampaigns,
+            onSelectCampaign = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CampaignDetailsWorkspaceScreenPreview() {
+    val sampleCampaign = Campaign(
+        id = "c1",
+        title = "Online English Course",
+        brandName = "Desire Online School",
+        category = "Sales",
+        rewardAmount = 500.00,
+        status = "Open",
+        conversions = 320,
+        totalSpendETB = 32000.00,
+        guidelines = listOf(
+            "Publish 1 tutorial review of the English Course.",
+            "Include special coupon SARA01 in description.",
+            "Highlight ETB milestone commission rates."
+        )
+    )
+    val sampleSubmissions = remember {
+        mutableStateListOf(
+            ContentSubmission("s1", "https://tiktok.com/@sarabeauty/video/7283928172", "Approved", "2 hours ago")
+        )
+    }
+    val sampleChatMessages = remember {
+        mutableStateListOf(
+            ChatMessage("m1", "Sara Beauty", "Leader", "Welcome everyone! Let's discuss how we can promote this course effectively.", "10:30 AM", 8),
+            ChatMessage("m2", "Abel Tech", "Gold Tier", "I think we should focus on students and young professionals.", "10:32 AM", 5)
+        )
+    }
+    MyApplicationTheme {
+        CampaignDetailsWorkspaceScreen(
+            campaign = sampleCampaign,
+            submissions = sampleSubmissions,
+            chatMessages = sampleChatMessages,
+            onBack = {},
+            onClaim = {}
+        )
     }
 }

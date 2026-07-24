@@ -23,8 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+import com.example.ui.theme.*
 
 @Composable
 fun EarningsHubScreen() {
@@ -61,14 +64,14 @@ fun EarningsHubScreen() {
                     Icon(
                         imageVector = Icons.Default.Lock,
                         contentDescription = "Security Lock",
-                        tint = Color(0xFF2E1C8D),
+                        tint = MidnightIndigo,
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
                         text = "Password Confirmation",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF16115A)
+                        color = MidnightIndigo
                     )
                 }
             },
@@ -96,9 +99,9 @@ fun EarningsHubScreen() {
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color(0xFF16115A),
-                            unfocusedTextColor = Color(0xFF16115A),
-                            focusedBorderColor = Color(0xFF2E1C8D),
+                            focusedTextColor = MidnightIndigo,
+                            unfocusedTextColor = MidnightIndigo,
+                            focusedBorderColor = TelegramBlue,
                             unfocusedBorderColor = Color(0xFFCBD5E1),
                             focusedContainerColor = Color.White,
                             unfocusedContainerColor = Color.White
@@ -128,7 +131,7 @@ fun EarningsHubScreen() {
                             showPasswordDialog = false
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E1C8D)),
+                    colors = ButtonDefaults.buttonColors(containerColor = MidnightIndigo),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text("Confirm Payout", color = Color.White, style = MaterialTheme.typography.labelLarge)
@@ -149,11 +152,12 @@ fun EarningsHubScreen() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Transparent) // Transparent background to let parent gradient show through
-            .padding(16.dp),
+            .background(Color.Transparent)
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Balance Display Container (Left and Right)
+        // Balance Display Container (Side-by-side with proper scaling)
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -161,33 +165,33 @@ fun EarningsHubScreen() {
             ) {
                 Card(
                     modifier = Modifier.weight(1f),
-                    colors = CardDefaults.cardColors(containerColor = Color(0x1AFFFFFF)),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.15f)),
+                    border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.2f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Available Balance", fontSize = 11.sp, color = Color.White.copy(alpha = 0.7f))
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Text(text = "Available Balance", fontSize = 11.sp, color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(text = Formatters.formatCurrency(availableBalance), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = Formatters.formatCurrency(availableBalance), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "${String.format("%,d", availableBalance.toInt())} Points", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4ADE80))
+                        Text(text = "${String.format("%,d", availableBalance.toInt())} Points", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TelegramBlue)
                     }
                 }
 
                 Card(
                     modifier = Modifier.weight(1f),
-                    colors = CardDefaults.cardColors(containerColor = Color(0x1AFFFFFF)),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.15f)),
+                    border = BorderStroke(0.5.dp, Color.White.copy(alpha = 0.2f)),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Total Earnings", fontSize = 11.sp, color = Color.White.copy(alpha = 0.7f))
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Text(text = "Total Earnings", fontSize = 11.sp, color = Color.White.copy(alpha = 0.7f), fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(text = Formatters.formatCurrency(totalEarnings), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = Formatters.formatCurrency(totalEarnings), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(text = "${String.format("%,d", totalEarnings.toInt())} Points", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4ADE80))
+                        Text(text = "${String.format("%,d", totalEarnings.toInt())} Points", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TelegramBlue)
                     }
                 }
             }
@@ -292,8 +296,8 @@ fun EarningsHubScreen() {
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFEB209),
-                            contentColor = Color(0xFF110D59)
+                            containerColor = MidnightIndigo,
+                            contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -303,5 +307,13 @@ fun EarningsHubScreen() {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EarningsHubScreenPreview() {
+    MyApplicationTheme {
+        EarningsHubScreen()
     }
 }

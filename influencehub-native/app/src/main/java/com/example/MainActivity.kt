@@ -9,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -51,7 +53,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.MyApplicationTheme
+import com.example.ui.theme.*
+import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -68,6 +71,8 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+
+import com.example.ui.theme.*
 
 // ==========================================
 // 1. NAVIGATION STATES & DATA MODELS
@@ -425,8 +430,8 @@ fun Modifier.liftOnInteraction(
         .shadow(
             elevation = animatedShadowElevation,
             shape = RoundedCornerShape(12.dp),
-            ambientColor = Color(0xFFFEB209).copy(alpha = animatedGlowAlpha),
-            spotColor = Color(0xFF2E1C8D).copy(alpha = animatedGlowAlpha)
+            ambientColor = TelegramBlue.copy(alpha = animatedGlowAlpha),
+            spotColor = TelegramBlue.copy(alpha = animatedGlowAlpha)
         )
 }
 
@@ -529,28 +534,28 @@ fun GoogleLogoIcon(modifier: Modifier = Modifier) {
         val radius = (sizeVal - strokeWidth) / 2f
         
         drawArc(
-            color = Color(0xFFEA4335),
+            color = BrandPrimary,
             startAngle = 180f,
             sweepAngle = 140f,
             useCenter = false,
             style = Stroke(width = strokeWidth)
         )
         drawArc(
-            color = Color(0xFF4285F4),
+            color = BrandPrimary,
             startAngle = 320f,
             sweepAngle = 60f,
             useCenter = false,
             style = Stroke(width = strokeWidth)
         )
         drawArc(
-            color = Color(0xFF34A853),
+            color = BrandPrimary,
             startAngle = 0f,
             sweepAngle = 135f,
             useCenter = false,
             style = Stroke(width = strokeWidth)
         )
         drawArc(
-            color = Color(0xFFFBBC05),
+            color = BrandPrimary,
             startAngle = 135f,
             sweepAngle = 45f,
             useCenter = false,
@@ -560,7 +565,7 @@ fun GoogleLogoIcon(modifier: Modifier = Modifier) {
         val barStartX = center.x
         val barEndX = center.x + radius + strokeWidth / 2f
         drawLine(
-            color = Color(0xFF4285F4),
+            color = BrandPrimary,
             start = androidx.compose.ui.geometry.Offset(barStartX, barY),
             end = androidx.compose.ui.geometry.Offset(barEndX, barY),
             strokeWidth = strokeWidth
@@ -572,88 +577,11 @@ fun GoogleLogoIcon(modifier: Modifier = Modifier) {
 fun InfluenceHubLogoSymbol(
     modifier: Modifier = Modifier
 ) {
-    Canvas(
+    Image(
+        painter = painterResource(id = R.drawable.app_logo),
+        contentDescription = "Influence Hub Logo",
         modifier = modifier
-            .graphicsLayer {
-                compositingStrategy = CompositingStrategy.Offscreen
-            }
-    ) {
-        val width = size.width
-        val height = size.height
-
-        val gradient = Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF2E09D3),
-                Color(0xFF6C2CF5),
-                Color(0xFF8B2CF5),
-                Color(0xFFB5179E)
-            ),
-            start = androidx.compose.ui.geometry.Offset(0f, height),
-            end = androidx.compose.ui.geometry.Offset(width, 0f)
-        )
-
-        val pillarWidth = width * 0.22f
-        val pillarHeight = height * 0.74f
-        val pillarCornerRadius = pillarWidth / 2f
-        
-        val leftPillarLeft = width * 0.11f
-        val leftPillarTop = height * 0.13f
-
-        drawRoundRect(
-            brush = gradient,
-            topLeft = androidx.compose.ui.geometry.Offset(leftPillarLeft, leftPillarTop),
-            size = androidx.compose.ui.geometry.Size(pillarWidth, pillarHeight),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(pillarCornerRadius, pillarCornerRadius)
-        )
-
-        val rightPillarLeft = width * 0.67f
-        val rightPillarTop = height * 0.13f
-
-        drawRoundRect(
-            brush = gradient,
-            topLeft = androidx.compose.ui.geometry.Offset(rightPillarLeft, rightPillarTop),
-            size = androidx.compose.ui.geometry.Size(pillarWidth, pillarHeight),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(pillarCornerRadius, pillarCornerRadius)
-        )
-
-        val bridgePath = Path().apply {
-            val leftInnerX = leftPillarLeft + pillarWidth - 1f
-            val rightInnerX = rightPillarLeft + 1f
-            
-            val topControlY = height * 0.32f
-            val bottomControlY = height * 0.68f
-            
-            moveTo(leftInnerX, height * 0.40f)
-            quadraticTo(
-                width * 0.5f, topControlY,
-                rightInnerX, height * 0.40f
-            )
-            lineTo(rightInnerX, height * 0.60f)
-            quadraticTo(
-                width * 0.5f, bottomControlY,
-                leftInnerX, height * 0.60f
-            )
-            close()
-        }
-
-        drawPath(
-            path = bridgePath,
-            brush = gradient
-        )
-
-        val ringOuterRadius = width * 0.14f
-        val ringInnerRadius = width * 0.07f
-        val ringStrokeWidth = ringOuterRadius - ringInnerRadius
-        val ringRadius = (ringOuterRadius + ringInnerRadius) / 2f
-
-        drawCircle(
-            color = Color.Transparent,
-            radius = ringRadius,
-            center = androidx.compose.ui.geometry.Offset(width / 2f, height / 2f),
-            style = Stroke(width = ringStrokeWidth),
-            blendMode = BlendMode.Clear
-        )
-    }
+    )
 }
 
 @Composable
@@ -662,8 +590,8 @@ fun InfluenceHubBrandText(
     isDarkBackground: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val textColor = if (isDarkBackground) Color.White else Color(0xFF0F0E47)
-    val purpleColor = Color(0xFF8B2CF5)
+    val textColor = if (isDarkBackground) Color.White else BrandPrimary
+    val accentColor = BrandTertiary
 
     Row(
         modifier = modifier,
@@ -671,21 +599,28 @@ fun InfluenceHubBrandText(
     ) {
         Text(
             text = "I",
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
             fontSize = fontSize,
-            color = purpleColor,
+            color = accentColor,
             lineHeight = fontSize
         )
         Text(
             text = "nfluencer ",
-            fontWeight = FontWeight.Normal,
+            fontWeight = FontWeight.Bold,
             fontSize = fontSize,
             color = textColor,
             lineHeight = fontSize
         )
         Text(
-            text = "Hub",
+            text = "H",
             fontWeight = FontWeight.ExtraBold,
+            fontSize = fontSize,
+            color = accentColor,
+            lineHeight = fontSize
+        )
+        Text(
+            text = "ub",
+            fontWeight = FontWeight.Bold,
             fontSize = fontSize,
             color = textColor,
             lineHeight = fontSize
@@ -719,12 +654,16 @@ fun InfluenceHubFullLogo(
                     text = "Connect. Collaborate. Grow.",
                     fontWeight = FontWeight.Medium,
                     fontSize = (symbolSize.value * 0.16f).sp,
-                    color = if (isDarkBackground) Color(0xFFFEB209) else Color(0xFF5F5C8C),
+                    color = if (isDarkBackground) TelegramBlue else Color(0xFF5F5C8C),
                     letterSpacing = 0.5.sp
                 )
             }
         }
     }
+}
+
+enum class AuthMode {
+    LOGIN, SIGNUP
 }
 
 // ==========================================
@@ -733,403 +672,246 @@ fun InfluenceHubFullLogo(
 @Composable
 fun LoginScreen(onLoginSuccess: (String) -> Unit) {
     val context = LocalContext.current
+    
     var emailInput by remember { mutableStateOf("") }
     var passwordInput by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var rememberMe by remember { mutableStateOf(false) }
     var validationError by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val shakeController = rememberShakeController()
 
+    val NavyBlue = BrandPrimary
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF4F5F8))
-            .windowInsetsPadding(WindowInsets.safeDrawing),
-        contentAlignment = Alignment.Center
+            .background(NavyBlue)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            ScrollEntranceTransition(index = 0) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp)
-                ) {
-                    InfluenceHubLogoSymbol(modifier = Modifier.size(80.dp))
-                    Spacer(modifier = Modifier.height(12.dp))
-                    InfluenceHubBrandText(fontSize = 28.sp, isDarkBackground = false)
-                    Spacer(modifier = Modifier.height(4.dp))
+        Column(modifier = Modifier.fillMaxSize()) {
+            // 1. TOP HEADER SECTION
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.40f)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                BrandPrimary,
+                                BrandSecondary
+                            )
+                        )
+                    )
+                    .statusBarsPadding(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    InfluenceHubLogoSymbol(modifier = Modifier.size(100.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    InfluenceHubBrandText(fontSize = 32.sp, isDarkBackground = true)
                     Text(
                         text = "Connect. Collaborate. Grow.",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF16115A),
-                        letterSpacing = 1.5.sp
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.7f),
+                        letterSpacing = 1.sp
                     )
                 }
             }
 
-            ScrollEntranceTransition(index = 1) {
-                Card(
+            // 2. FORM CONTAINER SHEET
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.60f)
+                    .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp)),
+                color = CreamBackground,
+                tonalElevation = 8.dp
+            ) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .shake(shakeController)
-                        .shadow(12.dp, RoundedCornerShape(16.dp)),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF110D59)),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color(0xFF1A1661))
+                        .fillMaxSize()
+                        .padding(horizontal = 32.dp)
+                        .verticalScroll(rememberScrollState())
+                        .imePadding(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.Start
-                    ) {
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    Text(
+                        text = "Welcome Back",
+                        fontWeight = FontWeight.Bold,
+                        color = BrandPrimary,
+                        fontSize = 24.sp
+                    )
+                    Text(
+                        text = "Login to your account",
+                        color = BrandPrimary.copy(alpha = 0.6f),
+                        fontSize = 14.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // EMAIL FIELD
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "Log in",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        
-                        Text(
-                            text = "Enter your credentials.",
+                            text = "Email",
                             fontSize = 14.sp,
-                            color = Color(0xFFB4B0D5),
-                            modifier = Modifier.padding(top = 2.dp, bottom = 20.dp)
+                            fontWeight = FontWeight.SemiBold,
+                            color = BrandPrimary.copy(alpha = 0.8f)
                         )
-
-                        Text(
-                            text = buildAnnotatedString {
-                                append("Email ")
-                                withStyle(style = SpanStyle(color = Color.Red)) {
-                                    append("*")
-                                }
-                            },
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 6.dp)
+                        TextField(
+                            value = emailInput,
+                            onValueChange = { emailInput = it; validationError = "" },
+                            placeholder = { Text("Enter your email", color = BrandPrimary.copy(alpha = 0.4f)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = BrandPrimary,
+                                unfocusedIndicatorColor = BrandPrimary.copy(alpha = 0.2f),
+                                focusedTextColor = BrandPrimary,
+                                unfocusedTextColor = BrandPrimary
+                            ),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                         )
-                        
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp)
-                                .border(
-                                    width = 1.dp,
-                                    color = if (validationError.contains("email", ignoreCase = true)) Color.Red else Color(0xFF4C4993).copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .background(Color(0xFF1C186E), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 14.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Email,
-                                    contentDescription = "Email Icon",
-                                    tint = Color(0xFFB4B0D5),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                TextField(
-                                    value = emailInput,
-                                    onValueChange = { 
-                                        emailInput = it
-                                        validationError = ""
-                                    },
-                                    placeholder = {
-                                        Text(
-                                            text = "Enter your email",
-                                            color = Color(0xFFB4B0D5).copy(alpha = 0.6f),
-                                            fontSize = 14.sp
-                                        )
-                                    },
-                                    colors = TextFieldDefaults.colors(
-                                        focusedContainerColor = Color.Transparent,
-                                        unfocusedContainerColor = Color.Transparent,
-                                        disabledContainerColor = Color.Transparent,
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent,
-                                        focusedTextColor = Color.White,
-                                        unfocusedTextColor = Color.White
-                                    ),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                                    singleLine = true,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .testTag("email_input")
-                                 )
-                            }
-                        }
+                    }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
+                    // PASSWORD FIELD
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "Password",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 6.dp)
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = BrandPrimary.copy(alpha = 0.8f)
                         )
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp)
-                                .border(
-                                    width = 1.dp,
-                                    color = if (validationError.contains("password", ignoreCase = true)) Color.Red else Color(0xFF4C4993).copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .background(Color(0xFF1C186E), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 14.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Lock,
-                                    contentDescription = "Password Icon",
-                                    tint = Color(0xFFB4B0D5),
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(10.dp))
-                                TextField(
-                                    value = passwordInput,
-                                    onValueChange = { 
-                                        passwordInput = it
-                                        validationError = ""
-                                    },
-                                    placeholder = {
-                                        Text(
-                                            text = "Enter password",
-                                            color = Color(0xFFB4B0D5).copy(alpha = 0.6f),
-                                            fontSize = 14.sp
-                                        )
-                                    },
-                                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                                    colors = TextFieldDefaults.colors(
-                                        focusedContainerColor = Color.Transparent,
-                                        unfocusedContainerColor = Color.Transparent,
-                                        disabledContainerColor = Color.Transparent,
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent,
-                                        focusedTextColor = Color.White,
-                                        unfocusedTextColor = Color.White
-                                    ),
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                                    singleLine = true,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .testTag("password_input")
-                                )
+                        TextField(
+                            value = passwordInput,
+                            onValueChange = { passwordInput = it; validationError = "" },
+                            placeholder = { Text("Enter password", color = BrandPrimary.copy(alpha = 0.4f)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
                                         imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                        contentDescription = "Toggle Password Visibility",
-                                        tint = Color(0xFFB4B0D5),
-                                        modifier = Modifier.size(20.dp)
+                                        contentDescription = null,
+                                        tint = BrandPrimary.copy(alpha = 0.6f)
                                     )
                                 }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.clickable { rememberMe = !rememberMe }
-                            ) {
-                                Checkbox(
-                                    checked = rememberMe,
-                                    onCheckedChange = { rememberMe = it },
-                                    colors = CheckboxDefaults.colors(
-                                        checkedColor = Color(0xFFFEB209),
-                                        uncheckedColor = Color.White,
-                                        checkmarkColor = Color(0xFF110D59)
-                                    ),
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Remember me",
-                                    fontSize = 13.sp,
-                                    color = Color.White
-                                )
-                            }
-
-                            Text(
-                                text = "Forgot password?",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFFEB209),
-                                modifier = Modifier.clickable {}
-                            )
-                        }
-
-                        if (validationError.isNotEmpty()) {
-                            Text(
-                                text = validationError,
-                                color = Color.Red,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(top = 10.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        val loginInteractionSource = remember { MutableInteractionSource() }
-                        Button(
-                            onClick = {
-                                if (emailInput.isEmpty() || !emailInput.contains("@") || !emailInput.contains(".")) {
-                                    validationError = "Please enter a valid email address."
-                                    shakeController.shake()
-                                } else if (passwordInput.length < 6) {
-                                    validationError = "Password must be at least 6 characters."
-                                    shakeController.shake()
-                                } else {
-                                    scope.launch {
-                                        isLoading = true
-                                        delay(800)
-                                        isLoading = false
-                                        SecureSessionManager.saveSession(context, emailInput, rememberMe)
-                                        onLoginSuccess(emailInput)
-                                    }
-                                }
                             },
-                            interactionSource = loginInteractionSource,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFEB209),
-                                contentColor = Color(0xFF110D59)
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = BrandPrimary,
+                                unfocusedIndicatorColor = BrandPrimary.copy(alpha = 0.2f),
+                                focusedTextColor = BrandPrimary,
+                                unfocusedTextColor = BrandPrimary
                             ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                                .pulse(enabled = !isLoading)
-                                .interactiveButton(loginInteractionSource)
-                                .testTag("submit_button"),
-                            enabled = !isLoading
-                        ) {
-                            if (isLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    color = Color(0xFF110D59),
-                                    strokeWidth = 2.dp
-                                )
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                        )
+                    }
+
+                    Text(
+                        text = "Forgot password?",
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(top = 12.dp)
+                            .clickable { },
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = BrandPrimary.copy(alpha = 0.7f)
+                    )
+
+                    if (validationError.isNotEmpty()) {
+                        Text(
+                            text = validationError,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // CTA BUTTON
+                    val interactionSource = remember { MutableInteractionSource() }
+                    Button(
+                        onClick = {
+                            if (emailInput.isEmpty() || !emailInput.contains("@")) {
+                                validationError = "Please enter a valid email."
+                            } else if (passwordInput.length < 6) {
+                                validationError = "Password must be at least 6 characters."
                             } else {
-                                Text(
-                                    text = "Login",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF110D59)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(1.dp)
-                                    .background(Color(0xFF4C4993).copy(alpha = 0.5f))
-                            )
-                            Text(
-                                text = "or",
-                                color = Color(0xFFB4B0D5),
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(horizontal = 10.dp)
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(1.dp)
-                                    .background(Color(0xFF4C4993).copy(alpha = 0.5f))
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        var isGoogleLoading by remember { mutableStateOf(false) }
-                        Button(
-                            onClick = {
                                 scope.launch {
-                                    isGoogleLoading = true
-                                    Toast.makeText(context, "Initiating Google Secure Authentication...", Toast.LENGTH_SHORT).show()
-                                    delay(1200)
-                                    isGoogleLoading = false
-                                    SecureSessionManager.saveSession(context, "google.user@gmail.com", true)
-                                    onLoginSuccess("google.user@gmail.com")
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor = Color(0xFF110D59)
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp)
-                                .testTag("google_login_button"),
-                            enabled = !isGoogleLoading && !isLoading
-                        ) {
-                            if (isGoogleLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    color = Color(0xFF110D59),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    GoogleLogoIcon(modifier = Modifier.size(20.dp))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(
-                                        text = "Continue with Google",
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF110D59)
-                                    )
+                                    isLoading = true
+                                    delay(1000)
+                                    isLoading = false
+                                    SecureSessionManager.saveSession(context, emailInput, true)
+                                    onLoginSuccess(emailInput)
                                 }
                             }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .interactiveButton(interactionSource),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = BrandTertiary,
+                            contentColor = BrandPrimary
+                        ),
+                        interactionSource = interactionSource,
+                        enabled = !isLoading
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(color = BrandPrimary, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text(
+                                text = "LOGIN",
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.5.sp
+                            )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // GOOGLE LOGIN
+                    OutlinedButton(
+                        onClick = { /* Handle Google Login */ },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, BrandPrimary.copy(alpha = 0.2f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandPrimary)
+                    ) {
+                        GoogleLogoIcon(modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Continue with Google",
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "InfluenceHub Regulatory System Access • Addis Ababa, ET",
-                fontSize = 10.sp,
-                color = Color(0xFF5F5C8C).copy(alpha = 0.8f),
-                textAlign = TextAlign.Center
-            )
         }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    MyApplicationTheme {
+        LoginScreen(onLoginSuccess = {})
     }
 }
 

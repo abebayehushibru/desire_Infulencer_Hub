@@ -11,9 +11,12 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+
+import com.example.ui.theme.*
 
 @Composable
 fun SplashScreen(onSplashFinished: () -> Unit) {
@@ -38,7 +41,7 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF110D59)) // Solid Dark Navy Blue
+            .background(MidnightIndigo) // Solid Midnight Indigo
             .windowInsetsPadding(WindowInsets.safeDrawing),
         contentAlignment = Alignment.Center
     ) {
@@ -69,10 +72,18 @@ fun SplashScreen(onSplashFinished: () -> Unit) {
                 text = "Connect. Collaborate. Grow.",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFFEB209),
+                color = TelegramBlue, // Soft Telegram Blue
                 letterSpacing = 1.5.sp,
                 textAlign = TextAlign.Center
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashScreenPreview() {
+    MyApplicationTheme {
+        SplashScreen(onSplashFinished = {})
     }
 }
