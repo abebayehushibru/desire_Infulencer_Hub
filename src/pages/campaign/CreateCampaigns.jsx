@@ -223,7 +223,7 @@ export default function CreateCampaign() {
     "Semera",
   ]
   return (
-    <div className="min-h-full bg-gray-50 flex flex-col  text-primary">
+    <div className="min-h-full bg-gray-50/10 flex flex-col  text-primary">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
 
       <Title titel={"Create Campaign"} disc={"Create a new marketing campaign."} />

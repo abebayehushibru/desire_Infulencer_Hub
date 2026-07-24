@@ -253,7 +253,7 @@ export default function EditCampaign() {
 
   if (saved) {
     return (
-      <div className="mx-auto flex min-h-[420px] max-w-2xl flex-col items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
+      <div className="mx-auto flex min-h-[420px] max-w-2xl flex-col items-center justify-center gap-3 rounded-2xl border border-gray-50/10 bg-white p-10 text-center shadow-sm">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
           <CheckCircle2 size={28} className="text-primary" />
         </div>
@@ -269,7 +269,7 @@ export default function EditCampaign() {
   }
 
   return (
-    <div className="min-h-full bg-gray-50 flex flex-col  text-primary">
+    <div className="min-h-full bg-gray-50/10 flex flex-col  text-primary">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
 
       <Title titel={"Edit Campaign"} disc={`Update details for "${form.title}".`} />

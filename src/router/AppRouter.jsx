@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
-import CreateCampaign from "../pages/campaign/Editcampaign";
+import CreateCampaign from "../pages/campaign/CreateCampaigns";
 import CampaignDetail from "../pages/campaign/CampaignDetail";
 import Contents from "../pages/campaign/Contents";
 import Chat from "../pages/campaign/Chat";
@@ -45,6 +45,9 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import Auth from "../pages/auth/Auth";
 import Register from "../pages/auth/Register";
 import Login from "../pages/auth/Login";
+import Unauthorized from "../pages/Unauthorized";
+import NotFound from "../pages/NotFound";
+import InfluencerEarnings from "../pages/payments/InfluencerEarnings";
 
 export default function AppRouter() {
 
@@ -62,7 +65,7 @@ export default function AppRouter() {
           <Route path="reset-password" element={<ResetPassword />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
-          <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+          <Route path="*" element={<NotFound />} />
 
         </Route>
 
@@ -88,9 +91,9 @@ export default function AppRouter() {
 
               <Route path="earnings" element={<Earnings />} />
 
-              <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+                <Route path="*" element={<NotFound />} />
             </Route>
-            <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+              <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="campaigns/:id/conversions/add" element={<AddConversion />} />
           <Route path="campaigns/:id/conversions/edit/:id2" element={<EditConversion />} />
@@ -111,14 +114,13 @@ export default function AppRouter() {
           <Route path="notifications" element={<Notification />} />
           <Route path="settings" element={<Setting />} />
           <Route path="settings/password" element={<PasswordSetting />} />
-
-
-
-          <Route paths="*" element={<h1>404 - Page Not Found</h1>} />
+          <Route path="earnings" element={<InfluencerEarnings />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="login" element={<Login />} />
+  <Route path="unauthorized" element={<Unauthorized />} />
 
-        <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+          <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

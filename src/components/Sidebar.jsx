@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ChevronLeft,
   BriefcaseBusiness,
+  Banknote,
 } from "lucide-react";
 import { useState } from "react";
 import logo from "../assets/logos/logo7.png";
@@ -43,6 +44,8 @@ const NAV_GROUPS = [
     items: [
       // { name: "Earnings", icon: Wallet },
       { name: "Payments", icon: CreditCard },
+      { name: "Earnings", icon: Banknote },
+      
     ],
   },
   {

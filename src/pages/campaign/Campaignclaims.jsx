@@ -65,12 +65,12 @@ function TicketCard({ campaign, claimed, onClaim }) {
           <span className="absolute -right-2.5 -top-2.5 w-5 h-5 rounded-full bg-[#FAF7F2]" />
 
           <div>
-            <p className="text-[11px] mt-0.5">Earn per conversion</p>
-            <p className="font-mono text-xl mt-0.5">
+            <p className="text-[10px] ">Earn per conversion</p>
+            <p className="font-semibold text-lg mt-0.5">
               {campaign.payout.toLocaleString()}
               <span className="text-xs text-gray-400 ml-1">ETB</span>
             </p>
-            <p className="text-xs text-primary">by {campaign.brand}</p>
+            <p className="text-[10px] text-primary">by {campaign.brand}</p>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ function TicketCard({ campaign, claimed, onClaim }) {
             className={`text-sm font-medium px-5 py-2 rounded-lg transition-colors mt-auto ${
               claimed
                 ? "text-primary cursor-default"
-                : "bg-green-500 text-white hover:bg-[#163829] cursor-pointer"
+                : "bg-tertiary text-white hover:bg-primary cursor-pointer"
             }`}
           >
             {claimed ? (
@@ -116,12 +116,12 @@ export default function CampaignClaim() {
   };
 
   return (
-    <div className="min-h-full bg-white flex justify-center ">
+    <div className="min-h-full bg-white flex justify-center sm:p-4 sm:rounded-lg">
       <div className="w-full ">
         <div className="flex items-center justify-between mb-1 border-b border-gray-200 pb-3">
           <div>
-            <h1 className="text-2xl text-[#2B2620]">Campaigns</h1>
-            <p className="text-xs text-[#8B8577] mt-0.5">
+            <h1 className="text-xl font-semibold text-primary">Campaigns</h1>
+            <p className="text-xs text-gray-400 ">
               {visible.length} open right now
             </p>
           </div>
@@ -133,7 +133,7 @@ export default function CampaignClaim() {
           </button>
         </div>
 
-        <div className="flex gap-2 my-5 overflow-x-auto">
+        <div className="flex gap-2 my-3 overflow-x-auto">
           {FILTERS.map((f) => (
             <button
               key={f}
