@@ -20,7 +20,12 @@ import adminRoutes     from './modules/auth/routes/admin.routes';
 import userRoutes      from './modules/users/routes/user-management.routes';
 import communityRoutes from './modules/community/routes/community.routes';
 import campaignRoutes  from './modules/campaign/routes/campaign.routes';
-
+import {
+  trackingRouter,
+  earningsRouter,
+  analyticsRouter,
+  withdrawalRouter,
+} from './modules/tracking/routes/tracking.routes';
 // ── Swagger ───────────────────────────────────────────────────────────────────
 import swaggerUi from 'swagger-ui-express';
 import { swaggerDocument } from './docs/swagger';
@@ -119,6 +124,14 @@ app.use(`${API_PREFIX}/admin`,       adminRoutes);
 app.use(`${API_PREFIX}/users`,       userRoutes);
 app.use(`${API_PREFIX}/communities`, communityRoutes);
 app.use(`${API_PREFIX}/campaigns`,   campaignRoutes);
+app.use(`${API_PREFIX}/tracking`,    trackingRouter);
+app.use(`${API_PREFIX}/earnings`,    earningsRouter);
+app.use(`${API_PREFIX}/analytics`,   analyticsRouter);
+app.use(`${API_PREFIX}/withdrawals`, withdrawalRouter);
+app.use(`${API_PREFIX}/tracking`,    trackingRouter);
+app.use(`${API_PREFIX}/earnings`,    earningsRouter);
+app.use(`${API_PREFIX}/analytics`,   analyticsRouter);
+app.use(`${API_PREFIX}/withdrawals`, withdrawalRouter);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

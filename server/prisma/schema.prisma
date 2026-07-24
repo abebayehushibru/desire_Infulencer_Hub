@@ -95,6 +95,17 @@ enum AuditAction {
   CONVERSION_ADDED
   CONVERSION_UPDATED
   CONVERSION_DELETED
+  // FR24–FR31
+  TRACKING_CLICK
+  TRACKING_CONVERSION
+  REFERRAL_USED
+  COMMISSION_CALCULATED
+  EARNINGS_UPDATED
+  WITHDRAWAL_SUBMITTED
+  WITHDRAWAL_CANCELLED
+  WITHDRAWAL_APPROVED
+  WITHDRAWAL_REJECTED
+  BALANCE_ADJUSTED
 }
 
 enum NotificationType {
@@ -117,6 +128,12 @@ enum NotificationType {
   CAMPAIGN_ACTIVATED
   CAMPAIGN_PAUSED
   CAMPAIGN_COMPLETED
+  // FR24–FR31
+  NEW_CONVERSION
+  EARNINGS_UPDATED
+  WITHDRAWAL_SUBMITTED
+  WITHDRAWAL_CANCELLED
+  WITHDRAWAL_STATUS_CHANGED
   GENERAL
 }
 
@@ -167,6 +184,30 @@ enum ApprovalStatus {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// FR24–FR31 ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum TrackingEventType {
+  CLICK
+  CONVERSION
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  PROCESSED
+}
+
+enum EarningStatus {
+  PENDING    // conversion recorded, not yet settled
+  AVAILABLE  // settled and available for withdrawal
+  WITHDRAWN  // paid out
+  CANCELLED  // reversed (e.g. fraudulent conversion)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // USER — Extended with profile relations
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -213,6 +254,12 @@ model User {
   trackingLinks        TrackingLink[]
   referralCodes        ReferralCode[]
   manualConversions    ManualConversion[]
+
+  // Tracking & Earnings relations (FR24–FR31)
+  trackingEvents       TrackingEvent[]
+  earnings             Earning[]
+  influencerBalance    InfluencerBalance?
+  withdrawalRequests   WithdrawalRequest[]
 
   @@index([email])
   @@index([role])
@@ -480,6 +527,8 @@ model Community {
   commissionHistory CommunityCommissionHistory[]
   campaigns         Campaign[]
   manualConversions ManualConversion[]
+  trackingEvents    TrackingEvent[]
+  earnings          Earning[]
 
   @@index([status])
   @@index([communityLeaderId])
@@ -599,6 +648,9 @@ model Campaign {
   trackingLinks        TrackingLink[]
   referralCodes        ReferralCode[]
   manualConversions    ManualConversion[]
+  trackingEvents       TrackingEvent[]
+  earnings             Earning[]
+  commissionCalculations CommissionCalculation[]
 
   @@index([ownerId])
   @@index([status])
@@ -712,4 +764,175 @@ model ManualConversion {
   @@index([createdBy])
   @@index([convertedAt])
   @@map("manual_conversions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRACKING EVENT — FR24/FR25 Click & Conversion via link or referral code
+// One row per click; conversionTimestamp populated when conversion confirmed.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TrackingEvent {
+  id                  String            @id @default(uuid()) @db.Uuid
+  campaignId          String            @map("campaign_id") @db.Uuid
+  communityId         String            @map("community_id") @db.Uuid
+  influencerId        String            @map("influencer_id") @db.Uuid
+  trackingLinkId      String?           @map("tracking_link_id") @db.Uuid   // set for UNIQUE_LINK
+  referralCodeId      String?           @map("referral_code_id") @db.Uuid   // set for REFERRAL_CODE
+  eventType           TrackingEventType
+  ipAddress           String?           @map("ip_address") @db.VarChar(45)
+  userAgent           String?           @map("user_agent") @db.VarChar(500)
+  deviceInfo          String?           @map("device_info") @db.VarChar(255)
+  clickedAt           DateTime          @map("clicked_at")
+  convertedAt         DateTime?         @map("converted_at")               // null until conversion
+  isConverted         Boolean           @default(false) @map("is_converted")
+  isDuplicate         Boolean           @default(false) @map("is_duplicate") // duplicate click/conversion flag
+  metadata            Json?
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+  deletedAt           DateTime?         @map("deleted_at")
+
+  // Relations
+  campaign            Campaign          @relation(fields: [campaignId], references: [id])
+  community           Community         @relation(fields: [communityId], references: [id])
+  influencer          User              @relation(fields: [influencerId], references: [id])
+  earning             Earning?          // one-to-one: set when conversion triggers earning
+
+  @@index([campaignId])
+  @@index([communityId])
+  @@index([influencerId])
+  @@index([eventType])
+  @@index([isConverted])
+  @@index([clickedAt])
+  @@map("tracking_events")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EARNING — FR26/FR27 Per-conversion earning record for an influencer
+// Immutable once AVAILABLE. One record per conversion per influencer.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Earning {
+  id                    String        @id @default(uuid()) @db.Uuid
+  influencerId          String        @map("influencer_id") @db.Uuid
+  campaignId            String        @map("campaign_id") @db.Uuid
+  communityId           String        @map("community_id") @db.Uuid
+  trackingEventId       String?       @unique @map("tracking_event_id") @db.Uuid  // link tracking or manual
+  manualConversionId    String?       @unique @map("manual_conversion_id") @db.Uuid
+  grossAmount           Float         @map("gross_amount")           // payoutPerConversion raw value
+  platformFeeAmount     Float         @map("platform_fee_amount")    // absolute deducted
+  netAmount             Float         @map("net_amount")             // after platform fee
+  leaderCommission      Float         @map("leader_commission")      // leader share
+  memberCommission      Float         @map("member_commission")      // member share (this influencer)
+  influencerAmount      Float         @map("influencer_amount")      // actual credited to this influencer
+  status                EarningStatus @default(PENDING)
+  settledAt             DateTime?     @map("settled_at")
+  platformFeeRate       Float         @map("platform_fee_rate")      // snapshot at time of calculation
+  leaderPercentageRate  Float         @map("leader_percentage_rate") // snapshot
+  memberPercentageRate  Float         @map("member_percentage_rate") // snapshot
+  isLeaderCommission    Boolean       @default(false) @map("is_leader_commission") // true if this is the leader's override commission
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+  deletedAt             DateTime?     @map("deleted_at")
+
+  // Relations
+  influencer            User          @relation(fields: [influencerId], references: [id])
+  campaign              Campaign      @relation(fields: [campaignId], references: [id])
+  community             Community     @relation(fields: [communityId], references: [id])
+  trackingEvent         TrackingEvent? @relation(fields: [trackingEventId], references: [id])
+  commissionCalc        CommissionCalculation?
+
+  @@index([influencerId])
+  @@index([campaignId])
+  @@index([communityId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("earnings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMISSION CALCULATION — FR27 Immutable audit record of each calculation.
+// Never updated after creation — historical integrity guarantee.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CommissionCalculation {
+  id                  String    @id @default(uuid()) @db.Uuid
+  earningId           String    @unique @map("earning_id") @db.Uuid
+  campaignId          String    @map("campaign_id") @db.Uuid
+  communityId         String    @map("community_id") @db.Uuid
+  influencerId        String    @map("influencer_id") @db.Uuid
+  grossAmount         Float     @map("gross_amount")
+  platformFeeRate     Float     @map("platform_fee_rate")
+  platformFeeAmount   Float     @map("platform_fee_amount")
+  netAmount           Float     @map("net_amount")
+  leaderRate          Float     @map("leader_rate")
+  leaderAmount        Float     @map("leader_amount")
+  memberRate          Float     @map("member_rate")
+  memberAmount        Float     @map("member_amount")
+  influencerAmount    Float     @map("influencer_amount")
+  calculatedAt        DateTime  @default(now()) @map("calculated_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  deletedAt           DateTime? @map("deleted_at")
+
+  // Relations
+  earning             Earning   @relation(fields: [earningId], references: [id])
+  campaign            Campaign  @relation(fields: [campaignId], references: [id])
+
+  @@index([campaignId])
+  @@index([communityId])
+  @@index([influencerId])
+  @@index([calculatedAt])
+  @@map("commission_calculations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INFLUENCER BALANCE — FR26 Running balance per influencer (single row, upserted)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model InfluencerBalance {
+  id                String    @id @default(uuid()) @db.Uuid
+  influencerId      String    @unique @map("influencer_id") @db.Uuid
+  totalEarnings     Float     @default(0) @map("total_earnings")     // cumulative gross credited
+  pendingBalance    Float     @default(0) @map("pending_balance")    // awaiting settlement
+  availableBalance  Float     @default(0) @map("available_balance")  // ready to withdraw
+  withdrawnAmount   Float     @default(0) @map("withdrawn_amount")   // total paid out
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  // Relations
+  influencer        User      @relation(fields: [influencerId], references: [id])
+
+  @@index([influencerId])
+  @@map("influencer_balances")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WITHDRAWAL REQUEST — FR30 Influencer withdrawal request
+// Bank details stored as encrypted JSON (AES-256 in application layer).
+// ─────────────────────────────────────────────────────────────────────────────
+
+model WithdrawalRequest {
+  id                String           @id @default(uuid()) @db.Uuid
+  influencerId      String           @map("influencer_id") @db.Uuid
+  amount            Float                                              // requested amount
+  status            WithdrawalStatus @default(PENDING)
+  bankDetailsEnc    String           @map("bank_details_enc") @db.Text // AES-256 encrypted JSON
+  transactionRef    String?          @map("transaction_ref") @db.VarChar(100)
+  reviewedBy        String?          @map("reviewed_by") @db.Uuid
+  reviewedAt        DateTime?        @map("reviewed_at")
+  reviewNote        String?          @map("review_note") @db.VarChar(500)
+  requestedAt       DateTime         @default(now()) @map("requested_at")
+  processedAt       DateTime?        @map("processed_at")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  deletedAt         DateTime?        @map("deleted_at")
+
+  // Relations
+  influencer        User             @relation(fields: [influencerId], references: [id])
+
+  @@index([influencerId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("withdrawal_requests")
 }

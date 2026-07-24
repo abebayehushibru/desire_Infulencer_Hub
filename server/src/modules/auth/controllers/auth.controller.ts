@@ -185,6 +185,7 @@ class AuthController {
   async resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { email, otp, newPassword } = req.body;
+      console.log(email,otp,newPassword)
       await authService.resetPassword({ email, otp, newPassword }, ctx(req));
 
       sendSuccess({

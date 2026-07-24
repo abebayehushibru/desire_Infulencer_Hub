@@ -499,6 +499,13 @@ class CampaignService {
       createdBy:    ownerId,
     });
 
+    const { trackingService } = await import('../../tracking/services/tracking.service');
+    await trackingService.processManualConversion(
+      conversion,
+      { id: campaign.id, title: campaign.title, communityId: campaign.communityId },
+      ctx,
+    );
+
     repo.createAuditLog({
       userId: ownerId, action: 'CONVERSION_ADDED',
       ipAddress: ctx.ip, userAgent: ctx.userAgent,

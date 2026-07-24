@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Server Entry Point — Bootstraps the application
-// ─────────────────────────────────────────────────────────────────────────────
-
 import app from './app';
 import { env } from './config/env';
 import prisma from './config/prisma';

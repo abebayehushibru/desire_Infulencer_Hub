@@ -83,6 +83,9 @@ export const env = {
   // Logging
   LOG_LEVEL: getEnv('LOG_LEVEL', 'info'),
   LOG_DIR: getEnv('LOG_DIR', 'logs'),
+
+  // Encryption (bank details for withdrawals — FR30)
+  APP_ENCRYPTION_KEY: getEnv('APP_ENCRYPTION_KEY', 'influencehub_bank_enc_key_32byte'),
 } as const;
 
 export type Env = typeof env;
