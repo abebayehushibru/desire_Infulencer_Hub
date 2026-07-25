@@ -54,16 +54,16 @@ const buildTrackingUrl = (code: string): string =>
 class CampaignService {
 
   // ─────────────────────────────────────────────────────────────────────────
-  // FR16 — Campaign Creation (verified BUSINESS_OWNER only)
+  // FR16 — Campaign Creation (verified BUSINESS only)
   // ─────────────────────────────────────────────────────────────────────────
 
   async createCampaign(dto: CreateCampaignDto, ownerId: string, ctx: { ip: string; userAgent: string }) {
     // Verify business owner has an APPROVED business profile
     const owner = await repo.findUserById(ownerId);
     if (!owner) throw ApiError.notFound('User not found');
-    if (owner.role !== 'BUSINESS_OWNER') throw ApiError.forbidden('Only Business Owners can create campaigns');
+    if (owner.role !== 'BUSINESS') throw ApiError.forbidden('Only Business users can create campaigns');
     if (!owner.businessProfile || owner.businessProfile.verificationStatus !== 'APPROVED') {
-      throw ApiError.forbidden('Only verified Business Owners can create campaigns. Please complete business verification first.');
+      throw ApiError.forbidden('Only verified Business users can create campaigns. Please complete business verification first.');
     }
 
     const startDate = new Date(dto.startDate);
@@ -127,7 +127,7 @@ class CampaignService {
     const sortOrder = query.sortOrder ?? 'desc';
 
     // Non-admins only see their own campaigns
-    const ownerId = requesterRole === 'SYSTEM_ADMIN' ? undefined : requesterId;
+    const ownerId = requesterRole === 'SUPER_ADMIN' ? undefined : requesterId;
 
     const { campaigns, total } = await repo.listCampaigns({
       ownerId,
@@ -258,7 +258,7 @@ class CampaignService {
       community:   communityId ? { connect: { id: communityId } } : undefined,
     });
 
-    // Notify admin (SYSTEM_ADMIN gets no targeted userId — use platform-wide audit)
+    // Notify admin (SUPER_ADMIN gets no targeted userId — use platform-wide audit)
     repo.createAuditLog({
       userId: requesterId, action: 'CAMPAIGN_SUBMITTED',
       ipAddress: ctx.ip, userAgent: ctx.userAgent,
@@ -293,7 +293,7 @@ class CampaignService {
     await repo.createApproval({
       campaignId:   id,
       reviewerId:   adminId,
-      reviewerRole: 'SYSTEM_ADMIN',
+      reviewerRole: 'SUPER_ADMIN',
       status:       dto.action === 'approve' ? 'APPROVED' : 'REJECTED',
       reason:       dto.reason?.trim(),
     });
@@ -363,7 +363,7 @@ class CampaignService {
     await repo.createApproval({
       campaignId:   id,
       reviewerId:   leaderId,
-      reviewerRole: 'DIAMOND_INFLUENCER',
+      reviewerRole: 'INFLUENCER',
       status:       dto.action === 'accept' ? 'APPROVED' : 'REJECTED',
       reason:       dto.reason?.trim(),
     });
@@ -620,12 +620,12 @@ class CampaignService {
   }
 
   private assertOwnerOrAdmin(campaign: any, userId: string, role: string): void {
-    if (role === 'SYSTEM_ADMIN') return;
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN') return;
     if (campaign.ownerId !== userId) throw ApiError.forbidden('Access denied');
   }
 
   private assertCanViewCampaign(campaign: any, userId: string, role: string): void {
-    if (role === 'SYSTEM_ADMIN') return;
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN') return;
     if (campaign.ownerId === userId) return;
     // Community leader of assigned community can view
     if (campaign.community?.communityLeaderId === userId) return;

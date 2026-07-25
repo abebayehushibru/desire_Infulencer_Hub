@@ -20,6 +20,8 @@ import {
   createWithdrawalValidator,
   withdrawalIdParamValidator,
   withdrawalHistoryValidator,
+  approveWithdrawalValidator,
+  rejectWithdrawalValidator,
 } from '../validators/tracking.validator';
 
 // ── Separate routers for different base paths ─────────────────────────────────
@@ -60,7 +62,10 @@ trackingRouter.post('/referral', trackReferralValidator, validate, ctrl.trackRef
 earningsRouter.use(authenticate);
 
 const influencerOnly = (req: Request, res: Response, next: NextFunction) =>
-  authorize('DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER')(req as any, res, next);
+  authorize('INFLUENCER')(req as any, res, next);
+
+const adminOnly = (req: Request, res: Response, next: NextFunction) =>
+  authorize('SUPER_ADMIN', 'ADMIN')(req as any, res, next);
 
 /**
  * @route GET /api/v1/earnings/dashboard
@@ -103,20 +108,20 @@ earningsRouter.get(
 
 analyticsRouter.use(authenticate);
 
-const adminOrBizOwner = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN', 'BUSINESS_OWNER')(req as any, res, next);
+const adminOrBiz = (req: Request, res: Response, next: NextFunction) =>
+  authorize('SUPER_ADMIN', 'ADMIN', 'BUSINESS')(req as any, res, next);
 
 const adminOrLeader = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN', 'DIAMOND_INFLUENCER')(req as any, res, next);
+  authorize('SUPER_ADMIN', 'ADMIN', 'INFLUENCER')(req as any, res, next);
 
 /**
  * @route GET /api/v1/analytics/business
- * @desc  FR28 — Business Owner campaign analytics
- * @access SYSTEM_ADMIN, BUSINESS_OWNER
+ * @desc  FR28 — Business campaign analytics
+ * @access SUPER_ADMIN, ADMIN, BUSINESS
  */
 analyticsRouter.get(
   '/business',
-  adminOrBizOwner,
+  adminOrBiz,
   businessAnalyticsValidator, validate,
   ctrl.getBusinessAnalytics.bind(ctrl),
 );
@@ -124,7 +129,7 @@ analyticsRouter.get(
 /**
  * @route GET /api/v1/analytics/community/:communityId
  * @desc  FR29 — Community member performance list
- * @access SYSTEM_ADMIN, DIAMOND_INFLUENCER (community leader)
+ * @access SUPER_ADMIN, ADMIN, DIAMOND tier (community leader)
  */
 analyticsRouter.get(
   '/community/:communityId',
@@ -136,7 +141,7 @@ analyticsRouter.get(
 /**
  * @route GET /api/v1/analytics/member/:communityId/:memberId
  * @desc  FR29 — Individual member stats
- * @access SYSTEM_ADMIN, DIAMOND_INFLUENCER (community leader)
+ * @access SUPER_ADMIN, ADMIN, DIAMOND tier (community leader)
  */
 analyticsRouter.get(
   '/member/:communityId/:memberId',
@@ -150,6 +155,42 @@ analyticsRouter.get(
 // ─────────────────────────────────────────────────────────────────────────────
 
 withdrawalRouter.use(authenticate);
+
+/**
+ * @route GET /api/v1/withdrawals/admin/all
+ * @desc  FR31 — Admin list all withdrawal requests across system
+ * @access SUPER_ADMIN, ADMIN
+ */
+withdrawalRouter.get(
+  '/admin/all',
+  adminOnly,
+  withdrawalHistoryValidator, validate,
+  ctrl.getAllWithdrawals.bind(ctrl),
+);
+
+/**
+ * @route PATCH /api/v1/withdrawals/admin/:id/approve
+ * @desc  FR30 — Admin approve withdrawal request
+ * @access SUPER_ADMIN, ADMIN
+ */
+withdrawalRouter.patch(
+  '/admin/:id/approve',
+  adminOnly,
+  approveWithdrawalValidator, validate,
+  ctrl.approveWithdrawal.bind(ctrl),
+);
+
+/**
+ * @route PATCH /api/v1/withdrawals/admin/:id/reject
+ * @desc  FR30 — Admin reject withdrawal request and restore balance
+ * @access SUPER_ADMIN, ADMIN
+ */
+withdrawalRouter.patch(
+  '/admin/:id/reject',
+  adminOnly,
+  rejectWithdrawalValidator, validate,
+  ctrl.rejectWithdrawal.bind(ctrl),
+);
 
 /**
  * @route POST /api/v1/withdrawals

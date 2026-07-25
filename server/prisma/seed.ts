@@ -11,39 +11,34 @@ const prisma = new PrismaClient();
 // ── Seed users ────────────────────────────────────────────────────────────────
 const SEED_USERS = [
   {
-    firstName: 'System',
+    firstName: 'Super',
     lastName:  'Admin',
+    email:     'superadmin@influencehub.com',
+    password:  'SuperAdmin@InfluenceHub2024',
+    role:      'SUPER_ADMIN' as const,
+  },
+  {
+    firstName: 'Admin',
+    lastName:  'User',
     email:     'admin@influencehub.com',
     password:  'Admin@InfluenceHub2024',
-    role:      'SYSTEM_ADMIN' as const,
+    role:      'ADMIN' as const,
   },
   {
-    firstName: 'Silver',
-    lastName:  'Influencer',
+    firstName: 'Influencer',
+    lastName:  'Hub',
     email:     'silver@influencehub.com',
     password:  'Silver@Pass2024',
-    role:      'SILVER_INFLUENCER' as const,
+    role:      'INFLUENCER' as const,
+    tier:      'SILVER' as const,
   },
-  {
-    firstName: 'Gold',
-    lastName:  'Influencer',
-    email:     'gold@influencehub.com',
-    password:  'Gold@Pass2024',
-    role:      'GOLD_INFLUENCER' as const,
-  },
-  {
-    firstName: 'Diamond',
-    lastName:  'Influencer',
-    email:     'diamond@influencehub.com',
-    password:  'Diamond@Pass2024',
-    role:      'DIAMOND_INFLUENCER' as const,
-  },
+
   {
     firstName: 'Business',
-    lastName:  'Owner',
+    lastName:  'User',
     email:     'business@influencehub.com',
     password:  'Business@Pass2024',
-    role:      'BUSINESS_OWNER' as const,
+    role:      'BUSINESS' as const,
   },
   {
     firstName: 'Agent',
@@ -74,6 +69,17 @@ async function upsertUser(data: typeof SEED_USERS[number]): Promise<void> {
     });
     console.log(`✅  Created  [${data.role.padEnd(20)}]  ${user.email}`);
     console.log(`            ID: ${user.id}`);
+
+    // Create influencer profile for INFLUENCER role users with tier
+    if (data.role === 'INFLUENCER' && data.tier) {
+      await prisma.influencerProfile.create({
+        data: {
+          userId: user.id,
+          currentTier: data.tier,
+        },
+      });
+      console.log(`            Tier: ${data.tier}`);
+    }
   } else {
     await prisma.user.update({
       where: { id: existing.id },
@@ -88,6 +94,28 @@ async function upsertUser(data: typeof SEED_USERS[number]): Promise<void> {
     });
     console.log(`🔄  Updated  [${data.role.padEnd(20)}]  ${data.email}`);
     console.log(`            ID: ${existing.id}`);
+
+    // Update or create influencer profile for INFLUENCER role users
+    if (data.role === 'INFLUENCER' && data.tier) {
+      const existingProfile = await prisma.influencerProfile.findFirst({
+        where: { userId: existing.id },
+      });
+      if (existingProfile) {
+        await prisma.influencerProfile.update({
+          where: { id: existingProfile.id },
+          data: { currentTier: data.tier },
+        });
+        console.log(`            Tier updated: ${data.tier}`);
+      } else {
+        await prisma.influencerProfile.create({
+          data: {
+            userId: existing.id,
+            currentTier: data.tier,
+          },
+        });
+        console.log(`            Tier created: ${data.tier}`);
+      }
+    }
   }
 }
 

@@ -28,27 +28,26 @@ router.use(authenticate);
 
 // ── Role helpers ─────────────────────────────────────────────────────────────
 const adminOnly = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN')(req as any, res, next);
+  authorize('SUPER_ADMIN')(req as any, res, next);
 
 const adminOrLeaderOrMember = (req: Request, res: Response, next: NextFunction) =>
   authorize(
-    'SYSTEM_ADMIN',
-    'DIAMOND_INFLUENCER',
-    'GOLD_INFLUENCER',
-    'SILVER_INFLUENCER',
+    'SUPER_ADMIN',
+    'ADMIN',
+    'INFLUENCER',
   )(req as any, res, next);
 
 const adminOrLeader = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN', 'DIAMOND_INFLUENCER')(req as any, res, next);
+  authorize('SUPER_ADMIN', 'ADMIN', 'INFLUENCER')(req as any, res, next);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FR11 — Community CRUD (SYSTEM_ADMIN only for write operations)
+// FR11 — Community CRUD (SUPER_ADMIN only for write operations)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @route   POST /api/v1/communities
  * @desc    FR11 — Create a new community
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.post(
   '/',
@@ -60,7 +59,7 @@ router.post(
 /**
  * @route   GET /api/v1/communities
  * @desc    FR11 — List communities with filters, pagination, sorting
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.get(
   '/',
@@ -72,7 +71,7 @@ router.get(
 /**
  * @route   GET /api/v1/communities/rankings
  * @desc    FR15 — Cross-community platform-wide rankings
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  * NOTE: This route must be declared BEFORE /:id to avoid param collision.
  */
 router.get(
@@ -85,7 +84,7 @@ router.get(
 /**
  * @route   GET /api/v1/communities/:id
  * @desc    FR11 — Get community details
- * @access  SYSTEM_ADMIN, DIAMOND_INFLUENCER (leader), GOLD/SILVER (members)
+ * @access  SUPER_ADMIN, ADMIN, INFLUENCER (leader or member)
  */
 router.get(
   '/:id',
@@ -97,7 +96,7 @@ router.get(
 /**
  * @route   PATCH /api/v1/communities/:id
  * @desc    FR11 — Update community (title, description, rules, leader, status)
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.patch(
   '/:id',
@@ -109,7 +108,7 @@ router.patch(
 /**
  * @route   POST /api/v1/communities/:id/deactivate
  * @desc    FR11 — Deactivate a community
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.post(
   '/:id/deactivate',
@@ -121,7 +120,7 @@ router.post(
 /**
  * @route   DELETE /api/v1/communities/:id
  * @desc    FR11 — Soft-delete a community
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.delete(
   '/:id',
@@ -137,7 +136,7 @@ router.delete(
 /**
  * @route   PATCH /api/v1/communities/:id/commission
  * @desc    FR12 — Set/update commission rules. Creates history record.
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.patch(
   '/:id/commission',
@@ -149,7 +148,7 @@ router.patch(
 /**
  * @route   GET /api/v1/communities/:id/commission
  * @desc    FR12 — Get current commission rules
- * @access  SYSTEM_ADMIN, Community Leader
+ * @access  SUPER_ADMIN, ADMIN, Community Leader (DIAMOND tier)
  */
 router.get(
   '/:id/commission',
@@ -161,7 +160,7 @@ router.get(
 /**
  * @route   GET /api/v1/communities/:id/commission/history
  * @desc    FR12 — Get commission change history for auditing
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.get(
   '/:id/commission/history',
@@ -176,8 +175,8 @@ router.get(
 
 /**
  * @route   POST /api/v1/communities/:id/members
- * @desc    FR13 — Add a GOLD or SILVER influencer as a member
- * @access  SYSTEM_ADMIN, Community Leader (DIAMOND_INFLUENCER)
+ * @desc    FR13 — Add an INFLUENCER user as a member
+ * @access  SUPER_ADMIN, ADMIN, Community Leader (DIAMOND tier)
  */
 router.post(
   '/:id/members',
@@ -189,7 +188,7 @@ router.post(
 /**
  * @route   GET /api/v1/communities/:id/members
  * @desc    FR13 — List community members
- * @access  SYSTEM_ADMIN, Community Leader, Community Members
+ * @access  SUPER_ADMIN, ADMIN, Community Leader, Community Members
  */
 router.get(
   '/:id/members',
@@ -201,7 +200,7 @@ router.get(
 /**
  * @route   DELETE /api/v1/communities/:id/members/:memberId
  * @desc    FR13 — Remove a member (soft-remove, sets status REMOVED)
- * @access  SYSTEM_ADMIN, Community Leader
+ * @access  SUPER_ADMIN, ADMIN, Community Leader
  */
 router.delete(
   '/:id/members/:memberId',
@@ -217,7 +216,7 @@ router.delete(
 /**
  * @route   GET /api/v1/communities/:id/leaderboard
  * @desc    FR14 — Ranked member leaderboard
- * @access  SYSTEM_ADMIN, Community Leader, Community Members
+ * @access  SUPER_ADMIN, ADMIN, Community Leader, Community Members
  */
 router.get(
   '/:id/leaderboard',

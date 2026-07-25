@@ -65,7 +65,7 @@ export const authorizeOwnerOrAdmin = (getResourceUserId: (req: AuthenticatedRequ
     }
 
     const resourceUserId = getResourceUserId(req);
-    const isAdmin = userRole === 'SYSTEM_ADMIN';
+    const isAdmin = userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
     const isOwner = userId === resourceUserId;
 
     if (!isAdmin && !isOwner) {

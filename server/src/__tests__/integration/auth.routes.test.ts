@@ -89,7 +89,7 @@ const makeUser = (overrides = {}) => ({
   lastName: 'Doe',
   email: 'john@example.com',
   passwordHash: '$2b$04$testhashedpassword',
-  role: 'SILVER_INFLUENCER',
+  role: 'INFLUENCER',
   status: 'ACTIVE',
   emailVerified: true,
   lastLogin: null,

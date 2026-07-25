@@ -17,12 +17,11 @@ datasource db {
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum Role {
-  SYSTEM_ADMIN
-  BUSINESS_OWNER
+  SUPER_ADMIN
+  ADMIN
+  BUSINESS
   AGENT
-  DIAMOND_INFLUENCER
-  GOLD_INFLUENCER
-  SILVER_INFLUENCER
+  INFLUENCER
 }
 
 enum UserStatus {
@@ -217,9 +216,11 @@ model User {
   lastName             String    @map("last_name") @db.VarChar(100)
   email                String    @unique @db.VarChar(255)
   passwordHash         String    @map("password_hash") @db.VarChar(255)
-  role                 Role      @default(SILVER_INFLUENCER)
+  role                 Role      @default(INFLUENCER)
   status               UserStatus @default(PENDING_VERIFICATION)
   emailVerified        Boolean   @default(false) @map("email_verified")
+  phone1               String?   @map("phone_1") @db.VarChar(30)
+  phone2               String?   @map("phone_2") @db.VarChar(30)
   lastLogin            DateTime? @map("last_login")
   failedLoginAttempts  Int       @default(0) @map("failed_login_attempts")
   lockedUntil          DateTime? @map("locked_until")
@@ -285,6 +286,13 @@ model BusinessProfile {
   city                 String?            @db.VarChar(100)
   country              String?            @db.VarChar(100)
   description          String?            @db.Text
+  // Social media & extended business fields
+  facebook             String?            @db.VarChar(500)
+  instagram            String?            @db.VarChar(500)
+  telegram             String?            @db.VarChar(500)
+  tiktok               String?            @db.VarChar(500)
+  logoStoragePath      String?            @map("logo_storage_path") @db.VarChar(1000)
+  subscriptionType     String             @default("free") @map("subscription_type") @db.VarChar(50)
   verificationStatus   VerificationStatus @default(PENDING) @map("verification_status")
   verifiedAt           DateTime?          @map("verified_at")
   verifiedBy           String?            @map("verified_by") @db.Uuid  // Admin user ID
@@ -515,7 +523,7 @@ model Community {
   rules             String?         @db.Text
   status            CommunityStatus @default(ACTIVE)
   communityLeaderId String?         @map("community_leader_id") @db.Uuid
-  createdBy         String          @map("created_by") @db.Uuid         // SYSTEM_ADMIN id
+  createdBy         String          @map("created_by") @db.Uuid         // SUPER_ADMIN or ADMIN id
   createdAt         DateTime        @default(now()) @map("created_at")
   updatedAt         DateTime        @updatedAt @map("updated_at")
   deletedAt         DateTime?       @map("deleted_at")
@@ -547,7 +555,7 @@ model CommunityMember {
   status      CommunityMemberStatus @default(ACTIVE)
   joinedAt    DateTime            @default(now()) @map("joined_at")
   leftAt      DateTime?           @map("left_at")
-  addedBy     String              @map("added_by") @db.Uuid             // SYSTEM_ADMIN or Community Leader
+  addedBy     String              @map("added_by") @db.Uuid             // SUPER_ADMIN, ADMIN, or Community Leader
   removedBy   String?             @map("removed_by") @db.Uuid
   createdAt   DateTime            @default(now()) @map("created_at")
   updatedAt   DateTime            @updatedAt @map("updated_at")
@@ -575,7 +583,7 @@ model CommunityCommission {
   leaderPercentage   Float     @map("leader_percentage")     // of remaining after platform fee
   memberPercentage   Float     @map("member_percentage")     // leaderPercentage + memberPercentage = 100
   effectiveFrom      DateTime  @default(now()) @map("effective_from")
-  updatedBy          String    @map("updated_by") @db.Uuid   // SYSTEM_ADMIN
+  updatedBy          String    @map("updated_by") @db.Uuid   // SUPER_ADMIN or ADMIN
   createdAt          DateTime  @default(now()) @map("created_at")
   updatedAt          DateTime  @updatedAt @map("updated_at")
   deletedAt          DateTime? @map("deleted_at")
@@ -620,7 +628,7 @@ model CommunityCommissionHistory {
 
 model Campaign {
   id                   String         @id @default(uuid()) @db.Uuid
-  ownerId              String         @map("owner_id") @db.Uuid            // BUSINESS_OWNER user id
+  ownerId              String         @map("owner_id") @db.Uuid            // BUSINESS user id
   title                String         @db.VarChar(255)
   description          String?        @db.Text
   type                 CampaignType
@@ -668,7 +676,7 @@ model CampaignApproval {
   id           String         @id @default(uuid()) @db.Uuid
   campaignId   String         @map("campaign_id") @db.Uuid
   reviewerId   String         @map("reviewer_id") @db.Uuid               // admin or community leader
-  reviewerRole String         @map("reviewer_role") @db.VarChar(50)      // 'SYSTEM_ADMIN' | 'DIAMOND_INFLUENCER'
+  reviewerRole String         @map("reviewer_role") @db.VarChar(50)      // 'SUPER_ADMIN' | 'ADMIN' | 'INFLUENCER' (DIAMOND tier)
   status       ApprovalStatus
   reason       String?        @db.Text                                   // mandatory on rejection
   createdAt    DateTime       @default(now()) @map("created_at")
@@ -748,7 +756,7 @@ model ManualConversion {
   amount         Float                                                    // payout amount for this conversion
   note           String?   @db.VarChar(500)
   convertedAt    DateTime  @map("converted_at")
-  createdBy      String    @map("created_by") @db.Uuid                   // BUSINESS_OWNER id
+  createdBy      String    @map("created_by") @db.Uuid                   // BUSINESS user id
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")

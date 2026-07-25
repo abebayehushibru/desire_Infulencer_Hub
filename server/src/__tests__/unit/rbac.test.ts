@@ -22,71 +22,68 @@ const mockRes = {} as Response;
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('hasPermission() utility', () => {
-  it('SYSTEM_ADMIN has all permissions', () => {
+  it('SUPER_ADMIN has all permissions', () => {
     (Object.keys(PERMISSIONS) as (keyof typeof PERMISSIONS)[]).forEach((p) => {
-      expect(hasPermission('SYSTEM_ADMIN', p)).toBe(true);
+      expect(hasPermission('SUPER_ADMIN', p)).toBe(true);
     });
   });
 
-  it('SILVER_INFLUENCER can only VIEW_CAMPAIGN, VIEW_INFLUENCER, VIEW_EARNINGS', () => {
-    expect(hasPermission('SILVER_INFLUENCER', 'VIEW_CAMPAIGN')).toBe(true);
-    expect(hasPermission('SILVER_INFLUENCER', 'VIEW_INFLUENCER')).toBe(true);
-    expect(hasPermission('SILVER_INFLUENCER', 'VIEW_EARNINGS')).toBe(true);
-    expect(hasPermission('SILVER_INFLUENCER', 'CREATE_CAMPAIGN')).toBe(false);
-    expect(hasPermission('SILVER_INFLUENCER', 'MANAGE_SYSTEM')).toBe(false);
-    expect(hasPermission('SILVER_INFLUENCER', 'DELETE_USER')).toBe(false);
+  it('INFLUENCER can VIEW_CAMPAIGN, VIEW_INFLUENCER, VIEW_EARNINGS', () => {
+    expect(hasPermission('INFLUENCER', 'VIEW_CAMPAIGN')).toBe(true);
+    expect(hasPermission('INFLUENCER', 'VIEW_INFLUENCER')).toBe(true);
+    expect(hasPermission('INFLUENCER', 'VIEW_EARNINGS')).toBe(true);
+    expect(hasPermission('INFLUENCER', 'CREATE_CAMPAIGN')).toBe(false);
+    expect(hasPermission('INFLUENCER', 'MANAGE_SYSTEM')).toBe(false);
+    expect(hasPermission('INFLUENCER', 'DELETE_USER')).toBe(false);
   });
 
-  it('BUSINESS_OWNER can create campaigns and manage communities', () => {
-    expect(hasPermission('BUSINESS_OWNER', 'CREATE_CAMPAIGN')).toBe(true);
-    expect(hasPermission('BUSINESS_OWNER', 'CREATE_COMMUNITY')).toBe(true);
-    expect(hasPermission('BUSINESS_OWNER', 'MANAGE_SYSTEM')).toBe(false);
+  it('BUSINESS can create campaigns and manage communities', () => {
+    expect(hasPermission('BUSINESS', 'CREATE_CAMPAIGN')).toBe(true);
+    expect(hasPermission('BUSINESS', 'VIEW_ANALYTICS')).toBe(true);
+    expect(hasPermission('BUSINESS', 'MANAGE_SYSTEM')).toBe(false);
   });
 
-  it('DIAMOND_INFLUENCER can view analytics', () => {
-    expect(hasPermission('DIAMOND_INFLUENCER', 'VIEW_ANALYTICS')).toBe(true);
-    expect(hasPermission('GOLD_INFLUENCER', 'VIEW_ANALYTICS')).toBe(false);
+  it('INFLUENCER can view analytics', () => {
+    expect(hasPermission('INFLUENCER', 'VIEW_ANALYTICS')).toBe(true);
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('hasMinRole() utility', () => {
-  it('SYSTEM_ADMIN passes all minimum role checks', () => {
+  it('SUPER_ADMIN passes all minimum role checks', () => {
     const roles: Role[] = [
-      'SILVER_INFLUENCER',
-      'GOLD_INFLUENCER',
-      'DIAMOND_INFLUENCER',
+      'INFLUENCER',
+      'BUSINESS',
       'AGENT',
-      'BUSINESS_OWNER',
-      'SYSTEM_ADMIN',
+      'ADMIN',
+      'SUPER_ADMIN',
     ];
-    roles.forEach((r) => expect(hasMinRole('SYSTEM_ADMIN', r)).toBe(true));
+    roles.forEach((r) => expect(hasMinRole('SUPER_ADMIN', r)).toBe(true));
   });
 
-  it('SILVER_INFLUENCER only passes itself', () => {
-    expect(hasMinRole('SILVER_INFLUENCER', 'SILVER_INFLUENCER')).toBe(true);
-    expect(hasMinRole('SILVER_INFLUENCER', 'GOLD_INFLUENCER')).toBe(false);
-    expect(hasMinRole('SILVER_INFLUENCER', 'SYSTEM_ADMIN')).toBe(false);
+  it('INFLUENCER only passes itself', () => {
+    expect(hasMinRole('INFLUENCER', 'INFLUENCER')).toBe(true);
+    expect(hasMinRole('INFLUENCER', 'SUPER_ADMIN')).toBe(false);
   });
 
-  it('GOLD_INFLUENCER passes SILVER and GOLD but not higher', () => {
-    expect(hasMinRole('GOLD_INFLUENCER', 'SILVER_INFLUENCER')).toBe(true);
-    expect(hasMinRole('GOLD_INFLUENCER', 'GOLD_INFLUENCER')).toBe(true);
-    expect(hasMinRole('GOLD_INFLUENCER', 'DIAMOND_INFLUENCER')).toBe(false);
+  it('ADMIN passes lower roles but not SUPER_ADMIN', () => {
+    expect(hasMinRole('ADMIN', 'INFLUENCER')).toBe(true);
+    expect(hasMinRole('ADMIN', 'ADMIN')).toBe(true);
+    expect(hasMinRole('ADMIN', 'SUPER_ADMIN')).toBe(false);
   });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('permission() middleware', () => {
   it('should call next() when role has permission', () => {
-    const req = makeAuthReq('SYSTEM_ADMIN');
+    const req = makeAuthReq('SUPER_ADMIN');
     const next = jest.fn() as unknown as NextFunction;
     permission('MANAGE_SYSTEM')(req, mockRes, next);
     expect(next).toHaveBeenCalledWith();
   });
 
   it('should call next(ApiError 403) when role lacks permission', () => {
-    const req = makeAuthReq('SILVER_INFLUENCER');
+    const req = makeAuthReq('INFLUENCER');
     const next = jest.fn() as unknown as NextFunction;
     permission('MANAGE_SYSTEM')(req, mockRes, next);
     expect(next).toHaveBeenCalledWith(expect.any(ApiError));
@@ -100,8 +97,8 @@ describe('permission() middleware', () => {
     expect((next as jest.Mock).mock.calls[0][0].statusCode).toBe(401);
   });
 
-  it('BUSINESS_OWNER can create campaign', () => {
-    const req = makeAuthReq('BUSINESS_OWNER');
+  it('BUSINESS can create campaign', () => {
+    const req = makeAuthReq('BUSINESS');
     const next = jest.fn() as unknown as NextFunction;
     permission('CREATE_CAMPAIGN')(req, mockRes, next);
     expect(next).toHaveBeenCalledWith();
@@ -110,15 +107,15 @@ describe('permission() middleware', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('authorizeMinRole() middleware', () => {
-  it('should pass SYSTEM_ADMIN for any min role', () => {
-    const req = makeAuthReq('SYSTEM_ADMIN');
+  it('should pass SUPER_ADMIN for any min role', () => {
+    const req = makeAuthReq('SUPER_ADMIN');
     const next = jest.fn() as unknown as NextFunction;
     authorizeMinRole('AGENT')(req, mockRes, next);
     expect(next).toHaveBeenCalledWith();
   });
 
-  it('should deny SILVER_INFLUENCER for AGENT min role', () => {
-    const req = makeAuthReq('SILVER_INFLUENCER');
+  it('should deny INFLUENCER for AGENT min role', () => {
+    const req = makeAuthReq('INFLUENCER');
     const next = jest.fn() as unknown as NextFunction;
     authorizeMinRole('AGENT')(req, mockRes, next);
     expect((next as jest.Mock).mock.calls[0][0].statusCode).toBe(403);

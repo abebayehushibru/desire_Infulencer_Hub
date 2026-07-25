@@ -95,10 +95,10 @@ import app from '../../app';
 import { signAccessToken } from '../../common/utils/jwt.util';
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
-const adminToken   = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00', email: 'admin@x.com',   role: 'SYSTEM_ADMIN' });
-const diamondToken = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'diamond@x.com', role: 'DIAMOND_INFLUENCER' });
-const goldToken    = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', email: 'gold@x.com',    role: 'GOLD_INFLUENCER' });
-const bizToken     = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', email: 'biz@x.com',     role: 'BUSINESS_OWNER' });
+const adminToken   = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00', email: 'admin@x.com',   role: 'SUPER_ADMIN' });
+const diamondToken = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', email: 'diamond@x.com', role: 'INFLUENCER' });
+const goldToken    = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', email: 'gold@x.com',    role: 'INFLUENCER' });
+const bizToken     = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', email: 'biz@x.com',     role: 'BUSINESS' });
 
 // ── Reusable fixture IDs ──────────────────────────────────────────────────────
 const COMM_UUID     = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20';
@@ -110,12 +110,13 @@ const mockCommunity = () => ({
   id: COMM_UUID, title: 'Fashion Hub', status: 'ACTIVE',
   communityLeaderId: LEADER_UUID, createdBy: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a00',
   createdAt: new Date(), updatedAt: new Date(), deletedAt: null,
-  leader: { id: LEADER_UUID, firstName: 'Diamond', lastName: 'User', email: 'diamond@x.com', role: 'DIAMOND_INFLUENCER' },
+  leader: { id: LEADER_UUID, firstName: 'Diamond', lastName: 'User', email: 'diamond@x.com', role: 'INFLUENCER' },
   commission: null,
   _count: { members: 2 },
 });
 
-const repo = () => require('../../modules/community/repositories/community.repository').communityRepository;
+const repo     = () => require('../../modules/community/repositories/community.repository').communityRepository;
+const userRepo = () => require('../../modules/users/repositories/user-management.repository').userManagementRepository;
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -381,7 +382,8 @@ describe('FR13: Members', () => {
 
   it('POST /communities/:id/members — 201 adds member', async () => {
     repo().findCommunityById.mockResolvedValue(mockCommunity());
-    repo().findUserById.mockResolvedValue({ id: MEMBER_UUID, role: 'GOLD_INFLUENCER', status: 'ACTIVE' });
+    repo().findUserById.mockResolvedValue({ id: MEMBER_UUID, role: 'INFLUENCER', status: 'ACTIVE' });
+    userRepo().findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD', isCommunityLeader: false });
     repo().findActiveMembership.mockResolvedValue(null);
     repo().addMember.mockResolvedValue({ id: MEMBER_ROW_ID, userId: MEMBER_UUID, status: 'ACTIVE', joinedAt: new Date() });
 
@@ -558,8 +560,9 @@ describe('Bug fix: PENDING_VERIFICATION user blocked from membership', () => {
   it('POST /communities/:id/members — 400 for PENDING_VERIFICATION user', async () => {
     repo().findCommunityById.mockResolvedValue(mockCommunity());
     repo().findUserById.mockResolvedValue({
-      id: MEMBER_UUID, role: 'GOLD_INFLUENCER', status: 'PENDING_VERIFICATION',
+      id: MEMBER_UUID, role: 'INFLUENCER', status: 'PENDING_VERIFICATION',
     });
+    userRepo().findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD', isCommunityLeader: false });
 
     const res = await request(app)
       .post(`/api/v1/communities/${COMM_UUID}/members`)

@@ -27,35 +27,35 @@ router.use(authenticate);
 
 // ── Role helpers ─────────────────────────────────────────────────────────────
 const adminOnly       = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN')(req as any, res, next);
+  authorize('SUPER_ADMIN')(req as any, res, next);
 
-const bizOwnerOnly    = (req: Request, res: Response, next: NextFunction) =>
-  authorize('BUSINESS_OWNER')(req as any, res, next);
+const bizOnly         = (req: Request, res: Response, next: NextFunction) =>
+  authorize('BUSINESS')(req as any, res, next);
 
-const adminOrBizOwner = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN', 'BUSINESS_OWNER')(req as any, res, next);
+const adminOrBiz      = (req: Request, res: Response, next: NextFunction) =>
+  authorize('SUPER_ADMIN', 'ADMIN', 'BUSINESS')(req as any, res, next);
 
 const adminOrLeader   = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN', 'DIAMOND_INFLUENCER')(req as any, res, next);
+  authorize('SUPER_ADMIN', 'ADMIN')(req as any, res, next);
 
 const adminOrBizOrLeader = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN', 'BUSINESS_OWNER', 'DIAMOND_INFLUENCER')(req as any, res, next);
+  authorize('SUPER_ADMIN', 'ADMIN', 'BUSINESS', 'INFLUENCER')(req as any, res, next);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FR16 — Campaign CRUD
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** POST /api/v1/campaigns — FR16: Create campaign (verified BUSINESS_OWNER) */
+/** POST /api/v1/campaigns — FR16: Create campaign (verified BUSINESS) */
 router.post(
-  '/',
-  bizOwnerOnly,
+  '/business',
+  bizOnly,
   createCampaignValidator, validate,
   ctrl.createCampaign.bind(ctrl),
 );
 
 /** GET /api/v1/campaigns — List campaigns (admin sees all, owner sees own) */
 router.get(
-  '/',
+  '/business',
   adminOrBizOrLeader,
   listCampaignsValidator, validate,
   ctrl.listCampaigns.bind(ctrl),
@@ -72,7 +72,7 @@ router.get(
 /** PATCH /api/v1/campaigns/:id — Update DRAFT campaign */
 router.patch(
   '/:id',
-  adminOrBizOwner,
+  adminOrBiz,
   updateCampaignValidator, validate,
   ctrl.updateCampaign.bind(ctrl),
 );
@@ -80,7 +80,7 @@ router.patch(
 /** DELETE /api/v1/campaigns/:id — Soft-delete DRAFT campaign */
 router.delete(
   '/:id',
-  adminOrBizOwner,
+  adminOrBiz,
   campaignIdParamValidator, validate,
   ctrl.deleteCampaign.bind(ctrl),
 );
@@ -92,7 +92,7 @@ router.delete(
 /** POST /api/v1/campaigns/:id/submit — FR18: Assign community + submit */
 router.post(
   '/:id/submit',
-  bizOwnerOnly,
+  bizOnly,
   submitCampaignValidator, validate,
   ctrl.submitCampaign.bind(ctrl),
 );
@@ -116,7 +116,7 @@ router.post(
 /** POST /api/v1/campaigns/:id/leader-review — FR20: Leader accept/reject */
 router.post(
   '/:id/leader-review',
-  authorize('DIAMOND_INFLUENCER') as any,
+  authorize('INFLUENCER') as any,
   leaderReviewValidator, validate,
   ctrl.leaderReview.bind(ctrl),
 );
@@ -128,7 +128,7 @@ router.post(
 /** POST /api/v1/campaigns/:id/pause — FR22: Pause ACTIVE campaign */
 router.post(
   '/:id/pause',
-  adminOrBizOwner,
+  adminOrBiz,
   campaignIdParamValidator, validate,
   ctrl.pauseCampaign.bind(ctrl),
 );
@@ -136,7 +136,7 @@ router.post(
 /** POST /api/v1/campaigns/:id/complete — FR22: Complete ACTIVE/PAUSED campaign */
 router.post(
   '/:id/complete',
-  adminOrBizOwner,
+  adminOrBiz,
   campaignIdParamValidator, validate,
   ctrl.completeCampaign.bind(ctrl),
 );
@@ -160,7 +160,7 @@ router.get(
 /** POST /api/v1/campaigns/:id/conversions — FR23: Add manual conversion */
 router.post(
   '/:id/conversions',
-  bizOwnerOnly,
+  bizOnly,
   createConversionValidator, validate,
   ctrl.addConversion.bind(ctrl),
 );
@@ -176,7 +176,7 @@ router.get(
 /** PATCH /api/v1/campaigns/:id/conversions/:conversionId — FR23: Update conversion */
 router.patch(
   '/:id/conversions/:conversionId',
-  bizOwnerOnly,
+  bizOnly,
   updateConversionValidator, validate,
   ctrl.updateConversion.bind(ctrl),
 );
@@ -184,7 +184,7 @@ router.patch(
 /** DELETE /api/v1/campaigns/:id/conversions/:conversionId — FR23: Delete conversion */
 router.delete(
   '/:id/conversions/:conversionId',
-  bizOwnerOnly,
+  bizOnly,
   conversionParamValidator, validate,
   ctrl.deleteConversion.bind(ctrl),
 );

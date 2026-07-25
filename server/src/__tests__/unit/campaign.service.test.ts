@@ -40,6 +40,22 @@ jest.mock('../../modules/campaign/repositories/campaign.repository', () => ({
   },
 }));
 
+jest.mock('../../modules/tracking/repositories/tracking.repository', () => ({
+  trackingRepository: {
+    findEarningByManualConversionId: jest.fn().mockResolvedValue(null),
+    findCommunityWithCommission: jest.fn().mockResolvedValue({
+      id: 'comm-1',
+      communityLeaderId: null,
+      commission: { platformFee: 10, leaderPercentage: 20, memberPercentage: 80 },
+    }),
+    recordManualConversionTransaction: jest.fn().mockResolvedValue([
+      { id: 'earn-1', influencerId: 'inf-1', influencerAmount: 40, isLeaderCommission: false },
+    ]),
+    createNotification: jest.fn().mockResolvedValue({}),
+    createAuditLog: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 import { campaignService } from '../../modules/campaign/services/campaign.service';
 import { campaignRepository as mockRepo } from '../../modules/campaign/repositories/campaign.repository';
 import { ApiError } from '../../common/errors/ApiError';
@@ -57,7 +73,7 @@ const INFLU_ID    = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16';
 const CONV_ID     = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17';
 
 const makeOwner = (overrides: Record<string, any> = {}) => ({
-  id: BIZ_ID, role: 'BUSINESS_OWNER', status: 'ACTIVE',
+  id: BIZ_ID, role: 'BUSINESS', status: 'ACTIVE',
   businessProfile: { id: 'bp-1', verificationStatus: 'APPROVED' },
   ...overrides,
 });
@@ -69,7 +85,7 @@ const makeCampaign = (overrides: Record<string, any> = {}) => ({
   status: 'DRAFT', payoutPerConversion: 10, trackingMethod: 'UNIQUE_LINK',
   communityId: COMM_ID, adminRejectionReason: null, leaderRejectionReason: null,
   createdAt: new Date(), updatedAt: new Date(), deletedAt: null,
-  owner: { id: BIZ_ID, firstName: 'Jane', lastName: 'Biz', email: 'biz@x.com', role: 'BUSINESS_OWNER' },
+  owner: { id: BIZ_ID, firstName: 'Jane', lastName: 'Biz', email: 'biz@x.com', role: 'BUSINESS' },
   community: { id: COMM_ID, title: 'Fashion Hub', status: 'ACTIVE', communityLeaderId: LEADER_ID },
   approvals: [],
   ...overrides,
@@ -165,19 +181,19 @@ describe('FR16: deleteCampaign()', () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign() as any);
     repo.softDeleteCampaign.mockResolvedValue({} as any);
 
-    await campaignService.deleteCampaign(CAMP_ID, BIZ_ID, 'BUSINESS_OWNER', ctx);
+    await campaignService.deleteCampaign(CAMP_ID, BIZ_ID, 'BUSINESS', ctx);
     expect(repo.softDeleteCampaign).toHaveBeenCalledWith(CAMP_ID);
   });
 
   it('throws 400 if campaign is not in DRAFT', async () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign({ status: 'ACTIVE' }) as any);
-    await expect(campaignService.deleteCampaign(CAMP_ID, BIZ_ID, 'BUSINESS_OWNER', ctx))
+    await expect(campaignService.deleteCampaign(CAMP_ID, BIZ_ID, 'BUSINESS', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
   it('throws 403 if requester is not the owner', async () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign() as any);
-    await expect(campaignService.deleteCampaign(CAMP_ID, 'other-user', 'BUSINESS_OWNER', ctx))
+    await expect(campaignService.deleteCampaign(CAMP_ID, 'other-user', 'BUSINESS', ctx))
       .rejects.toMatchObject({ statusCode: 403 });
   });
 });
@@ -327,14 +343,14 @@ describe('FR22: State Machine', () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign({ status: 'ACTIVE' }) as any);
     repo.setCampaignStatus.mockResolvedValue(makeCampaign({ status: 'PAUSED' }) as any);
 
-    await campaignService.pauseCampaign(CAMP_ID, BIZ_ID, 'BUSINESS_OWNER', ctx);
+    await campaignService.pauseCampaign(CAMP_ID, BIZ_ID, 'BUSINESS', ctx);
     expect(repo.setCampaignStatus).toHaveBeenCalledWith(CAMP_ID, 'PAUSED');
     expect(repo.createAuditLog).toHaveBeenCalledWith(expect.objectContaining({ action: 'CAMPAIGN_PAUSED' }));
   });
 
   it('throws 400 when pausing a DRAFT (invalid transition)', async () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign({ status: 'DRAFT' }) as any);
-    await expect(campaignService.pauseCampaign(CAMP_ID, BIZ_ID, 'BUSINESS_OWNER', ctx))
+    await expect(campaignService.pauseCampaign(CAMP_ID, BIZ_ID, 'BUSINESS', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
@@ -342,7 +358,7 @@ describe('FR22: State Machine', () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign({ status: 'ACTIVE' }) as any);
     repo.setCampaignStatus.mockResolvedValue(makeCampaign({ status: 'COMPLETED' }) as any);
 
-    await campaignService.completeCampaign(CAMP_ID, BIZ_ID, 'BUSINESS_OWNER', ctx);
+    await campaignService.completeCampaign(CAMP_ID, BIZ_ID, 'BUSINESS', ctx);
     expect(repo.setCampaignStatus).toHaveBeenCalledWith(CAMP_ID, 'COMPLETED');
     expect(repo.createAuditLog).toHaveBeenCalledWith(expect.objectContaining({ action: 'CAMPAIGN_COMPLETED' }));
   });
@@ -351,13 +367,13 @@ describe('FR22: State Machine', () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign({ status: 'PAUSED' }) as any);
     repo.setCampaignStatus.mockResolvedValue(makeCampaign({ status: 'COMPLETED' }) as any);
 
-    await campaignService.completeCampaign(CAMP_ID, BIZ_ID, 'BUSINESS_OWNER', ctx);
+    await campaignService.completeCampaign(CAMP_ID, BIZ_ID, 'BUSINESS', ctx);
     expect(repo.setCampaignStatus).toHaveBeenCalledWith(CAMP_ID, 'COMPLETED');
   });
 
   it('throws 400 when completing a DRAFT', async () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign({ status: 'DRAFT' }) as any);
-    await expect(campaignService.completeCampaign(CAMP_ID, BIZ_ID, 'BUSINESS_OWNER', ctx))
+    await expect(campaignService.completeCampaign(CAMP_ID, BIZ_ID, 'BUSINESS', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
@@ -365,7 +381,7 @@ describe('FR22: State Machine', () => {
     repo.findCampaignById.mockResolvedValue(makeCampaign({ status: 'ACTIVE' }) as any);
     repo.setCampaignStatus.mockResolvedValue(makeCampaign({ status: 'PAUSED' }) as any);
 
-    await campaignService.pauseCampaign(CAMP_ID, ADMIN_ID, 'SYSTEM_ADMIN', ctx);
+    await campaignService.pauseCampaign(CAMP_ID, ADMIN_ID, 'SUPER_ADMIN', ctx);
     expect(repo.setCampaignStatus).toHaveBeenCalled();
   });
 });

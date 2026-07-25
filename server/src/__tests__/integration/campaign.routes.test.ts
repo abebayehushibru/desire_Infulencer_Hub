@@ -83,6 +83,21 @@ jest.mock('../../modules/campaign/repositories/campaign.repository', () => ({
     createAuditLog: jest.fn(), createNotification: jest.fn().mockResolvedValue(undefined),
   },
 }));
+jest.mock('../../modules/tracking/repositories/tracking.repository', () => ({
+  trackingRepository: {
+    findEarningByManualConversionId: jest.fn().mockResolvedValue(null),
+    findCommunityWithCommission: jest.fn().mockResolvedValue({
+      id: 'comm-1',
+      communityLeaderId: null,
+      commission: { platformFee: 10, leaderPercentage: 20, memberPercentage: 80 },
+    }),
+    recordManualConversionTransaction: jest.fn().mockResolvedValue([
+      { id: 'earn-1', influencerId: 'inf-1', influencerAmount: 40, isLeaderCommission: false },
+    ]),
+    createNotification: jest.fn().mockResolvedValue({}),
+    createAuditLog: jest.fn().mockResolvedValue(undefined),
+  },
+}));
 jest.mock('../../common/email/email.service', () => ({
   emailService: {
     sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
@@ -96,10 +111,10 @@ import app from '../../app';
 import { signAccessToken } from '../../common/utils/jwt.util';
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
-const adminToken   = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b00', email: 'admin@x.com',   role: 'SYSTEM_ADMIN' });
-const bizToken     = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b01', email: 'biz@x.com',     role: 'BUSINESS_OWNER' });
-const diamondToken = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b02', email: 'diamond@x.com', role: 'DIAMOND_INFLUENCER' });
-const goldToken    = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b03', email: 'gold@x.com',    role: 'GOLD_INFLUENCER' });
+const adminToken   = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b00', email: 'admin@x.com',   role: 'SUPER_ADMIN' });
+const bizToken     = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b01', email: 'biz@x.com',     role: 'BUSINESS' });
+const diamondToken = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b02', email: 'diamond@x.com', role: 'INFLUENCER' });
+const goldToken    = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b03', email: 'gold@x.com',    role: 'INFLUENCER' });
 const agentToken   = () => signAccessToken({ sub: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b04', email: 'agent@x.com',   role: 'AGENT' });
 
 const BIZ_UUID    = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380b01';
@@ -115,7 +130,7 @@ const mockCampaign = (overrides: Record<string, any> = {}) => ({
   payoutPerConversion: 10, trackingMethod: 'UNIQUE_LINK', communityId: COMM_UUID,
   startDate: new Date('2026-08-01'), endDate: new Date('2026-09-01'),
   createdAt: new Date(), updatedAt: new Date(), deletedAt: null,
-  owner: { id: BIZ_UUID, firstName: 'Jane', role: 'BUSINESS_OWNER' },
+  owner: { id: BIZ_UUID, firstName: 'Jane', role: 'BUSINESS' },
   community: { id: COMM_UUID, title: 'Fashion Hub', status: 'ACTIVE', communityLeaderId: LEADER_UUID },
   approvals: [],
   ...overrides,
@@ -201,7 +216,7 @@ describe('FR16: RBAC guards', () => {
 describe('FR16: Campaign CRUD — happy path', () => {
   it('POST /campaigns — 201 creates a SALES campaign', async () => {
     repo().findUserById.mockResolvedValue({
-      id: BIZ_UUID, role: 'BUSINESS_OWNER', status: 'ACTIVE',
+      id: BIZ_UUID, role: 'BUSINESS', status: 'ACTIVE',
       businessProfile: { verificationStatus: 'APPROVED' },
     });
     repo().createCampaign.mockResolvedValue(mockCampaign());

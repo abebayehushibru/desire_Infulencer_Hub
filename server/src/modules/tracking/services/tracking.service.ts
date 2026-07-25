@@ -237,11 +237,11 @@ class TrackingService {
   }
 
   private async assertCommunityAccess(communityId: string, requesterId: string, requesterRole: string): Promise<void> {
-    if (requesterRole === 'SYSTEM_ADMIN') return;
+    if (requesterRole === 'SUPER_ADMIN' || requesterRole === 'ADMIN') return;
     const community = await repo.findCommunityWithCommission(communityId);
     if (!community) throw ApiError.notFound('Community not found');
     if (community.communityLeaderId !== requesterId) {
-      throw ApiError.forbidden('Only SYSTEM_ADMIN or community leader can access this resource');
+      throw ApiError.forbidden('Only SUPER_ADMIN, ADMIN, or community leader can access this resource');
     }
   }
 
@@ -378,7 +378,8 @@ class TrackingService {
   // ─────────────────────────────────────────────────────────────────────────
 
   async trackReferral(dto: UseReferralCodeDto, ctx: { ip: string; userAgent: string }) {
-    const refCode = await repo.findReferralCodeByCode(dto.code);
+    const code = dto.code.trim().toUpperCase();
+    const refCode = await repo.findReferralCodeByCode(code);
     if (!refCode) throw ApiError.notFound('Invalid referral code');
 
     const campaign = refCode.campaign as any;
@@ -549,13 +550,17 @@ class TrackingService {
       campaignBreakdown,
     };
 
-    if (role === 'DIAMOND_INFLUENCER') {
-      const [overrideAgg, communityEarnings] = await Promise.all([
-        repo.sumLeaderOverrideEarnings(influencerId),
-        repo.getCommunityEarningsForLeader(influencerId),
-      ]);
-      dashboard.overrideCommission = overrideAgg;
-      dashboard.communityEarnings  = communityEarnings;
+    if (role === 'INFLUENCER') {
+      // Check if influencer has DIAMOND tier for additional data
+      const influencerProfile = await repo.findInfluencerProfileByUserId(influencerId);
+      if (influencerProfile?.currentTier === 'DIAMOND') {
+        const [overrideAgg, communityEarnings] = await Promise.all([
+          repo.sumLeaderOverrideEarnings(influencerId),
+          repo.getCommunityEarningsForLeader(influencerId),
+        ]);
+        dashboard.overrideCommission = overrideAgg;
+        dashboard.communityEarnings  = communityEarnings;
+      }
     }
 
     return dashboard;
@@ -781,6 +786,100 @@ class TrackingService {
       processedAt:    withdrawal.processedAt,
       reviewNote:     withdrawal.reviewNote,
     };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADMIN WITHDRAWAL MANAGEMENT
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async getAllWithdrawals(query: WithdrawalHistoryQueryDto & { influencerId?: string }): Promise<PaginatedResult<any>> {
+    const page  = Math.max(1, query.page  ?? 1);
+    const limit = Math.min(100, Math.max(1, query.limit ?? 20));
+
+    const { withdrawals, total } = await repo.listAllWithdrawals({
+      status:       query.status,
+      influencerId: query.influencerId,
+      page,
+      limit,
+    });
+
+    const safeWithdrawals = withdrawals.map(w => {
+      let bankDetails: object | undefined;
+      try {
+        bankDetails = decryptBankDetails(w.bankDetailsEnc);
+      } catch { /* omit on decrypt error */ }
+
+      return {
+        id:             w.id,
+        influencerId:   w.influencerId,
+        influencer:     (w as any).influencer,
+        amount:         w.amount,
+        status:         w.status,
+        bankDetails,
+        transactionRef: w.transactionRef,
+        requestedAt:    w.requestedAt,
+        processedAt:    w.processedAt,
+        reviewNote:     w.reviewNote,
+      };
+    });
+
+    return {
+      data: safeWithdrawals,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit), hasNext: page * limit < total, hasPrev: page > 1 },
+    };
+  }
+
+  async approveWithdrawal(withdrawalId: string, adminId: string, transactionRef?: string, reviewNote?: string) {
+    const withdrawal = await repo.findWithdrawalById(withdrawalId);
+    if (!withdrawal) throw ApiError.notFound('Withdrawal request not found');
+    if (withdrawal.status !== 'PENDING') {
+      throw ApiError.badRequest(`Cannot approve a withdrawal with status: ${withdrawal.status}`);
+    }
+
+    const updated = await repo.approveWithdrawalTransaction(
+      withdrawalId,
+      withdrawal.influencerId,
+      withdrawal.amount,
+      adminId,
+      transactionRef,
+      reviewNote,
+    );
+
+    await repo.createNotification({
+      userId:  withdrawal.influencerId,
+      type:    'WITHDRAWAL_STATUS_CHANGED',
+      title:   'Withdrawal Approved',
+      message: `Your withdrawal request of ${withdrawal.amount.toFixed(2)} has been approved and processed.`,
+      metadata: { withdrawalId, amount: withdrawal.amount, transactionRef },
+    });
+
+    return updated;
+  }
+
+  async rejectWithdrawal(withdrawalId: string, adminId: string, reviewNote: string) {
+    const withdrawal = await repo.findWithdrawalById(withdrawalId);
+    if (!withdrawal) throw ApiError.notFound('Withdrawal request not found');
+    if (withdrawal.status !== 'PENDING') {
+      throw ApiError.badRequest(`Cannot reject a withdrawal with status: ${withdrawal.status}`);
+    }
+
+    const updated = await repo.rejectWithdrawalTransaction(
+      withdrawalId,
+      withdrawal.influencerId,
+      withdrawal.amount,
+      adminId,
+      reviewNote,
+    );
+
+    await repo.createNotification({
+      userId:  withdrawal.influencerId,
+      type:    'WITHDRAWAL_STATUS_CHANGED',
+      title:   'Withdrawal Rejected',
+      message: `Your withdrawal request of ${withdrawal.amount.toFixed(2)} was rejected. Reason: ${reviewNote}. Your balance has been restored.`,
+      metadata: { withdrawalId, amount: withdrawal.amount, reviewNote },
+    });
+
+    return updated;
   }
 }
 

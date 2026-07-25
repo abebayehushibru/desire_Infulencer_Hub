@@ -98,3 +98,17 @@ export const withdrawalHistoryValidator = [
   query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be 1–100'),
 ];
+
+// ── Admin Withdrawal validators ───────────────────────────────────────────────
+export const approveWithdrawalValidator = [
+  uuidParam('id'),
+  body('transactionRef').optional().trim().isLength({ max: 100 }).withMessage('transactionRef must be under 100 characters'),
+  body('reviewNote').optional().trim().isLength({ max: 500 }).withMessage('reviewNote must be under 500 characters'),
+];
+
+export const rejectWithdrawalValidator = [
+  uuidParam('id'),
+  body('reviewNote').trim().notEmpty().withMessage('reviewNote is required when rejecting a withdrawal')
+    .isLength({ min: 3, max: 500 }).withMessage('reviewNote must be 3–500 characters'),
+];
+

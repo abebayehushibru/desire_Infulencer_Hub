@@ -5,6 +5,7 @@
 
 import { CommunityStatus, CommunityMemberStatus } from '@prisma/client';
 import { communityRepository as repo } from '../repositories/community.repository';
+import { userManagementRepository as userRepo } from '../../users/repositories/user-management.repository';
 import { ApiError } from '../../../common/errors/ApiError';
 import { PaginatedResult } from '../../../common/types';
 import logger from '../../../common/logger/logger';
@@ -17,8 +18,10 @@ import type {
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
-const MEMBER_ELIGIBLE_ROLES = ['GOLD_INFLUENCER', 'SILVER_INFLUENCER'];
-const LEADER_ELIGIBLE_ROLE   = 'DIAMOND_INFLUENCER';
+// Influencer tiers for community membership (all INFLUENCER role users can be members)
+// Tier-based eligibility is checked via InfluencerProfile.currentTier
+const MEMBER_ELIGIBLE_TIERS = ['GOLD', 'SILVER'];
+const LEADER_ELIGIBLE_TIER = 'DIAMOND';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -34,7 +37,7 @@ const sanitizeText = (value?: string): string | undefined =>
 class CommunityService {
 
   // ─────────────────────────────────────────────────────────────────────────
-  // FR11 — Community Creation (SYSTEM_ADMIN only)
+  // FR11 — Community Creation (SUPER_ADMIN only)
   // ─────────────────────────────────────────────────────────────────────────
 
   async createCommunity(dto: CreateCommunityDto, adminId: string, ctx: { ip: string; userAgent: string }) {
@@ -259,10 +262,10 @@ class CommunityService {
 
   async getCommission(communityId: string, requesterId?: string, requesterRole?: string) {
     const community = await this.findOrThrow(communityId);
-    // SYSTEM_ADMIN always allowed. DIAMOND must be the actual leader of THIS community.
-    if (requesterRole !== 'SYSTEM_ADMIN') {
+    // SUPER_ADMIN always allowed. DIAMOND tier influencers must be the actual leader of THIS community.
+    if (requesterRole !== 'SUPER_ADMIN') {
       if (community.communityLeaderId !== requesterId) {
-        throw ApiError.forbidden('Only the community leader or SYSTEM_ADMIN can view commission rules');
+        throw ApiError.forbidden('Only the community leader or SUPER_ADMIN can view commission rules');
       }
     }
     const commission = await repo.getCommission(communityId);
@@ -283,23 +286,34 @@ class CommunityService {
     const community = await this.findOrThrow(communityId);
     if (community.status === 'INACTIVE') throw ApiError.badRequest('Cannot add members to an inactive community');
 
-    // Requester must be SYSTEM_ADMIN or the community leader
+    // Requester must be SUPER_ADMIN or the community leader
     this.assertCanManageMembers(community, requesterId, requesterRole);
 
     // Validate the target user
     const targetUser = await repo.findUserById(dto.userId);
     if (!targetUser) throw ApiError.notFound('User not found');
 
-    // Only GOLD and SILVER influencers can be members
-    if (!MEMBER_ELIGIBLE_ROLES.includes(targetUser.role)) {
+    // Only INFLUENCER role users can be members
+    if (targetUser.role !== 'INFLUENCER') {
       throw ApiError.badRequest(
-        `Only GOLD_INFLUENCER and SILVER_INFLUENCER users can become community members. User role: ${targetUser.role}`
+        `Only INFLUENCER users can become community members. User role: ${targetUser.role}`
       );
     }
 
-    // DIAMOND influencers cannot be regular members
-    if (targetUser.role === LEADER_ELIGIBLE_ROLE) {
-      throw ApiError.badRequest('DIAMOND influencers cannot be added as regular members');
+    // Check tier eligibility - only GOLD and SILVER tiers can be regular members
+    const influencerProfile = await userRepo.findInfluencerProfileByUserId(dto.userId);
+    if (!influencerProfile) {
+      throw ApiError.badRequest('User must have an influencer profile to join a community');
+    }
+    if (!MEMBER_ELIGIBLE_TIERS.includes(influencerProfile.currentTier)) {
+      throw ApiError.badRequest(
+        `Only GOLD and SILVER tier influencers can become community members. User tier: ${influencerProfile.currentTier}`
+      );
+    }
+
+    // DIAMOND tier influencers cannot be regular members (they are leaders)
+    if (influencerProfile.currentTier === LEADER_ELIGIBLE_TIER) {
+      throw ApiError.badRequest('DIAMOND tier influencers cannot be added as regular members');
     }
 
     // Block suspended or inactive users
@@ -464,9 +478,16 @@ class CommunityService {
   private async assertValidLeader(leaderId: string): Promise<void> {
     const user = await repo.findUserById(leaderId);
     if (!user) throw ApiError.notFound('Proposed community leader user not found');
-    if (user.role !== LEADER_ELIGIBLE_ROLE) {
+    if (user.role !== 'INFLUENCER') {
       throw ApiError.badRequest(
-        `Only DIAMOND influencers can be community leaders. User role: ${user.role}`
+        `Only INFLUENCER users can be community leaders. User role: ${user.role}`
+      );
+    }
+    // Check if the influencer has DIAMOND tier
+    const influencerProfile = await userRepo.findInfluencerProfileByUserId(leaderId);
+    if (!influencerProfile || influencerProfile.currentTier !== LEADER_ELIGIBLE_TIER) {
+      throw ApiError.badRequest(
+        `Only DIAMOND tier influencers can be community leaders. User tier: ${influencerProfile?.currentTier || 'none'}`
       );
     }
     if (user.status === 'SUSPENDED' || user.status === 'INACTIVE') {
@@ -484,13 +505,13 @@ class CommunityService {
   }
 
   private assertCanManageMembers(community: any, requesterId: string, requesterRole: string): void {
-    if (requesterRole === 'SYSTEM_ADMIN') return;
+    if (requesterRole === 'SUPER_ADMIN') return;
     if (community.communityLeaderId === requesterId) return;
-    throw ApiError.forbidden('Only SYSTEM_ADMIN or the Community Leader can manage members');
+    throw ApiError.forbidden('Only SUPER_ADMIN or the Community Leader can manage members');
   }
 
   private async assertCanViewCommunity(community: any, requesterId: string, requesterRole: string): Promise<void> {
-    if (requesterRole === 'SYSTEM_ADMIN') return;
+    if (requesterRole === 'SUPER_ADMIN') return;
     if (community.communityLeaderId === requesterId) return;
     // Check if user is an active member
     const membership = await repo.findActiveMembership(community.id, requesterId);

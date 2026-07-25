@@ -158,6 +158,46 @@ class TrackingController {
       sendSuccess({ res, message: 'Withdrawal retrieved', data: withdrawal });
     } catch (e) { next(e); }
   }
+
+  // ── Admin — List all withdrawals ──────────────────────────────────────────
+  async getAllWithdrawals(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await svc.getAllWithdrawals({
+        status:       req.query.status as any,
+        influencerId: req.query.influencerId as string,
+        page:         Number(req.query.page)  || 1,
+        limit:        Number(req.query.limit) || 20,
+      });
+      sendSuccess({ res, message: 'All withdrawals retrieved', data: result.data, meta: result.meta });
+    } catch (e) { next(e); }
+  }
+
+  // ── Admin — Approve withdrawal ─────────────────────────────────────────────
+  async approveWithdrawal(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { sub } = auth(req);
+      const updated = await svc.approveWithdrawal(
+        req.params.id,
+        sub,
+        req.body.transactionRef,
+        req.body.reviewNote,
+      );
+      sendSuccess({ res, message: 'Withdrawal approved successfully', data: updated });
+    } catch (e) { next(e); }
+  }
+
+  // ── Admin — Reject withdrawal ─────────────────────────────────────────────
+  async rejectWithdrawal(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { sub } = auth(req);
+      const updated = await svc.rejectWithdrawal(
+        req.params.id,
+        sub,
+        req.body.reviewNote,
+      );
+      sendSuccess({ res, message: 'Withdrawal rejected', data: updated });
+    } catch (e) { next(e); }
+  }
 }
 
 export const trackingController = new TrackingController();

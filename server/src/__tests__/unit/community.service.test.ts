@@ -38,11 +38,34 @@ jest.mock('../../modules/community/repositories/community.repository', () => ({
   },
 }));
 
+jest.mock('../../modules/users/repositories/user-management.repository', () => ({
+  userManagementRepository: {
+    createUser: jest.fn(), findUserById: jest.fn(), findUserByEmail: jest.fn(),
+    findUserWithProfiles: jest.fn(), listUsers: jest.fn(), updateUser: jest.fn(),
+    deactivateUser: jest.fn(), reactivateUser: jest.fn(),
+    createBusinessProfile: jest.fn(), findBusinessProfileByUserId: jest.fn(),
+    findBusinessProfileById: jest.fn(), listBusinessProfiles: jest.fn(),
+    updateBusinessProfile: jest.fn(), createBusinessDocument: jest.fn(),
+    approveBusinessProfile: jest.fn(), rejectBusinessProfile: jest.fn(),
+    createInfluencerProfile: jest.fn(), findInfluencerProfileByUserId: jest.fn(),
+    updateInfluencerProfile: jest.fn(), assignTier: jest.fn(), getTierHistory: jest.fn(),
+    setCommunityLeader: jest.fn(), createAgentProfile: jest.fn(),
+    findAgentProfileByUserId: jest.fn(), updateAgentProfile: jest.fn(),
+    createNotification: jest.fn().mockResolvedValue({}),
+    getNotifications: jest.fn().mockResolvedValue([]),
+    markNotificationRead: jest.fn().mockResolvedValue(undefined),
+    markAllNotificationsRead: jest.fn().mockResolvedValue(undefined),
+    createAuditLog: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 import { communityService } from '../../modules/community/services/community.service';
 import { communityRepository as mockRepo } from '../../modules/community/repositories/community.repository';
+import { userManagementRepository as mockUserRepo } from '../../modules/users/repositories/user-management.repository';
 import { ApiError } from '../../common/errors/ApiError';
 
 const repo = mockRepo as jest.Mocked<typeof mockRepo>;
+const userRepo = mockUserRepo as jest.Mocked<typeof mockUserRepo>;
 const ctx  = { ip: '127.0.0.1', userAgent: 'jest' };
 
 // ── UUIDs used as test fixtures ───────────────────────────────────────────────
@@ -56,7 +79,7 @@ const makeCommunity = (overrides: Record<string, any> = {}) => ({
   id: COMM_ID, title: 'Fashion Hub', description: 'Desc', rules: 'Rules',
   status: 'ACTIVE', communityLeaderId: LEADER_ID, createdBy: ADMIN_ID,
   createdAt: new Date(), updatedAt: new Date(), deletedAt: null,
-  leader: { id: LEADER_ID, firstName: 'Diamond', lastName: 'User', email: 'diamond@x.com', role: 'DIAMOND_INFLUENCER' },
+  leader: { id: LEADER_ID, firstName: 'Diamond', lastName: 'User', email: 'diamond@x.com', role: 'INFLUENCER' },
   commission: null,
   _count: { members: 0 },
   ...overrides,
@@ -64,14 +87,14 @@ const makeCommunity = (overrides: Record<string, any> = {}) => ({
 
 const makeUser = (overrides: Record<string, any> = {}) => ({
   id: LEADER_ID, firstName: 'Diamond', lastName: 'User', email: 'diamond@x.com',
-  role: 'DIAMOND_INFLUENCER', status: 'ACTIVE',
+  role: 'INFLUENCER', status: 'ACTIVE',
   influencerProfile: { currentTier: 'DIAMOND', isCommunityLeader: true },
   ...overrides,
 });
 
 const makeMemberUser = (overrides: Record<string, any> = {}) => ({
   id: MEMBER_ID, firstName: 'Gold', lastName: 'User', email: 'gold@x.com',
-  role: 'GOLD_INFLUENCER', status: 'ACTIVE',
+  role: 'INFLUENCER', status: 'ACTIVE',
   influencerProfile: { currentTier: 'GOLD', isCommunityLeader: false },
   ...overrides,
 });
@@ -96,6 +119,7 @@ describe('FR11: createCommunity()', () => {
     repo.findCommunityByTitle.mockResolvedValue(null);
     repo.findUserById.mockResolvedValue(makeUser() as any);
     repo.findActiveCommunityByLeader.mockResolvedValue(null);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'DIAMOND', isCommunityLeader: true } as any);
     repo.createCommunity.mockResolvedValue({ id: COMM_ID } as any);
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
 
@@ -109,9 +133,10 @@ describe('FR11: createCommunity()', () => {
       .rejects.toMatchObject({ statusCode: 409 });
   });
 
-  it('throws 400 if proposed leader is not DIAMOND_INFLUENCER', async () => {
+  it('throws 400 if proposed leader is not DIAMOND tier', async () => {
     repo.findCommunityByTitle.mockResolvedValue(null);
-    repo.findUserById.mockResolvedValue(makeUser({ role: 'GOLD_INFLUENCER' }) as any);
+    repo.findUserById.mockResolvedValue(makeUser() as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD', isCommunityLeader: false } as any);
     await expect(communityService.createCommunity({ title: 'New', communityLeaderId: LEADER_ID }, ADMIN_ID, ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
@@ -119,6 +144,7 @@ describe('FR11: createCommunity()', () => {
   it('throws 409 if leader already leads another community', async () => {
     repo.findCommunityByTitle.mockResolvedValue(null);
     repo.findUserById.mockResolvedValue(makeUser() as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'DIAMOND', isCommunityLeader: true } as any);
     repo.findActiveCommunityByLeader.mockResolvedValue(makeCommunity({ id: 'other-id' }) as any);
     await expect(communityService.createCommunity({ title: 'New', communityLeaderId: LEADER_ID }, ADMIN_ID, ctx))
       .rejects.toMatchObject({ statusCode: 409 });
@@ -127,6 +153,7 @@ describe('FR11: createCommunity()', () => {
   it('throws 400 if proposed leader is suspended', async () => {
     repo.findCommunityByTitle.mockResolvedValue(null);
     repo.findUserById.mockResolvedValue(makeUser({ status: 'SUSPENDED' }) as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'DIAMOND', isCommunityLeader: true } as any);
     await expect(communityService.createCommunity({ title: 'New', communityLeaderId: LEADER_ID }, ADMIN_ID, ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
@@ -256,70 +283,75 @@ describe('FR13: addMember()', () => {
   it('adds a GOLD influencer as member', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.findUserById.mockResolvedValue(makeMemberUser() as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-2', currentTier: 'GOLD', isCommunityLeader: false } as any);
     repo.findActiveMembership.mockResolvedValue(null);
     repo.addMember.mockResolvedValue({ id: MEMBERSHIP_ID, userId: MEMBER_ID } as any);
 
-    const result = await communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SYSTEM_ADMIN', ctx);
+    const result = await communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SUPER_ADMIN', ctx);
 
     expect(repo.addMember).toHaveBeenCalledWith(expect.objectContaining({ communityId: COMM_ID, userId: MEMBER_ID }));
     expect(repo.createNotification).toHaveBeenCalledWith(expect.objectContaining({ type: 'COMMUNITY_MEMBER_ADDED', userId: MEMBER_ID }));
     expect(repo.createAuditLog).toHaveBeenCalledWith(expect.objectContaining({ action: 'COMMUNITY_MEMBER_ADDED' }));
   });
 
-  it('throws 400 if DIAMOND_INFLUENCER tries to become regular member', async () => {
+  it('throws 400 if DIAMOND influencer tries to become regular member', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
-    repo.findUserById.mockResolvedValue(makeUser({ role: 'DIAMOND_INFLUENCER' }) as any);
+    repo.findUserById.mockResolvedValue(makeUser() as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'DIAMOND', isCommunityLeader: true } as any);
 
-    await expect(communityService.addMember(COMM_ID, { userId: LEADER_ID }, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.addMember(COMM_ID, { userId: LEADER_ID }, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
-  it('throws 400 if user is BUSINESS_OWNER (ineligible role)', async () => {
+  it('throws 400 if user is BUSINESS role (ineligible)', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
-    repo.findUserById.mockResolvedValue({ id: MEMBER_ID, role: 'BUSINESS_OWNER', status: 'ACTIVE' } as any);
+    repo.findUserById.mockResolvedValue({ id: MEMBER_ID, role: 'BUSINESS', status: 'ACTIVE' } as any);
 
-    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
   it('throws 409 if user is already an active member', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.findUserById.mockResolvedValue(makeMemberUser() as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-2', currentTier: 'GOLD', isCommunityLeader: false } as any);
     repo.findActiveMembership.mockResolvedValue({ id: MEMBERSHIP_ID, status: 'ACTIVE' } as any);
 
-    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 409 });
   });
 
   it('throws 400 if adding to an inactive community', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity({ status: 'INACTIVE' }) as any);
 
-    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
   it('throws 400 if target user is suspended', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.findUserById.mockResolvedValue(makeMemberUser({ status: 'SUSPENDED' }) as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-2', currentTier: 'GOLD', isCommunityLeader: false } as any);
 
-    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
-  it('allows Community Leader (DIAMOND) to add members', async () => {
+  it('allows Community Leader (DIAMOND tier) to add members', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity({ communityLeaderId: LEADER_ID }) as any);
     repo.findUserById.mockResolvedValue(makeMemberUser() as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-2', currentTier: 'GOLD', isCommunityLeader: false } as any);
     repo.findActiveMembership.mockResolvedValue(null);
     repo.addMember.mockResolvedValue({ id: MEMBERSHIP_ID } as any);
 
-    await communityService.addMember(COMM_ID, { userId: MEMBER_ID }, LEADER_ID, 'DIAMOND_INFLUENCER', ctx);
+    await communityService.addMember(COMM_ID, { userId: MEMBER_ID }, LEADER_ID, 'INFLUENCER', ctx);
     expect(repo.addMember).toHaveBeenCalled();
   });
 
   it('throws 403 if non-admin non-leader tries to add member', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity({ communityLeaderId: LEADER_ID }) as any);
 
-    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, MEMBER_ID, 'GOLD_INFLUENCER', ctx))
+    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, MEMBER_ID, 'INFLUENCER', ctx))
       .rejects.toMatchObject({ statusCode: 403 });
   });
 });
@@ -330,7 +362,7 @@ describe('FR13: removeMember()', () => {
     repo.findMembershipById.mockResolvedValue({ id: MEMBERSHIP_ID, communityId: COMM_ID, userId: MEMBER_ID, status: 'ACTIVE' } as any);
     repo.removeMember.mockResolvedValue({ id: MEMBERSHIP_ID, status: 'REMOVED' } as any);
 
-    await communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SYSTEM_ADMIN', ctx);
+    await communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SUPER_ADMIN', ctx);
 
     expect(repo.removeMember).toHaveBeenCalledWith(MEMBERSHIP_ID, ADMIN_ID);
     expect(repo.createNotification).toHaveBeenCalledWith(expect.objectContaining({ type: 'COMMUNITY_MEMBER_REMOVED' }));
@@ -341,7 +373,7 @@ describe('FR13: removeMember()', () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.findMembershipById.mockResolvedValue({ id: MEMBERSHIP_ID, communityId: COMM_ID, userId: MEMBER_ID, status: 'REMOVED' } as any);
 
-    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 
@@ -349,7 +381,7 @@ describe('FR13: removeMember()', () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.findMembershipById.mockResolvedValue(null);
 
-    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 404 });
   });
 
@@ -357,7 +389,7 @@ describe('FR13: removeMember()', () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.findMembershipById.mockResolvedValue({ id: MEMBERSHIP_ID, communityId: 'other-community', userId: MEMBER_ID, status: 'ACTIVE' } as any);
 
-    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 404 });
   });
 });
@@ -366,14 +398,14 @@ describe('FR13: removeMember()', () => {
 // FR14 — Leaderboard
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR14: getLeaderboard()', () => {
-  it('returns paginated leaderboard for SYSTEM_ADMIN', async () => {
+  it('returns paginated leaderboard for SUPER_ADMIN', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.getLeaderboard.mockResolvedValue({
       entries: [{ rank: 1, userId: MEMBER_ID, totalConversions: 0, totalEarnings: 0 }],
       total: 1,
     });
 
-    const result = await communityService.getLeaderboard(COMM_ID, { page: 1, limit: 10 }, ADMIN_ID, 'SYSTEM_ADMIN');
+    const result = await communityService.getLeaderboard(COMM_ID, { page: 1, limit: 10 }, ADMIN_ID, 'SUPER_ADMIN');
     expect(result.data).toHaveLength(1);
     expect(result.meta.total).toBe(1);
   });
@@ -382,7 +414,7 @@ describe('FR14: getLeaderboard()', () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity({ communityLeaderId: LEADER_ID }) as any);
     repo.getLeaderboard.mockResolvedValue({ entries: [], total: 0 });
 
-    await communityService.getLeaderboard(COMM_ID, {}, LEADER_ID, 'DIAMOND_INFLUENCER');
+    await communityService.getLeaderboard(COMM_ID, {}, LEADER_ID, 'INFLUENCER');
     expect(repo.getLeaderboard).toHaveBeenCalled();
   });
 
@@ -391,7 +423,7 @@ describe('FR14: getLeaderboard()', () => {
     repo.findActiveMembership.mockResolvedValue({ id: MEMBERSHIP_ID, status: 'ACTIVE' } as any);
     repo.getLeaderboard.mockResolvedValue({ entries: [], total: 0 });
 
-    await communityService.getLeaderboard(COMM_ID, {}, MEMBER_ID, 'GOLD_INFLUENCER');
+    await communityService.getLeaderboard(COMM_ID, {}, MEMBER_ID, 'INFLUENCER');
     expect(repo.getLeaderboard).toHaveBeenCalled();
   });
 
@@ -399,7 +431,7 @@ describe('FR14: getLeaderboard()', () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity({ communityLeaderId: LEADER_ID }) as any);
     repo.findActiveMembership.mockResolvedValue(null);
 
-    await expect(communityService.getLeaderboard(COMM_ID, {}, MEMBER_ID, 'GOLD_INFLUENCER'))
+    await expect(communityService.getLeaderboard(COMM_ID, {}, MEMBER_ID, 'INFLUENCER'))
       .rejects.toMatchObject({ statusCode: 403 });
   });
 });
@@ -436,8 +468,9 @@ describe('FR13: PENDING_VERIFICATION user blocked from membership', () => {
   it('throws 400 if target user is PENDING_VERIFICATION', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.findUserById.mockResolvedValue(makeMemberUser({ status: 'PENDING_VERIFICATION' }) as any);
+    userRepo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-2', currentTier: 'GOLD', isCommunityLeader: false } as any);
 
-    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.addMember(COMM_ID, { userId: MEMBER_ID }, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 400 });
   });
 });
@@ -508,23 +541,23 @@ describe('FR12: getCommission() leader scope check', () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity({ communityLeaderId: LEADER_ID }) as any);
     repo.getCommission.mockResolvedValue({ platformFee: 20, leaderPercentage: 30, memberPercentage: 70 } as any);
 
-    const result = await communityService.getCommission(COMM_ID, LEADER_ID, 'DIAMOND_INFLUENCER');
+    const result = await communityService.getCommission(COMM_ID, LEADER_ID, 'INFLUENCER');
     expect(result).toBeDefined();
   });
 
-  it('throws 403 if a DIAMOND not assigned to this community tries to view commission', async () => {
+  it('throws 403 if an influencer not assigned to this community tries to view commission', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity({ communityLeaderId: 'another-diamond-id' }) as any);
 
     const outsideDiamondId = 'a0eebc99-9c0b-4ef8-bb6d-999999999999';
-    await expect(communityService.getCommission(COMM_ID, outsideDiamondId, 'DIAMOND_INFLUENCER'))
+    await expect(communityService.getCommission(COMM_ID, outsideDiamondId, 'INFLUENCER'))
       .rejects.toMatchObject({ statusCode: 403 });
   });
 
-  it('allows SYSTEM_ADMIN to always view commission', async () => {
+  it('allows SUPER_ADMIN to always view commission', async () => {
     repo.findCommunityById.mockResolvedValue(makeCommunity() as any);
     repo.getCommission.mockResolvedValue({ platformFee: 10, leaderPercentage: 40, memberPercentage: 60 } as any);
 
-    const result = await communityService.getCommission(COMM_ID, ADMIN_ID, 'SYSTEM_ADMIN');
+    const result = await communityService.getCommission(COMM_ID, ADMIN_ID, 'SUPER_ADMIN');
     expect(result).toBeDefined();
   });
 });
@@ -536,7 +569,7 @@ describe('FR13: removeMember() cross-community protection', () => {
       id: MEMBERSHIP_ID, communityId: 'a0eebc99-9c0b-4ef8-bb6d-000000000099', userId: MEMBER_ID, status: 'ACTIVE',
     } as any);
 
-    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SYSTEM_ADMIN', ctx))
+    await expect(communityService.removeMember(COMM_ID, MEMBERSHIP_ID, ADMIN_ID, 'SUPER_ADMIN', ctx))
       .rejects.toMatchObject({ statusCode: 404 });
   });
 });

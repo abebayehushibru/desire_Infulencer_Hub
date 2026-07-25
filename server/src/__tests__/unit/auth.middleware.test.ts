@@ -48,13 +48,13 @@ describe('authorize() Middleware', () => {
       user: {
         sub: 'user-1',
         email: 'test@example.com',
-        role: 'SYSTEM_ADMIN',
+        role: 'SUPER_ADMIN',
         jti: 'some-jti',
       },
-    } as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
     const res = mockResponse();
-    const middleware = authorize('SYSTEM_ADMIN');
+    const middleware = authorize('SUPER_ADMIN');
     middleware(req, res, mockNext);
 
     expect(mockNext).toHaveBeenCalledWith();
@@ -65,14 +65,14 @@ describe('authorize() Middleware', () => {
       user: {
         sub: 'user-1',
         email: 'test@example.com',
-        role: 'SILVER_INFLUENCER',
+        role: 'INFLUENCER',
         jti: 'some-jti',
       },
-    } as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
     const res = mockResponse();
     const next = jest.fn();
-    const middleware = authorize('SYSTEM_ADMIN');
+    const middleware = authorize('SUPER_ADMIN');
     middleware(req, res, next);
 
     expect(next).toHaveBeenCalledWith(expect.any(ApiError));
@@ -85,13 +85,13 @@ describe('authorize() Middleware', () => {
       user: {
         sub: 'user-1',
         email: 'test@example.com',
-        role: 'BUSINESS_OWNER',
+        role: 'BUSINESS',
         jti: 'some-jti',
       },
-    } as AuthenticatedRequest;
+    } as unknown as AuthenticatedRequest;
 
     const res = mockResponse();
-    const middleware = authorize('SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT');
+    const middleware = authorize('SUPER_ADMIN', 'BUSINESS', 'AGENT');
     middleware(req, res, mockNext);
 
     expect(mockNext).toHaveBeenCalledWith();
@@ -101,7 +101,7 @@ describe('authorize() Middleware', () => {
     const req = {} as AuthenticatedRequest;
     const res = mockResponse();
     const next = jest.fn();
-    const middleware = authorize('SYSTEM_ADMIN');
+    const middleware = authorize('SUPER_ADMIN');
     middleware(req, res, next);
 
     expect(next).toHaveBeenCalledWith(expect.any(ApiError));
@@ -109,3 +109,4 @@ describe('authorize() Middleware', () => {
     expect(error.statusCode).toBe(401);
   });
 });
+

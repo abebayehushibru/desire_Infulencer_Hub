@@ -23,7 +23,7 @@ import { ApiError } from '../../common/errors/ApiError';
 const mockPayload = {
   sub: 'user-uuid-123',
   email: 'test@example.com',
-  role: 'SILVER_INFLUENCER' as const,
+  role: 'INFLUENCER' as const,
 };
 
 describe('JWT Utility', () => {

@@ -48,23 +48,27 @@ export const COOKIE = {
 } as const;
 
 export const ROLES = {
-  SYSTEM_ADMIN: 'SYSTEM_ADMIN',
-  BUSINESS_OWNER: 'BUSINESS_OWNER',
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
+  BUSINESS: 'BUSINESS',
   AGENT: 'AGENT',
-  DIAMOND_INFLUENCER: 'DIAMOND_INFLUENCER',
-  GOLD_INFLUENCER: 'GOLD_INFLUENCER',
-  SILVER_INFLUENCER: 'SILVER_INFLUENCER',
+  INFLUENCER: 'INFLUENCER',
 } as const;
 
 // Role hierarchy — higher index = more permissions
 export const ROLE_HIERARCHY = [
-  'SILVER_INFLUENCER',
-  'GOLD_INFLUENCER',
-  'DIAMOND_INFLUENCER',
+  'INFLUENCER',
   'AGENT',
-  'BUSINESS_OWNER',
-  'SYSTEM_ADMIN',
+  'BUSINESS',
+  'ADMIN',
+  'SUPER_ADMIN',
 ] as const;
+
+export const INFLUENCER_TIERS = {
+  DIAMOND: 'DIAMOND',
+  GOLD: 'GOLD',
+  SILVER: 'SILVER',
+} as const;
 
 export const EMAIL_TEMPLATES = {
   VERIFICATION: 'email-verification',

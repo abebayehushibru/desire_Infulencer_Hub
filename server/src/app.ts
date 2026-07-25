@@ -128,10 +128,6 @@ app.use(`${API_PREFIX}/tracking`,    trackingRouter);
 app.use(`${API_PREFIX}/earnings`,    earningsRouter);
 app.use(`${API_PREFIX}/analytics`,   analyticsRouter);
 app.use(`${API_PREFIX}/withdrawals`, withdrawalRouter);
-app.use(`${API_PREFIX}/tracking`,    trackingRouter);
-app.use(`${API_PREFIX}/earnings`,    earningsRouter);
-app.use(`${API_PREFIX}/analytics`,   analyticsRouter);
-app.use(`${API_PREFIX}/withdrawals`, withdrawalRouter);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

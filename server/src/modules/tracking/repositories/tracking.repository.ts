@@ -80,6 +80,12 @@ export class TrackingRepository {
     });
   }
 
+  async findInfluencerProfileByUserId(userId: string) {
+    return prisma.influencerProfile.findUnique({
+      where: { userId },
+    });
+  }
+
   async getTrackingEventsByCampaign(campaignId: string, params: {
     page: number;
     limit: number;
@@ -621,6 +627,85 @@ export class TrackingRepository {
       where: { influencerId, status: 'PENDING', deletedAt: null },
     });
     return count > 0;
+  }
+
+  async listAllWithdrawals(params: {
+    status?: WithdrawalStatus;
+    influencerId?: string;
+    page: number;
+    limit: number;
+  }): Promise<{ withdrawals: WithdrawalRequest[]; total: number }> {
+    const where: Prisma.WithdrawalRequestWhereInput = {
+      deletedAt: null,
+      ...(params.status && { status: params.status }),
+      ...(params.influencerId && { influencerId: params.influencerId }),
+    };
+
+    const [withdrawals, total] = await prisma.$transaction([
+      prisma.withdrawalRequest.findMany({
+        where,
+        include: {
+          influencer: { select: { id: true, firstName: true, lastName: true, email: true } },
+        },
+        orderBy: { requestedAt: 'desc' },
+        skip: (params.page - 1) * params.limit,
+        take: params.limit,
+      }),
+      prisma.withdrawalRequest.count({ where }),
+    ]);
+
+    return { withdrawals, total };
+  }
+
+  async approveWithdrawalTransaction(
+    withdrawalId: string,
+    influencerId: string,
+    amount: number,
+    adminId: string,
+    transactionRef?: string,
+    reviewNote?: string,
+  ): Promise<WithdrawalRequest> {
+    return prisma.$transaction(async (tx) => {
+      await tx.influencerBalance.update({
+        where: { influencerId },
+        data: { withdrawnAmount: { increment: amount } },
+      });
+      return tx.withdrawalRequest.update({
+        where: { id: withdrawalId },
+        data: {
+          status: 'APPROVED',
+          reviewedBy: adminId,
+          reviewedAt: new Date(),
+          processedAt: new Date(),
+          transactionRef,
+          reviewNote,
+        },
+      });
+    });
+  }
+
+  async rejectWithdrawalTransaction(
+    withdrawalId: string,
+    influencerId: string,
+    amount: number,
+    adminId: string,
+    reviewNote: string,
+  ): Promise<WithdrawalRequest> {
+    return prisma.$transaction(async (tx) => {
+      await tx.influencerBalance.update({
+        where: { influencerId },
+        data: { availableBalance: { increment: amount } },
+      });
+      return tx.withdrawalRequest.update({
+        where: { id: withdrawalId },
+        data: {
+          status: 'REJECTED',
+          reviewedBy: adminId,
+          reviewedAt: new Date(),
+          reviewNote,
+        },
+      });
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────

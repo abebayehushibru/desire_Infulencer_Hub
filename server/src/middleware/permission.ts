@@ -13,31 +13,31 @@ import { ROLE_HIERARCHY } from '../common/constants';
 // ── Permission definitions ────────────────────────────────────────────────────
 export const PERMISSIONS = {
   // User management
-  READ_USERS:      ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT'] as Role[],
-  CREATE_USER:     ['SYSTEM_ADMIN'] as Role[],
-  DELETE_USER:     ['SYSTEM_ADMIN'] as Role[],
-  SUSPEND_USER:    ['SYSTEM_ADMIN'] as Role[],
+  READ_USERS:      ['SUPER_ADMIN', 'ADMIN', 'AGENT'] as Role[],
+  CREATE_USER:     ['SUPER_ADMIN'] as Role[],
+  DELETE_USER:     ['SUPER_ADMIN'] as Role[],
+  SUSPEND_USER:    ['SUPER_ADMIN'] as Role[],
 
   // Campaign management
-  CREATE_CAMPAIGN: ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT'] as Role[],
-  MANAGE_CAMPAIGN: ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT'] as Role[],
-  VIEW_CAMPAIGN:   ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT', 'DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER'] as Role[],
+  CREATE_CAMPAIGN: ['SUPER_ADMIN', 'ADMIN', 'BUSINESS', 'AGENT'] as Role[],
+  MANAGE_CAMPAIGN: ['SUPER_ADMIN', 'ADMIN', 'BUSINESS', 'AGENT'] as Role[],
+  VIEW_CAMPAIGN:   ['SUPER_ADMIN', 'ADMIN', 'BUSINESS', 'AGENT', 'INFLUENCER'] as Role[],
 
   // Community management
-  CREATE_COMMUNITY: ['SYSTEM_ADMIN', 'BUSINESS_OWNER'] as Role[],
-  MANAGE_COMMUNITY: ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT'] as Role[],
+  CREATE_COMMUNITY: ['SUPER_ADMIN'] as Role[],
+  MANAGE_COMMUNITY: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] as Role[],
 
   // Influencer management
-  MANAGE_INFLUENCER: ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT'] as Role[],
-  VIEW_INFLUENCER:   ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT', 'DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER'] as Role[],
+  MANAGE_INFLUENCER: ['SUPER_ADMIN', 'ADMIN', 'AGENT'] as Role[],
+  VIEW_INFLUENCER:   ['SUPER_ADMIN', 'ADMIN', 'BUSINESS', 'AGENT', 'INFLUENCER'] as Role[],
 
   // Analytics
-  VIEW_ANALYTICS:  ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT', 'DIAMOND_INFLUENCER'] as Role[],
-  VIEW_EARNINGS:   ['SYSTEM_ADMIN', 'DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER'] as Role[],
+  VIEW_ANALYTICS:  ['SUPER_ADMIN', 'ADMIN', 'BUSINESS', 'AGENT', 'INFLUENCER'] as Role[],
+  VIEW_EARNINGS:   ['SUPER_ADMIN', 'INFLUENCER'] as Role[],
 
   // Admin only
-  MANAGE_SYSTEM:   ['SYSTEM_ADMIN'] as Role[],
-  VIEW_AUDIT_LOGS: ['SYSTEM_ADMIN'] as Role[],
+  MANAGE_SYSTEM:   ['SUPER_ADMIN'] as Role[],
+  VIEW_AUDIT_LOGS: ['SUPER_ADMIN', 'ADMIN'] as Role[],
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;

@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Auth Controller — Validates request → calls service → returns response
-// NO business logic here. Controllers are thin.
-// ─────────────────────────────────────────────────────────────────────────────
 
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/auth.service';

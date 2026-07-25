@@ -60,8 +60,8 @@ const ctx  = { ip: '127.0.0.1', userAgent: 'jest' };
 const makeUser = (overrides: Record<string, unknown> = {}) => ({
   id: 'user-1', firstName: 'John', lastName: 'Doe',
   email: 'john@example.com', passwordHash: '$hash',
-  role: 'SILVER_INFLUENCER', status: 'ACTIVE',
-  emailVerified: true, lastLogin: null,
+  role: 'INFLUENCER', status: 'ACTIVE',
+  emailVerified: true, phone1: null, phone2: null, lastLogin: null,
   failedLoginAttempts: 0, lockedUntil: null,
   profileImage: null, isSuspended: false,
   createdBy: null, createdAt: new Date(), updatedAt: new Date(), deletedAt: null,
@@ -76,9 +76,9 @@ beforeEach(() => jest.clearAllMocks());
 describe('FR06: Admin User Management', () => {
 
   describe('createBusinessOwner()', () => {
-    it('creates a Business Owner and returns safe user (no passwordHash)', async () => {
+    it('creates a Business user and returns safe user (no passwordHash)', async () => {
       repo.findUserByEmail.mockResolvedValue(null);
-      repo.createUser.mockResolvedValue(makeUser({ role: 'BUSINESS_OWNER' }) as any);
+      repo.createUser.mockResolvedValue(makeUser({ role: 'BUSINESS' }) as any);
       repo.createBusinessProfile.mockResolvedValue({} as any);
 
       const result = await userManagementService.createBusinessOwner(
@@ -111,8 +111,8 @@ describe('FR06: Admin User Management', () => {
       expect(repo.deactivateUser).toHaveBeenCalledWith('user-1');
     });
 
-    it('throws 403 if trying to deactivate SYSTEM_ADMIN', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'SYSTEM_ADMIN' }) as any);
+    it('throws 403 if trying to deactivate SUPER_ADMIN', async () => {
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'SUPER_ADMIN' }) as any);
       await expect(userManagementService.deactivateUser('user-1', 'admin-1'))
         .rejects.toMatchObject({ statusCode: 403 });
     });
@@ -159,8 +159,8 @@ describe('FR06: Admin User Management', () => {
 describe('FR07: Business Profile', () => {
 
   describe('createBusinessProfile()', () => {
-    it('creates profile for Business Owner', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS_OWNER' }) as any);
+    it('creates profile for Business user', async () => {
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS' }) as any);
       repo.findBusinessProfileByUserId.mockResolvedValue(null);
       repo.createBusinessProfile.mockResolvedValue({ id: 'bp-1', verificationStatus: 'PENDING' } as any);
       repo.updateUser.mockResolvedValue(makeUser({ status: 'PENDING_VERIFICATION' }) as any);
@@ -170,15 +170,15 @@ describe('FR07: Business Profile', () => {
       expect(repo.updateUser).toHaveBeenCalledWith('user-1', { status: 'PENDING_VERIFICATION' });
     });
 
-    it('throws 403 if user is not Business Owner', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'SILVER_INFLUENCER' }) as any);
+    it('throws 403 if user is not Business', async () => {
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'INFLUENCER' }) as any);
       await expect(
         userManagementService.createBusinessProfile('user-1', { businessName: 'X' })
       ).rejects.toMatchObject({ statusCode: 403 });
     });
 
     it('throws 409 if profile already exists', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS_OWNER' }) as any);
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS' }) as any);
       repo.findBusinessProfileByUserId.mockResolvedValue({ id: 'existing' } as any);
       await expect(
         userManagementService.createBusinessProfile('user-1', { businessName: 'X' })
@@ -279,7 +279,7 @@ describe('FR09: Influencer Tiers', () => {
 
   describe('assignTier()', () => {
     it('assigns tier, updates role, and creates tier history', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'SILVER_INFLUENCER' }) as any);
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'INFLUENCER' }) as any);
       repo.findInfluencerProfileByUserId
         .mockResolvedValueOnce({ id: 'ip-1', currentTier: 'SILVER', userId: 'user-1' } as any)
         .mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD', userId: 'user-1' } as any);
@@ -294,7 +294,7 @@ describe('FR09: Influencer Tiers', () => {
     });
 
     it('throws 400 if user already has that tier', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'GOLD_INFLUENCER' }) as any);
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'INFLUENCER' }) as any);
       repo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD' } as any);
       await expect(
         userManagementService.assignTier('user-1', 'admin-1', { tier: 'GOLD' })
@@ -302,7 +302,7 @@ describe('FR09: Influencer Tiers', () => {
     });
 
     it('throws 400 if user is not an influencer', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS_OWNER' }) as any);
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS' }) as any);
       await expect(
         userManagementService.assignTier('user-1', 'admin-1', { tier: 'GOLD' })
       ).rejects.toMatchObject({ statusCode: 400 });
@@ -344,7 +344,7 @@ describe('FR10: Agent Role', () => {
     });
 
     it('throws 403 if non-AGENT tries to create agent profile', async () => {
-      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS_OWNER' }) as any);
+      repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS' }) as any);
       await expect(
         userManagementService.createAgentProfile('user-1', {})
       ).rejects.toMatchObject({ statusCode: 403 });
@@ -419,41 +419,30 @@ describe('FR09: getTierHistory()', () => {
   });
 });
 
-describe('FR09: createInfluencerProfile() — tier derived from role', () => {
-  it('creates DIAMOND profile for DIAMOND_INFLUENCER user', async () => {
-    repo.findUserById.mockResolvedValue(makeUser({ role: 'DIAMOND_INFLUENCER' }) as any);
+describe('FR09: createInfluencerProfile() — creates with SILVER default tier', () => {
+  it('creates SILVER profile for INFLUENCER user', async () => {
+    repo.findUserById.mockResolvedValue(makeUser({ role: 'INFLUENCER' }) as any);
     repo.findInfluencerProfileByUserId.mockResolvedValue(null);
-    repo.createInfluencerProfile.mockResolvedValue({ id: 'ip-1', currentTier: 'DIAMOND' } as any);
+    repo.createInfluencerProfile.mockResolvedValue({ id: 'ip-1', currentTier: 'SILVER' } as any);
 
     await userManagementService.createInfluencerProfile('user-1', { bio: 'Top influencer' });
 
     expect(repo.createInfluencerProfile).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 'user-1', currentTier: 'DIAMOND' })
+      expect.objectContaining({ userId: 'user-1', currentTier: 'SILVER' })
     );
   });
 
-  it('creates GOLD profile for GOLD_INFLUENCER user', async () => {
-    repo.findUserById.mockResolvedValue(makeUser({ role: 'GOLD_INFLUENCER' }) as any);
-    repo.findInfluencerProfileByUserId.mockResolvedValue(null);
-    repo.createInfluencerProfile.mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD' } as any);
-
-    await userManagementService.createInfluencerProfile('user-1', {});
-
-    expect(repo.createInfluencerProfile).toHaveBeenCalledWith(
-      expect.objectContaining({ currentTier: 'GOLD' })
-    );
+  it('throws 403 if user is not an INFLUENCER', async () => {
+    repo.findUserById.mockResolvedValue(makeUser({ role: 'BUSINESS' }) as any);
+    await expect(userManagementService.createInfluencerProfile('user-1', {}))
+      .rejects.toMatchObject({ statusCode: 403 });
   });
 
-  it('creates SILVER profile for SILVER_INFLUENCER user', async () => {
-    repo.findUserById.mockResolvedValue(makeUser({ role: 'SILVER_INFLUENCER' }) as any);
-    repo.findInfluencerProfileByUserId.mockResolvedValue(null);
-    repo.createInfluencerProfile.mockResolvedValue({ id: 'ip-1', currentTier: 'SILVER' } as any);
-
-    await userManagementService.createInfluencerProfile('user-1', {});
-
-    expect(repo.createInfluencerProfile).toHaveBeenCalledWith(
-      expect.objectContaining({ currentTier: 'SILVER' })
-    );
+  it('throws 409 if influencer profile already exists', async () => {
+    repo.findUserById.mockResolvedValue(makeUser({ role: 'INFLUENCER' }) as any);
+    repo.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-existing' } as any);
+    await expect(userManagementService.createInfluencerProfile('user-1', {}))
+      .rejects.toMatchObject({ statusCode: 409 });
   });
 });
 
@@ -507,7 +496,7 @@ describe('Notifications', () => {
 describe('Audit logging', () => {
   it('createBusinessOwner() fires USER_CREATED audit log', async () => {
     repo.findUserByEmail.mockResolvedValue(null);
-    repo.createUser.mockResolvedValue(makeUser({ role: 'BUSINESS_OWNER' }) as any);
+    repo.createUser.mockResolvedValue(makeUser({ role: 'BUSINESS' }) as any);
 
     await userManagementService.createBusinessOwner(
       { firstName: 'Jane', lastName: 'Doe', email: 'jane@biz.com', password: 'Pass@123A' },
@@ -520,7 +509,7 @@ describe('Audit logging', () => {
   });
 
   it('assignTier() fires TIER_ASSIGNED audit log', async () => {
-    repo.findUserById.mockResolvedValue(makeUser({ role: 'SILVER_INFLUENCER' }) as any);
+    repo.findUserById.mockResolvedValue(makeUser({ role: 'INFLUENCER' }) as any);
     repo.findInfluencerProfileByUserId
       .mockResolvedValueOnce({ id: 'ip-1', currentTier: 'SILVER', userId: 'user-1' } as any)
       .mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD', userId: 'user-1' } as any);

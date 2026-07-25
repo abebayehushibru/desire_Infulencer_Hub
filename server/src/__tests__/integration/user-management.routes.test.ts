@@ -83,10 +83,10 @@ import app from '../../app';
 import { signAccessToken } from '../../common/utils/jwt.util';
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
-const adminToken  = () => signAccessToken({ sub: 'admin-1',  email: 'admin@x.com',  role: 'SYSTEM_ADMIN' });
-const bizToken    = () => signAccessToken({ sub: 'biz-1',    email: 'biz@x.com',    role: 'BUSINESS_OWNER' });
+const adminToken  = () => signAccessToken({ sub: 'admin-1',  email: 'admin@x.com',  role: 'SUPER_ADMIN' });
+const bizToken    = () => signAccessToken({ sub: 'biz-1',    email: 'biz@x.com',    role: 'BUSINESS' });
 const agentToken  = () => signAccessToken({ sub: 'agent-1',  email: 'agent@x.com',  role: 'AGENT' });
-const silverToken = () => signAccessToken({ sub: 'silver-1', email: 'silver@x.com', role: 'SILVER_INFLUENCER' });
+const silverToken = () => signAccessToken({ sub: 'silver-1', email: 'silver@x.com', role: 'INFLUENCER' });
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -310,7 +310,7 @@ describe('FR06: Admin creates Business Owner — happy path', () => {
     r.createUser.mockResolvedValue({
       id: 'new-biz-user', firstName: 'Jane', lastName: 'Doe',
       email: 'jane@bizco.com', passwordHash: '$2b$hash',
-      role: 'BUSINESS_OWNER', status: 'ACTIVE',
+      role: 'BUSINESS', status: 'ACTIVE',
       emailVerified: true, lastLogin: null,
       failedLoginAttempts: 0, lockedUntil: null,
       profileImage: null, isSuspended: false,
@@ -332,7 +332,7 @@ describe('FR06: Admin creates Business Owner — happy path', () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
     r.findUserWithProfiles.mockResolvedValue({
       id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', firstName: 'Jane', lastName: 'Doe',
-      email: 'jane@bizco.com', role: 'BUSINESS_OWNER', status: 'ACTIVE',
+      email: 'jane@bizco.com', role: 'BUSINESS', status: 'ACTIVE',
       passwordHash: '$hash',
       businessProfile: { id: 'bp-1', businessName: 'Acme', verificationStatus: 'PENDING', documents: [] },
       influencerProfile: null,
@@ -352,12 +352,12 @@ describe('FR06: Admin creates Business Owner — happy path', () => {
   it('POST /admin/users/:id/deactivate — 200 deactivates user', async () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
     r.findUserById.mockResolvedValue({
-      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', role: 'BUSINESS_OWNER', status: 'ACTIVE',
+      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', role: 'BUSINESS', status: 'ACTIVE',
       email: 'biz@x.com', isSuspended: false, deletedAt: null,
     });
     r.deactivateUser.mockResolvedValue({
       id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', firstName: 'Jane', lastName: 'Doe',
-      email: 'biz@x.com', role: 'BUSINESS_OWNER', status: 'INACTIVE',
+      email: 'biz@x.com', role: 'BUSINESS', status: 'INACTIVE',
       emailVerified: true, lastLogin: null, profileImage: null,
       isSuspended: false, createdAt: new Date(), updatedAt: new Date(),
     });
@@ -373,12 +373,12 @@ describe('FR06: Admin creates Business Owner — happy path', () => {
   it('POST /admin/users/:id/reactivate — 200 reactivates user', async () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
     r.findUserById.mockResolvedValue({
-      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', role: 'BUSINESS_OWNER', status: 'INACTIVE',
+      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', role: 'BUSINESS', status: 'INACTIVE',
       email: 'biz@x.com', isSuspended: false, deletedAt: null,
     });
     r.reactivateUser.mockResolvedValue({
       id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', firstName: 'Jane', lastName: 'Doe',
-      email: 'biz@x.com', role: 'BUSINESS_OWNER', status: 'ACTIVE',
+      email: 'biz@x.com', role: 'BUSINESS', status: 'ACTIVE',
       emailVerified: true, lastLogin: null, profileImage: null,
       isSuspended: false, createdAt: new Date(), updatedAt: new Date(),
     });
@@ -398,7 +398,7 @@ describe('FR06: Admin creates Business Owner — happy path', () => {
 describe('FR07: Business Owner profile — happy path', () => {
   it('POST /business/profile — 201 with valid payload', async () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
-    r.findUserById.mockResolvedValue({ id: 'biz-1', role: 'BUSINESS_OWNER', status: 'ACTIVE', email: 'biz@x.com', deletedAt: null });
+    r.findUserById.mockResolvedValue({ id: 'biz-1', role: 'BUSINESS', status: 'ACTIVE', email: 'biz@x.com', deletedAt: null });
     r.findBusinessProfileByUserId.mockResolvedValue(null);
     r.createBusinessProfile.mockResolvedValue({
       id: 'bp-1', userId: 'biz-1', businessName: 'Acme Corp',
@@ -522,7 +522,7 @@ describe('FR08: Admin business review — happy path', () => {
 describe('FR09: Influencer profile + tier — happy path', () => {
   it('POST /influencer/profile — 201 for SILVER_INFLUENCER', async () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
-    r.findUserById.mockResolvedValue({ id: 'silver-1', role: 'SILVER_INFLUENCER', status: 'ACTIVE', deletedAt: null });
+    r.findUserById.mockResolvedValue({ id: 'silver-1', role: 'INFLUENCER', status: 'ACTIVE', deletedAt: null });
     r.findInfluencerProfileByUserId.mockResolvedValue(null);
     r.createInfluencerProfile.mockResolvedValue({
       id: 'ip-1', userId: 'silver-1', currentTier: 'SILVER',
@@ -557,7 +557,7 @@ describe('FR09: Influencer profile + tier — happy path', () => {
 
   it('POST /admin/users/:id/assign-tier — 200 assigns tier to influencer', async () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
-    r.findUserById.mockResolvedValue({ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', role: 'SILVER_INFLUENCER', status: 'ACTIVE', email: 'silver@x.com', deletedAt: null });
+    r.findUserById.mockResolvedValue({ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', role: 'INFLUENCER', status: 'ACTIVE', email: 'silver@x.com', deletedAt: null });
     r.findInfluencerProfileByUserId.mockResolvedValue({ id: 'ip-1', currentTier: 'SILVER', userId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' });
     r.assignTier.mockResolvedValue({ id: 'ip-1', currentTier: 'GOLD' });
 

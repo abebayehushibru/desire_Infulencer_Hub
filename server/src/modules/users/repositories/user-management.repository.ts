@@ -192,11 +192,7 @@ export class UserManagementRepository {
     userId: string; profileId: string; previousTier: InfluencerTier | null;
     newTier: InfluencerTier; changedBy: string; reason?: string;
   }): Promise<InfluencerProfile> {
-    const newRole = params.newTier === 'DIAMOND'
-      ? 'DIAMOND_INFLUENCER'
-      : params.newTier === 'GOLD'
-        ? 'GOLD_INFLUENCER'
-        : 'SILVER_INFLUENCER';
+    const newRole: Role = 'INFLUENCER';
 
     const [profile] = await prisma.$transaction([
       prisma.influencerProfile.update({

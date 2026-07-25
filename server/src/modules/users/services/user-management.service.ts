@@ -36,7 +36,7 @@ const MAX_DOC_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 class UserManagementService {
 
-  // ── FR06 Admin creates a Business Owner ─────────────────────────────────────
+  // ── FR06 Admin creates a Business account ─────────────────────────────────────
   async createBusinessOwner(dto: CreateBusinessOwnerDto, adminId: string, ctx: { ip: string; userAgent: string }): Promise<SafeUser> {
     const existing = await repo.findUserByEmail(dto.email);
     if (existing) throw ApiError.conflict('An account with this email already exists');
@@ -48,7 +48,7 @@ class UserManagementService {
       lastName:  dto.lastName.trim(),
       email:     dto.email.toLowerCase().trim(),
       passwordHash,
-      role:          'BUSINESS_OWNER',
+      role:          'BUSINESS',
       status:        'ACTIVE',
       emailVerified: true,
       createdBy:     adminId,
@@ -64,10 +64,10 @@ class UserManagementService {
       action:    'USER_CREATED',
       ipAddress: ctx.ip,
       userAgent: ctx.userAgent,
-      metadata:  { createdUserId: user.id, email: user.email, role: 'BUSINESS_OWNER' },
+      metadata:  { createdUserId: user.id, email: user.email, role: 'BUSINESS' },
     });
 
-    logger.info('Admin created Business Owner', { adminId, newUserId: user.id, email: user.email });
+    logger.info('Admin created Business account', { adminId, newUserId: user.id, email: user.email });
     return toSafeUser(user);
   }
 
@@ -121,7 +121,7 @@ class UserManagementService {
   // ── FR06 Deactivate / Reactivate ──────────────────────────────────────────
   async deactivateUser(id: string, adminId: string): Promise<SafeUser> {
     const user = await this.assertUserExists(id);
-    if (user.role === 'SYSTEM_ADMIN') throw ApiError.forbidden('Cannot deactivate a System Admin');
+    if (user.role === 'SUPER_ADMIN') throw ApiError.forbidden('Cannot deactivate a Super Admin');
     if (user.status === 'INACTIVE')   throw ApiError.badRequest('User is already inactive');
     const updated = await repo.deactivateUser(id);
     repo.createAuditLog({
@@ -153,10 +153,10 @@ class UserManagementService {
     return toSafeUser(updated);
   }
 
-  // ── FR07 Business Owner creates/updates their profile ────────────────────
+  // ── FR07 Business creates/updates their profile ────────────────────────────
   async createBusinessProfile(userId: string, dto: CreateBusinessProfileDto) {
     const user = await this.assertUserExists(userId);
-    if (user.role !== 'BUSINESS_OWNER') throw ApiError.forbidden('Only Business Owners can create a business profile');
+    if (user.role !== 'BUSINESS') throw ApiError.forbidden('Only Business users can create a business profile');
 
     const existing = await repo.findBusinessProfileByUserId(userId);
     if (existing) throw ApiError.conflict('Business profile already exists');
@@ -295,19 +295,14 @@ class UserManagementService {
   // ── FR09 Create influencer profile (auto-created on registration) ─────────
   async createInfluencerProfile(userId: string, dto: CreateInfluencerProfileDto) {
     const user = await this.assertUserExists(userId);
-    if (!['DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER'].includes(user.role)) {
+    if (user.role !== 'INFLUENCER') {
       throw ApiError.forbidden('Only influencers can create an influencer profile');
     }
     const existing = await repo.findInfluencerProfileByUserId(userId);
     if (existing) throw ApiError.conflict('Influencer profile already exists');
 
-    // Derive initial tier from the user's current role
-    const tierMap: Record<string, InfluencerTier> = {
-      DIAMOND_INFLUENCER: 'DIAMOND',
-      GOLD_INFLUENCER:    'GOLD',
-      SILVER_INFLUENCER:  'SILVER',
-    };
-    const initialTier = tierMap[user.role] ?? 'SILVER';
+    // Derive initial tier from the user's profile (default to SILVER)
+    const initialTier = 'SILVER' as InfluencerTier;
 
     return repo.createInfluencerProfile({
       userId,
@@ -331,7 +326,7 @@ class UserManagementService {
   // ── FR09 Admin assigns tier ───────────────────────────────────────────────
   async assignTier(targetUserId: string, adminId: string, dto: AssignTierDto): Promise<void> {
     const user = await this.assertUserExists(targetUserId);
-    if (!['DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER'].includes(user.role)) {
+    if (user.role !== 'INFLUENCER') {
       throw ApiError.badRequest('User is not an influencer');
     }
 

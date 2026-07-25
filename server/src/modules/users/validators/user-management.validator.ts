@@ -50,7 +50,7 @@ export const assignTierValidator = [
 // ── FR06 List users ───────────────────────────────────────────────────────────
 export const listUsersValidator = [
   query('role').optional()
-    .isIn(['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT', 'DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER'])
+    .isIn(['SUPER_ADMIN', 'ADMIN', 'BUSINESS', 'AGENT', 'INFLUENCER'])
     .withMessage('Invalid role filter'),
   query('status').optional()
     .isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING_VERIFICATION'])

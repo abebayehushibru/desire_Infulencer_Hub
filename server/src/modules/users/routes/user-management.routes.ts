@@ -22,19 +22,19 @@ router.use(authenticate);
 
 // ── Helper: cast authorize to RequestHandler ──────────────────────────────────
 const adminOnly = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN')(req as any, res, next);
+  authorize('SUPER_ADMIN')(req as any, res, next);
 
 const agentOrAdmin = (req: Request, res: Response, next: NextFunction) =>
-  authorize('SYSTEM_ADMIN', 'AGENT')(req as any, res, next);
+  authorize('SUPER_ADMIN', 'ADMIN', 'AGENT')(req as any, res, next);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FR06 — Admin User Management (SYSTEM_ADMIN only)
+// FR06 — Admin User Management (SUPER_ADMIN only)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @route   POST /api/v1/users/admin/business-owners
- * @desc    FR06 — Admin creates a Business Owner account
- * @access  SYSTEM_ADMIN
+ * @desc    FR06 — Admin creates a Business account
+ * @access  SUPER_ADMIN
  */
 router.post(
   '/admin/business-owners',
@@ -46,7 +46,7 @@ router.post(
 /**
  * @route   GET /api/v1/users/admin/users
  * @desc    FR06 — List all users with filters
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.get(
   '/admin/users',
@@ -58,14 +58,14 @@ router.get(
 /**
  * @route   GET /api/v1/users/admin/users/:id
  * @desc    FR06 — Get user with full profile
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.get('/admin/users/:id', adminOnly, userIdParamValidator, validate, ctrl.getUser.bind(ctrl));
 
 /**
  * @route   PATCH /api/v1/users/admin/users/:id
  * @desc    FR06 — Update user basic info
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.patch(
   '/admin/users/:id',
@@ -76,22 +76,22 @@ router.patch(
 
 /**
  * @route   POST /api/v1/users/admin/users/:id/deactivate
- * @desc    FR06 — Deactivate Business Owner account
- * @access  SYSTEM_ADMIN
+ * @desc    FR06 — Deactivate user account
+ * @access  SUPER_ADMIN
  */
 router.post('/admin/users/:id/deactivate', adminOnly, userIdParamValidator, validate, ctrl.deactivateUser.bind(ctrl));
 
 /**
  * @route   POST /api/v1/users/admin/users/:id/reactivate
  * @desc    FR06 — Reactivate user account
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.post('/admin/users/:id/reactivate', adminOnly, userIdParamValidator, validate, ctrl.reactivateUser.bind(ctrl));
 
 /**
  * @route   POST /api/v1/users/admin/users/:id/assign-tier
  * @desc    FR06/FR09 — Admin assigns influencer tier
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.post(
   '/admin/users/:id/assign-tier',
@@ -102,56 +102,60 @@ router.post(
 
 /**
  * @route   POST /api/v1/users/admin/users/:id/community-leader
- * @desc    FR09 — Admin sets/removes Community Leader (DIAMOND only)
- * @access  SYSTEM_ADMIN
+ * @desc    FR09 — Admin sets/removes Community Leader (DIAMOND tier only)
+ * @access  SUPER_ADMIN
  */
 router.post('/admin/users/:id/community-leader', adminOnly, setCommunityLeaderValidator, validate, ctrl.setCommunityLeader.bind(ctrl));
 
 /**
  * @route   GET /api/v1/users/admin/users/:id/tier-history
  * @desc    FR09 — Get influencer tier history
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN
  */
 router.get('/admin/users/:id/tier-history', adminOnly, userIdParamValidator, validate, ctrl.getTierHistory.bind(ctrl));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FR08 — Business Verification (SYSTEM_ADMIN)
+// FR08 — Business Verification (SUPER_ADMIN, ADMIN)
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * @route   GET /api/v1/users/admin/businesses
  * @desc    FR08 — List business profiles (filter by status)
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN, ADMIN
  */
-router.get('/admin/businesses', adminOnly, ctrl.listBusinessProfiles.bind(ctrl));
+router.get(
+  '/admin/businesses',
+  (req, res, next) => authorize('SUPER_ADMIN', 'ADMIN')(req as any, res, next),
+  ctrl.listBusinessProfiles.bind(ctrl)
+);
 
 /**
  * @route   POST /api/v1/users/admin/businesses/:id/review
  * @desc    FR08 — Approve or reject business verification
- * @access  SYSTEM_ADMIN
+ * @access  SUPER_ADMIN, ADMIN
  */
 router.post(
   '/admin/businesses/:id/review',
-  adminOnly,
+  (req: Request, res: Response, next: NextFunction) => authorize('SUPER_ADMIN', 'ADMIN')(req as any, res, next),
   reviewBusinessValidator, validate,
   ctrl.reviewBusiness.bind(ctrl)
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FR07 — Business Owner Profile (BUSINESS_OWNER)
+// FR07 — Business Profile (BUSINESS)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const businessOwnerOnly = (req: Request, res: Response, next: NextFunction) =>
-  authorize('BUSINESS_OWNER')(req as any, res, next);
+const businessOnly = (req: Request, res: Response, next: NextFunction) =>
+  authorize('BUSINESS')(req as any, res, next);
 
 /**
  * @route   POST /api/v1/users/business/profile
- * @desc    FR07 — Business Owner creates their profile
- * @access  BUSINESS_OWNER
+ * @desc    FR07 — Business creates their profile
+ * @access  BUSINESS
  */
 router.post(
   '/business/profile',
-  businessOwnerOnly,
+  businessOnly,
   createBusinessProfileValidator, validate,
   ctrl.createBusinessProfile.bind(ctrl)
 );
@@ -159,39 +163,39 @@ router.post(
 /**
  * @route   GET /api/v1/users/business/profile
  * @desc    FR07 — Get own business profile
- * @access  BUSINESS_OWNER, SYSTEM_ADMIN
+ * @access  BUSINESS, SUPER_ADMIN, ADMIN
  */
 router.get(
   '/business/profile',
-  (req, res, next) => authorize('BUSINESS_OWNER', 'SYSTEM_ADMIN')(req as any, res, next),
+  (req, res, next) => authorize('BUSINESS', 'SUPER_ADMIN', 'ADMIN')(req as any, res, next),
   ctrl.getMyBusinessProfile.bind(ctrl)
 );
 
 /**
  * @route   PATCH /api/v1/users/business/profile
  * @desc    FR07 — Update own business profile
- * @access  BUSINESS_OWNER
+ * @access  BUSINESS
  */
-router.patch('/business/profile', businessOwnerOnly, ctrl.updateMyBusinessProfile.bind(ctrl));
+router.patch('/business/profile', businessOnly, ctrl.updateMyBusinessProfile.bind(ctrl));
 
 /**
  * @route   POST /api/v1/users/business/documents
  * @desc    FR07 — Upload verification document (metadata only)
- * @access  BUSINESS_OWNER
+ * @access  BUSINESS
  */
-router.post('/business/documents', businessOwnerOnly, uploadDocumentValidator, validate, ctrl.uploadDocument.bind(ctrl));
+router.post('/business/documents', businessOnly, uploadDocumentValidator, validate, ctrl.uploadDocument.bind(ctrl));
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FR09 — Influencer Profile (all influencer tiers)
+// FR09 — Influencer Profile (INFLUENCER role, tier stored in profile)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const influencerOnly = (req: Request, res: Response, next: NextFunction) =>
-  authorize('DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER')(req as any, res, next);
+  authorize('INFLUENCER')(req as any, res, next);
 
 /**
  * @route   POST /api/v1/users/influencer/profile
  * @desc    FR09 — Create influencer profile
- * @access  All influencer tiers
+ * @access  INFLUENCER
  */
 router.post(
   '/influencer/profile',
@@ -203,14 +207,14 @@ router.post(
 /**
  * @route   GET /api/v1/users/influencer/profile
  * @desc    FR09 — Get own influencer profile
- * @access  All influencer tiers
+ * @access  INFLUENCER
  */
 router.get('/influencer/profile', influencerOnly, ctrl.getMyInfluencerProfile.bind(ctrl));
 
 /**
  * @route   PATCH /api/v1/users/influencer/profile
  * @desc    FR09 — Update own influencer profile
- * @access  All influencer tiers
+ * @access  INFLUENCER
  */
 router.patch('/influencer/profile', influencerOnly, ctrl.updateMyInfluencerProfile.bind(ctrl));
 
@@ -250,7 +254,7 @@ router.patch('/agent/profile', agentOnly, ctrl.updateMyAgentProfile.bind(ctrl));
 /**
  * @route   GET /api/v1/users/agent/businesses
  * @desc    FR10 — Agent views businesses (read only)
- * @access  AGENT, SYSTEM_ADMIN
+ * @access  AGENT, SUPER_ADMIN, ADMIN
  */
 router.get(
   '/agent/businesses',

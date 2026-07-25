@@ -148,7 +148,7 @@ describe('Security: IP Address Extraction', () => {
 // SECURITY: JWT Token Security
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Security: JWT Token Security', () => {
-  const payload = { sub: 'uid-1', email: 'test@test.com', role: 'SILVER_INFLUENCER' as const };
+  const payload = { sub: 'uid-1', email: 'test@test.com', role: 'INFLUENCER' as const };
 
   it('each token has a unique JTI', () => {
     const t1 = signAccessToken(payload);
@@ -160,7 +160,7 @@ describe('Security: JWT Token Security', () => {
     // Build a token with "none" algorithm (unsigned)
     const maliciousToken = [
       Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url'),
-      Buffer.from(JSON.stringify({ sub: 'admin', role: 'SYSTEM_ADMIN', email: 'hack@example.com' })).toString('base64url'),
+      Buffer.from(JSON.stringify({ sub: 'admin', role: 'SUPER_ADMIN', email: 'hack@example.com' })).toString('base64url'),
       '', // No signature
     ].join('.');
 
@@ -170,9 +170,9 @@ describe('Security: JWT Token Security', () => {
   it('throws on tampered payload (invalid signature)', () => {
     const token = signAccessToken(payload);
     const [header, , sig] = token.split('.');
-    // Change role to SYSTEM_ADMIN in payload
+    // Change role to SUPER_ADMIN in payload
     const maliciousPayload = Buffer.from(
-      JSON.stringify({ sub: 'uid-1', email: 'test@test.com', role: 'SYSTEM_ADMIN' })
+      JSON.stringify({ sub: 'uid-1', email: 'test@test.com', role: 'SUPER_ADMIN' })
     ).toString('base64url');
     const tampered = `${header}.${maliciousPayload}.${sig}`;
     expect(() => verifyAccessToken(tampered)).toThrow(ApiError);
@@ -181,10 +181,10 @@ describe('Security: JWT Token Security', () => {
   it('roles come from verified JWT, not from request body', () => {
     // This test documents the design principle:
     // The role in the verified JWT cannot be overridden by the client
-    const token = signAccessToken({ ...payload, role: 'SILVER_INFLUENCER' });
+    const token = signAccessToken({ ...payload, role: 'INFLUENCER' });
     const decoded = verifyAccessToken(token);
-    expect(decoded.role).toBe('SILVER_INFLUENCER');
-    // Even if client sends role: SYSTEM_ADMIN in body, the middleware uses decoded.role
+    expect(decoded.role).toBe('INFLUENCER');
+    // Even if client sends role: SUPER_ADMIN in body, the middleware uses decoded.role
   });
 });
 
@@ -217,20 +217,18 @@ describe('Security: ApiError safety', () => {
 // SECURITY: RBAC Privilege Escalation Prevention
 // ─────────────────────────────────────────────────────────────────────────────
 describe('Security: Privilege Escalation Prevention', () => {
-  it('SILVER_INFLUENCER cannot access SYSTEM_ADMIN permissions', () => {
+  it('INFLUENCER cannot access SUPER_ADMIN permissions', () => {
     const { hasPermission } = require('../../middleware/permission');
     const adminOnlyPerms = ['MANAGE_SYSTEM', 'DELETE_USER', 'SUSPEND_USER', 'CREATE_USER', 'VIEW_AUDIT_LOGS'];
     adminOnlyPerms.forEach((perm: string) => {
-      expect(hasPermission('SILVER_INFLUENCER', perm)).toBe(false);
-      expect(hasPermission('GOLD_INFLUENCER', perm)).toBe(false);
-      expect(hasPermission('DIAMOND_INFLUENCER', perm)).toBe(false);
+      expect(hasPermission('INFLUENCER', perm)).toBe(false);
       expect(hasPermission('AGENT', perm)).toBe(false);
-      expect(hasPermission('BUSINESS_OWNER', perm)).toBe(false);
+      expect(hasPermission('BUSINESS', perm)).toBe(false);
     });
   });
 
-  it('only SYSTEM_ADMIN can manage system', () => {
+  it('only SUPER_ADMIN can manage system', () => {
     const { hasPermission } = require('../../middleware/permission');
-    expect(hasPermission('SYSTEM_ADMIN', 'MANAGE_SYSTEM')).toBe(true);
+    expect(hasPermission('SUPER_ADMIN', 'MANAGE_SYSTEM')).toBe(true);
   });
 });
