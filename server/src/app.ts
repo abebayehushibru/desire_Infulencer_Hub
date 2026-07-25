@@ -26,6 +26,11 @@ import {
   analyticsRouter,
   withdrawalRouter,
 } from './modules/tracking/routes/tracking.routes';
+import {
+  chatRouter,
+  communityCollabRouter,
+  campaignContentRouter,
+} from './modules/chat/routes/chat.routes';
 // ── Swagger ───────────────────────────────────────────────────────────────────
 import swaggerUi from 'swagger-ui-express';
 import { swaggerDocument } from './docs/swagger';
@@ -128,6 +133,9 @@ app.use(`${API_PREFIX}/tracking`,    trackingRouter);
 app.use(`${API_PREFIX}/earnings`,    earningsRouter);
 app.use(`${API_PREFIX}/analytics`,   analyticsRouter);
 app.use(`${API_PREFIX}/withdrawals`, withdrawalRouter);
+app.use(`${API_PREFIX}/chat`,             chatRouter);
+app.use(`${API_PREFIX}/community`,        communityCollabRouter);
+app.use(`${API_PREFIX}/campaign-content`, campaignContentRouter);
 
 // ── 404 Handler ───────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

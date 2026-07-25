@@ -5,6 +5,9 @@ import redisClient from './config/redis';
 import { emailService } from './common/email/email.service';
 import logger from './common/logger/logger';
 
+import { Server as SocketIOServer } from 'socket.io';
+import { initSocketIO } from './modules/chat/sockets/chat.socket';
+
 const PORT = env.PORT;
 
 const bootstrap = async (): Promise<void> => {
@@ -34,6 +37,16 @@ const bootstrap = async (): Promise<void> => {
       logger.info(`API prefix: /api/${env.API_VERSION}`);
       logger.info(`Health check: http://localhost:${PORT}/health`);
     });
+
+    // ── Attach Socket.IO ───────────────────────────────────────────────────
+    const io = new SocketIOServer(server, {
+      cors: {
+        origin: env.ALLOWED_ORIGINS,
+        credentials: true,
+      },
+    });
+    initSocketIO(io);
+    logger.info('WebSocket (Socket.IO): server initialized');
 
     // ── Graceful shutdown ───────────────────────────────────────────────────
     const shutdown = async (signal: string): Promise<void> => {

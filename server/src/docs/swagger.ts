@@ -32,6 +32,9 @@ export const swaggerDocument = {
     { name: 'Community — Members',   description: 'FR13 — GOLD/SILVER influencer member management' },
     { name: 'Community — Leaderboard', description: 'FR14 — Ranked member leaderboard per community' },
     { name: 'Community — Rankings',  description: 'FR15 — Platform-wide cross-community rankings (SYSTEM_ADMIN only)' },
+    { name: 'Chat — Real-Time & Direct', description: 'FR32/FR33 — Community chat and private direct messaging' },
+    { name: 'Voice & Media', description: 'FR34/FR35 — Voice recording messages and community video uploads' },
+    { name: 'Meetings & Content', description: 'FR36/FR37 — Meeting link sharing and campaign content submissions' },
   ],
   components: {
     securitySchemes: {
@@ -1238,6 +1241,137 @@ export const swaggerDocument = {
           403: { description: 'Must be admin, leader, or active community member' },
           404: { description: 'Community not found' },
         },
+      },
+    },
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // MODULE 6: COMMUNICATION & COLLABORATION (FR32–FR37)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    '/api/v1/chat/communities/{communityId}/messages': {
+      get: {
+        tags: ['Chat — Real-Time & Direct'],
+        summary: 'FR32 — Get community chat message history',
+        description: 'Paginated message history for community members and leaders.',
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'communityId', required: true, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'page', schema: { type: 'integer', default: 1 } },
+          { in: 'query', name: 'limit', schema: { type: 'integer', default: 20 } },
+        ],
+        responses: { 200: { description: 'List of community messages' }, 403: { description: 'Forbidden' } },
+      },
+      post: {
+        tags: ['Chat — Real-Time & Direct'],
+        summary: 'FR32 — Send message in community chat',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'communityId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { content: { type: 'string' } } } } } },
+        responses: { 201: { description: 'Message sent' } },
+      },
+    },
+
+    '/api/v1/chat/direct': {
+      get: {
+        tags: ['Chat — Real-Time & Direct'],
+        summary: 'FR33 — List direct conversations',
+        security: [{ BearerAuth: [] }],
+        responses: { 200: { description: 'Direct conversations' } },
+      },
+      post: {
+        tags: ['Chat — Real-Time & Direct'],
+        summary: 'FR33 — Start or send a direct message',
+        security: [{ BearerAuth: [] }],
+        requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { recipientId: { type: 'string' }, content: { type: 'string' } } } } } },
+        responses: { 201: { description: 'Direct message sent' }, 403: { description: 'Forbidden pair' } },
+      },
+    },
+
+    '/api/v1/chat/messages/{id}/read': {
+      patch: {
+        tags: ['Chat — Real-Time & Direct'],
+        summary: 'FR32/FR33 — Mark message read',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: { 200: { description: 'Message marked read' } },
+      },
+    },
+
+    '/api/v1/chat/messages/{id}': {
+      delete: {
+        tags: ['Chat — Real-Time & Direct'],
+        summary: 'FR32 — Soft delete a message',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: { 200: { description: 'Message deleted' } },
+      },
+    },
+
+    '/api/v1/chat/voice': {
+      post: {
+        tags: ['Voice & Media'],
+        summary: 'FR34 — Upload voice message metadata',
+        security: [{ BearerAuth: [] }],
+        requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { conversationId: { type: 'string' }, fileUrl: { type: 'string' }, fileSize: { type: 'integer' }, duration: { type: 'integer' }, mimeType: { type: 'string' } } } } } },
+        responses: { 201: { description: 'Voice message created' } },
+      },
+    },
+
+    '/api/v1/community/videos': {
+      post: {
+        tags: ['Voice & Media'],
+        summary: 'FR35 — Community Leader upload video',
+        security: [{ BearerAuth: [] }],
+        responses: { 201: { description: 'Video uploaded' }, 403: { description: 'Leader only' } },
+      },
+      get: {
+        tags: ['Voice & Media'],
+        summary: 'FR35 — List community videos',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'query', name: 'communityId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: { 200: { description: 'Videos list' } },
+      },
+    },
+
+    '/api/v1/community/meetings': {
+      post: {
+        tags: ['Meetings & Content'],
+        summary: 'FR36 — Community Leader share meeting link',
+        security: [{ BearerAuth: [] }],
+        responses: { 201: { description: 'Meeting link created' } },
+      },
+      get: {
+        tags: ['Meetings & Content'],
+        summary: 'FR36 — List meeting links',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'query', name: 'communityId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: { 200: { description: 'Meeting links list' } },
+      },
+    },
+
+    '/api/v1/campaign-content': {
+      post: {
+        tags: ['Meetings & Content'],
+        summary: 'FR37 — Influencer upload campaign content',
+        security: [{ BearerAuth: [] }],
+        responses: { 201: { description: 'Campaign content submitted' } },
+      },
+      get: {
+        tags: ['Meetings & Content'],
+        summary: 'FR37 — List campaign content submissions',
+        security: [{ BearerAuth: [] }],
+        responses: { 200: { description: 'Submissions list' } },
+      },
+    },
+
+    '/api/v1/campaign-content/{id}/review': {
+      patch: {
+        tags: ['Meetings & Content'],
+        summary: 'FR37 — Business Owner review campaign content',
+        security: [{ BearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { status: { type: 'string', enum: ['APPROVED', 'REJECTED'] }, feedback: { type: 'string' } } } } } },
+        responses: { 200: { description: 'Content reviewed' } },
       },
     },
   },

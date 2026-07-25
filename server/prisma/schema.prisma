@@ -105,6 +105,14 @@ enum AuditAction {
   WITHDRAWAL_APPROVED
   WITHDRAWAL_REJECTED
   BALANCE_ADJUSTED
+  // FR32–FR37
+  MESSAGE_SENT
+  MESSAGE_DELETED
+  VOICE_MESSAGE_CREATED
+  COMMUNITY_VIDEO_UPLOADED
+  MEETING_LINK_CREATED
+  CAMPAIGN_CONTENT_SUBMITTED
+  CAMPAIGN_CONTENT_REVIEWED
 }
 
 enum NotificationType {
@@ -133,6 +141,13 @@ enum NotificationType {
   WITHDRAWAL_SUBMITTED
   WITHDRAWAL_CANCELLED
   WITHDRAWAL_STATUS_CHANGED
+  // FR32–FR37
+  NEW_MESSAGE
+  NEW_VOICE_MESSAGE
+  NEW_COMMUNITY_VIDEO
+  NEW_MEETING_LINK
+  NEW_CAMPAIGN_CONTENT
+  CAMPAIGN_CONTENT_REVIEWED
   GENERAL
 }
 
@@ -261,6 +276,15 @@ model User {
   earnings             Earning[]
   influencerBalance    InfluencerBalance?
   withdrawalRequests   WithdrawalRequest[]
+
+  // Communication & Collaboration relations (FR32–FR37)
+  conversationParticipants ConversationParticipant[]
+  sentMessages             Message[]
+  messageReads             MessageRead[]
+  uploadedCommunityVideos  CommunityVideo[]
+  createdMeetingLinks      MeetingLink[]
+  submittedCampaignContents CampaignContent[]
+  campaignContentReviews   CampaignContentReview[]
 
   @@index([email])
   @@index([role])
@@ -537,6 +561,9 @@ model Community {
   manualConversions ManualConversion[]
   trackingEvents    TrackingEvent[]
   earnings          Earning[]
+  conversations     Conversation[]
+  videos            CommunityVideo[]
+  meetingLinks      MeetingLink[]
 
   @@index([status])
   @@index([communityLeaderId])
@@ -659,6 +686,7 @@ model Campaign {
   trackingEvents       TrackingEvent[]
   earnings             Earning[]
   commissionCalculations CommissionCalculation[]
+  contents             CampaignContent[]
 
   @@index([ownerId])
   @@index([status])
@@ -943,4 +971,227 @@ model WithdrawalRequest {
   @@index([status])
   @@index([requestedAt])
   @@map("withdrawal_requests")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODULE 6: COMMUNICATION & COLLABORATION (FR32–FR37)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum ConversationType {
+  COMMUNITY
+  DIRECT
+}
+
+enum MessageType {
+  TEXT
+  VOICE
+  VIDEO
+  FILE
+  SYSTEM
+}
+
+enum MeetingPlatform {
+  GOOGLE_MEET
+  ZOOM
+  TEAMS
+  OTHER
+}
+
+enum MeetingStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ContentSubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Conversation {
+  id           String                  @id @default(uuid()) @db.Uuid
+  type         ConversationType        @default(DIRECT)
+  communityId  String?                 @map("community_id") @db.Uuid
+  title        String?                 @db.VarChar(255)
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+  deletedAt    DateTime?               @map("deleted_at")
+
+  // Relations
+  community    Community?              @relation(fields: [communityId], references: [id])
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([type])
+  @@index([communityId])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid()) @db.Uuid
+  conversationId String       @map("conversation_id") @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  joinedAt       DateTime     @default(now()) @map("joined_at")
+  leftAt         DateTime?    @map("left_at")
+  lastReadAt     DateTime?    @map("last_read_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  deletedAt      DateTime?    @map("deleted_at")
+
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String         @id @default(uuid()) @db.Uuid
+  conversationId String         @map("conversation_id") @db.Uuid
+  senderId       String         @map("sender_id") @db.Uuid
+  content        String?        @db.Text
+  messageType    MessageType    @default(TEXT) @map("message_type")
+  isDeleted      Boolean        @default(false) @map("is_deleted")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  deletedAt      DateTime?      @map("deleted_at")
+
+  // Relations
+  conversation   Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User           @relation(fields: [senderId], references: [id])
+  readReceipts   MessageRead[]
+  voiceMessage   VoiceMessage?
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+model MessageRead {
+  id        String    @id @default(uuid()) @db.Uuid
+  messageId String    @map("message_id") @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  readAt    DateTime  @default(now()) @map("read_at")
+
+  // Relations
+  message   Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+  @@map("message_reads")
+}
+
+model VoiceMessage {
+  id        String    @id @default(uuid()) @db.Uuid
+  messageId String    @unique @map("message_id") @db.Uuid
+  fileUrl   String    @map("file_url") @db.VarChar(500)
+  fileSize  Int       @map("file_size")                     // bytes
+  duration  Int                                             // seconds
+  mimeType  String    @map("mime_type") @db.VarChar(100)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  message   Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("voice_messages")
+}
+
+model CommunityVideo {
+  id           String    @id @default(uuid()) @db.Uuid
+  communityId  String    @map("community_id") @db.Uuid
+  uploadedById String    @map("uploaded_by_id") @db.Uuid
+  title        String    @db.VarChar(255)
+  description  String?   @db.Text
+  videoUrl     String    @map("video_url") @db.VarChar(500)
+  duration     Int                                           // seconds
+  fileSize     Int       @map("file_size")                   // bytes
+  mimeType     String    @map("mime_type") @db.VarChar(100)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  community    Community @relation(fields: [communityId], references: [id])
+  uploadedBy   User      @relation(fields: [uploadedById], references: [id])
+
+  @@index([communityId])
+  @@index([uploadedById])
+  @@map("community_videos")
+}
+
+model MeetingLink {
+  id          String          @id @default(uuid()) @db.Uuid
+  communityId String          @map("community_id") @db.Uuid
+  createdById String          @map("created_by_id") @db.Uuid
+  title       String          @db.VarChar(255)
+  description String?         @db.Text
+  meetingUrl  String          @map("meeting_url") @db.VarChar(500)
+  platform    MeetingPlatform @default(OTHER)
+  status      MeetingStatus   @default(ACTIVE)
+  scheduledAt DateTime?       @map("scheduled_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  deletedAt   DateTime?       @map("deleted_at")
+
+  // Relations
+  community   Community       @relation(fields: [communityId], references: [id])
+  createdBy   User            @relation(fields: [createdById], references: [id])
+
+  @@index([communityId])
+  @@index([status])
+  @@map("meeting_links")
+}
+
+model CampaignContent {
+  id           String                  @id @default(uuid()) @db.Uuid
+  campaignId   String                  @map("campaign_id") @db.Uuid
+  influencerId String                  @map("influencer_id") @db.Uuid
+  title        String                  @db.VarChar(255)
+  description  String?                 @db.Text
+  videoUrl     String                  @map("video_url") @db.VarChar(500)
+  duration     Int                                                  // seconds
+  fileSize     Int                     @map("file_size")          // bytes
+  mimeType     String                  @map("mime_type") @db.VarChar(100)
+  status       ContentSubmissionStatus @default(PENDING)
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+  deletedAt    DateTime?               @map("deleted_at")
+
+  // Relations
+  campaign     Campaign                @relation(fields: [campaignId], references: [id])
+  influencer   User                    @relation(fields: [influencerId], references: [id])
+  reviews      CampaignContentReview[]
+
+  @@index([campaignId])
+  @@index([influencerId])
+  @@index([status])
+  @@map("campaign_contents")
+}
+
+model CampaignContentReview {
+  id         String                  @id @default(uuid()) @db.Uuid
+  contentId  String                  @map("content_id") @db.Uuid
+  reviewerId String                  @map("reviewer_id") @db.Uuid
+  status     ContentSubmissionStatus
+  feedback   String?                 @db.Text
+  reviewedAt DateTime                @default(now()) @map("reviewed_at")
+  createdAt  DateTime                @default(now()) @map("created_at")
+  updatedAt  DateTime                @updatedAt @map("updated_at")
+  deletedAt  DateTime?               @map("deleted_at")
+
+  // Relations
+  content    CampaignContent         @relation(fields: [contentId], references: [id])
+  reviewer   User                    @relation(fields: [reviewerId], references: [id])
+
+  @@index([contentId])
+  @@index([reviewerId])
+  @@map("campaign_content_reviews")
 }
