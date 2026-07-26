@@ -129,7 +129,7 @@ describe('FR11: RBAC — Community creation', () => {
     expect(res.status).toBe(401);
   });
 
-  it('POST /communities — 403 for BUSINESS_OWNER', async () => {
+  it('POST /communities — 403 for BUSINESS', async () => {
     const res = await request(app)
       .post('/api/v1/communities')
       .set('Authorization', `Bearer ${bizToken()}`)
@@ -137,7 +137,7 @@ describe('FR11: RBAC — Community creation', () => {
     expect(res.status).toBe(403);
   });
 
-  it('POST /communities — 403 for GOLD_INFLUENCER', async () => {
+  it('POST /communities — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .post('/api/v1/communities')
       .set('Authorization', `Bearer ${goldToken()}`)
@@ -161,14 +161,14 @@ describe('FR11: RBAC — Community creation', () => {
     expect(res.status).toBe(422);
   });
 
-  it('GET /communities — 403 for GOLD_INFLUENCER', async () => {
+  it('GET /communities — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .get('/api/v1/communities')
       .set('Authorization', `Bearer ${goldToken()}`);
     expect(res.status).toBe(403);
   });
 
-  it('DELETE /communities/:id — 403 for DIAMOND_INFLUENCER', async () => {
+  it('DELETE /communities/:id — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .delete(`/api/v1/communities/${COMM_UUID}`)
       .set('Authorization', `Bearer ${diamondToken()}`);
@@ -216,7 +216,7 @@ describe('FR11: Community CRUD — happy path', () => {
     expect(res.body.meta.total).toBe(1);
   });
 
-  it('GET /communities/:id — 200 returns community for SYSTEM_ADMIN', async () => {
+  it('GET /communities/:id — 200 returns community for SUPER_ADMIN', async () => {
     repo().findCommunityById.mockResolvedValue(mockCommunity());
 
     const res = await request(app)
@@ -356,7 +356,7 @@ describe('FR12: Commission', () => {
 // FR13 — Members
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR13: Members', () => {
-  it('POST /communities/:id/members — 403 for GOLD_INFLUENCER (non-leader)', async () => {
+  it('POST /communities/:id/members — 403 for INFLUENCER (non-leader)', async () => {
     const res = await request(app)
       .post(`/api/v1/communities/${COMM_UUID}/members`)
       .set('Authorization', `Bearer ${goldToken()}`)
@@ -396,7 +396,7 @@ describe('FR13: Members', () => {
     expect(res.body.data.userId).toBe(MEMBER_UUID);
   });
 
-  it('GET /communities/:id/members — 403 for BUSINESS_OWNER', async () => {
+  it('GET /communities/:id/members — 403 for BUSINESS', async () => {
     const res = await request(app)
       .get(`/api/v1/communities/${COMM_UUID}/members`)
       .set('Authorization', `Bearer ${bizToken()}`);
@@ -418,7 +418,7 @@ describe('FR13: Members', () => {
     expect(res.body.data).toHaveLength(1);
   });
 
-  it('DELETE /communities/:id/members/:memberId — 403 for GOLD_INFLUENCER', async () => {
+  it('DELETE /communities/:id/members/:memberId — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .delete(`/api/v1/communities/${COMM_UUID}/members/${MEMBER_ROW_ID}`)
       .set('Authorization', `Bearer ${goldToken()}`);
@@ -450,7 +450,7 @@ describe('FR13: Members', () => {
 // FR14 — Leaderboard
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR14: Leaderboard', () => {
-  it('GET /communities/:id/leaderboard — 403 for BUSINESS_OWNER', async () => {
+  it('GET /communities/:id/leaderboard — 403 for BUSINESS', async () => {
     const res = await request(app)
       .get(`/api/v1/communities/${COMM_UUID}/leaderboard`)
       .set('Authorization', `Bearer ${bizToken()}`);
@@ -485,7 +485,7 @@ describe('FR14: Leaderboard', () => {
 // FR15 — Cross-Community Rankings
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR15: Community Rankings', () => {
-  it('GET /communities/rankings — 403 for GOLD_INFLUENCER', async () => {
+  it('GET /communities/rankings — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .get('/api/v1/communities/rankings')
       .set('Authorization', `Bearer ${goldToken()}`);
@@ -727,14 +727,14 @@ describe('RBAC edge cases', () => {
     expect(res.status).toBe(401);
   });
 
-  it('POST /communities/:id/deactivate — 403 for DIAMOND_INFLUENCER', async () => {
+  it('POST /communities/:id/deactivate — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .post(`/api/v1/communities/${COMM_UUID}/deactivate`)
       .set('Authorization', `Bearer ${diamondToken()}`);
     expect(res.status).toBe(403);
   });
 
-  it('GET /communities/:id/commission/history — 403 for DIAMOND_INFLUENCER', async () => {
+  it('GET /communities/:id/commission/history — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .get(`/api/v1/communities/${COMM_UUID}/commission/history`)
       .set('Authorization', `Bearer ${diamondToken()}`);

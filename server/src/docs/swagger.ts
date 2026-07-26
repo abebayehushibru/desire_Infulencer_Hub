@@ -20,18 +20,18 @@ export const swaggerDocument = {
   ],
   tags: [
     { name: 'Auth',                  description: 'Authentication & Authorization (FR01–FR05)' },
-    { name: 'Admin — User Mgmt',     description: 'FR06 — Admin manages Business Owner accounts (SYSTEM_ADMIN only)' },
-    { name: 'Admin — Verification',  description: 'FR08 — Admin reviews business verification submissions (SYSTEM_ADMIN only)' },
-    { name: 'Admin — Tiers',         description: 'FR06/FR09 — Admin assigns and manages influencer tiers (SYSTEM_ADMIN only)' },
+    { name: 'Admin — User Mgmt',     description: 'FR06 — Admin manages Business Owner accounts (SUPER_ADMIN only)' },
+    { name: 'Admin — Verification',  description: 'FR08 — Admin reviews business verification submissions (SUPER_ADMIN only)' },
+    { name: 'Admin — Tiers',         description: 'FR06/FR09 — Admin assigns and manages influencer tiers (SUPER_ADMIN only)' },
     { name: 'Business Profile',      description: 'FR07 — Business Owner creates and manages their profile' },
     { name: 'Influencer Profile',    description: 'FR09 — Influencer manages their profile and views tier history' },
     { name: 'Agent',                 description: 'FR10 — Agent profile and read-only access to businesses/campaigns' },
     { name: 'Notifications',         description: 'In-app notifications for all authenticated users' },
-    { name: 'Community — Admin',     description: 'FR11 — SYSTEM_ADMIN creates, manages, deactivates, and deletes communities' },
+    { name: 'Community — Admin',     description: 'FR11 — SUPER_ADMIN creates, manages, deactivates, and deletes communities' },
     { name: 'Community — Commission',description: 'FR12 — Commission rules per community with full audit history' },
     { name: 'Community — Members',   description: 'FR13 — GOLD/SILVER influencer member management' },
     { name: 'Community — Leaderboard', description: 'FR14 — Ranked member leaderboard per community' },
-    { name: 'Community — Rankings',  description: 'FR15 — Platform-wide cross-community rankings (SYSTEM_ADMIN only)' },
+    { name: 'Community — Rankings',  description: 'FR15 — Platform-wide cross-community rankings (SUPER_ADMIN only)' },
     { name: 'Chat — Real-Time & Direct', description: 'FR32/FR33 — Community chat and private direct messaging' },
     { name: 'Voice & Media', description: 'FR34/FR35 — Voice recording messages and community video uploads' },
     { name: 'Meetings & Content', description: 'FR36/FR37 — Meeting link sharing and campaign content submissions' },
@@ -84,12 +84,12 @@ export const swaggerDocument = {
           role: {
             type: 'string',
             enum: [
-              'SYSTEM_ADMIN',
-              'BUSINESS_OWNER',
+              'SUPER_ADMIN',
+              'BUSINESS',
               'AGENT',
-              'DIAMOND_INFLUENCER',
-              'GOLD_INFLUENCER',
-              'SILVER_INFLUENCER',
+              'INFLUENCER',
+              'INFLUENCER',
+              'INFLUENCER',
             ],
           },
           status: {
@@ -506,7 +506,7 @@ export const swaggerDocument = {
       post: {
         tags: ['Admin — User Mgmt'],
         summary: 'FR06 — Admin creates a Business Owner account',
-        description: 'SYSTEM_ADMIN only. Creates an active Business Owner. Optionally bootstraps a business profile. Account is marked active and email pre-verified.',
+        description: 'SUPER_ADMIN only. Creates an active Business Owner. Optionally bootstraps a business profile. Account is marked active and email pre-verified.',
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
@@ -515,7 +515,7 @@ export const swaggerDocument = {
         responses: {
           201: { description: 'Business Owner account created', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiResponse' } } } },
           401: { description: 'Not authenticated' },
-          403: { description: 'Insufficient role — SYSTEM_ADMIN required' },
+          403: { description: 'Insufficient role — SUPER_ADMIN required' },
           409: { description: 'Email already in use' },
           422: { description: 'Validation error' },
         },
@@ -527,7 +527,7 @@ export const swaggerDocument = {
         summary: 'FR06 — List all users with filters and pagination',
         security: [{ BearerAuth: [] }],
         parameters: [
-          { in: 'query', name: 'role',   schema: { type: 'string', enum: ['SYSTEM_ADMIN', 'BUSINESS_OWNER', 'AGENT', 'DIAMOND_INFLUENCER', 'GOLD_INFLUENCER', 'SILVER_INFLUENCER'] }, description: 'Filter by role' },
+          { in: 'query', name: 'role',   schema: { type: 'string', enum: ['SUPER_ADMIN', 'BUSINESS', 'AGENT', 'INFLUENCER', 'INFLUENCER', 'INFLUENCER'] }, description: 'Filter by role' },
           { in: 'query', name: 'status', schema: { type: 'string', enum: ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING_VERIFICATION'] }, description: 'Filter by status' },
           { in: 'query', name: 'search', schema: { type: 'string', maxLength: 100 }, description: 'Full-text search on firstName, lastName, email' },
           { in: 'query', name: 'page',   schema: { type: 'integer', minimum: 1, default: 1 } },
@@ -585,13 +585,13 @@ export const swaggerDocument = {
       post: {
         tags: ['Admin — User Mgmt'],
         summary: 'FR06 — Deactivate a Business Owner account',
-        description: 'Sets user status to INACTIVE. Cannot deactivate SYSTEM_ADMIN accounts.',
+        description: 'Sets user status to INACTIVE. Cannot deactivate SUPER_ADMIN accounts.',
         security: [{ BearerAuth: [] }],
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
           200: { description: 'User deactivated' },
           400: { description: 'User already inactive' },
-          403: { description: 'Cannot deactivate SYSTEM_ADMIN' },
+          403: { description: 'Cannot deactivate SUPER_ADMIN' },
           404: { description: 'User not found' },
         },
       },
@@ -725,7 +725,7 @@ export const swaggerDocument = {
       post: {
         tags: ['Business Profile'],
         summary: 'FR07 — Create business profile (Business Owner)',
-        description: 'BUSINESS_OWNER only. One profile per account. After creation, user status is set to PENDING_VERIFICATION until an admin approves.',
+        description: 'BUSINESS only. One profile per account. After creation, user status is set to PENDING_VERIFICATION until an admin approves.',
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
@@ -734,7 +734,7 @@ export const swaggerDocument = {
         responses: {
           201: { description: 'Business profile created. Status: PENDING_VERIFICATION.' },
           401: { description: 'Not authenticated' },
-          403: { description: 'Only BUSINESS_OWNER can create a business profile' },
+          403: { description: 'Only BUSINESS can create a business profile' },
           409: { description: 'Business profile already exists for this account' },
           422: { description: 'Validation error' },
         },
@@ -746,7 +746,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Business profile with documents', content: { 'application/json': { schema: { $ref: '#/components/schemas/BusinessProfile' } } } },
           401: { description: 'Not authenticated' },
-          403: { description: 'Only BUSINESS_OWNER or SYSTEM_ADMIN can access this' },
+          403: { description: 'Only BUSINESS or SUPER_ADMIN can access this' },
           404: { description: 'Business profile not found' },
         },
       },
@@ -762,7 +762,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Business profile updated. If was APPROVED, now PENDING re-review.' },
           401: { description: 'Not authenticated' },
-          403: { description: 'Only BUSINESS_OWNER can update their profile' },
+          403: { description: 'Only BUSINESS can update their profile' },
           404: { description: 'Business profile not found' },
         },
       },
@@ -781,7 +781,7 @@ export const swaggerDocument = {
           201: { description: 'Document record created in private storage' },
           400: { description: 'Disallowed MIME type or file exceeds 10 MB' },
           401: { description: 'Not authenticated' },
-          403: { description: 'Only BUSINESS_OWNER can upload documents' },
+          403: { description: 'Only BUSINESS can upload documents' },
           404: { description: 'Business profile not found — create it first' },
         },
       },
@@ -888,7 +888,7 @@ export const swaggerDocument = {
       get: {
         tags: ['Agent'],
         summary: 'FR10 — Agent views all businesses (read-only)',
-        description: 'Agents can view businesses to assist with onboarding. No modification rights. Also accessible by SYSTEM_ADMIN.',
+        description: 'Agents can view businesses to assist with onboarding. No modification rights. Also accessible by SUPER_ADMIN.',
         security: [{ BearerAuth: [] }],
         parameters: [
           { in: 'query', name: 'status', schema: { type: 'string', enum: ['PENDING', 'APPROVED', 'REJECTED'] }, description: 'Filter by verification status' },
@@ -896,7 +896,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Business list returned (read-only)' },
           401: { description: 'Not authenticated' },
-          403: { description: 'AGENT or SYSTEM_ADMIN role required' },
+          403: { description: 'AGENT or SUPER_ADMIN role required' },
         },
       },
     },
@@ -957,7 +957,7 @@ export const swaggerDocument = {
       post: {
         tags: ['Community — Admin'],
         summary: 'FR11 — Create a new community',
-        description: 'SYSTEM_ADMIN only. Title must be unique (case-insensitive). Optionally assign a DIAMOND influencer as leader.',
+        description: 'SUPER_ADMIN only. Title must be unique (case-insensitive). Optionally assign a DIAMOND influencer as leader.',
         security: [{ BearerAuth: [] }],
         requestBody: {
           required: true,
@@ -968,14 +968,14 @@ export const swaggerDocument = {
               title:             { type: 'string', minLength: 3, maxLength: 255, example: 'Fashion Creators' },
               description:       { type: 'string', maxLength: 5000, example: 'A community for fashion influencers.' },
               rules:             { type: 'string', maxLength: 5000, example: 'Be respectful. No spam.' },
-              communityLeaderId: { type: 'string', format: 'uuid', nullable: true, description: 'Must be a DIAMOND_INFLUENCER user ID' },
+              communityLeaderId: { type: 'string', format: 'uuid', nullable: true, description: 'Must be a INFLUENCER user ID' },
             },
           } } },
         },
         responses: {
           201: { description: 'Community created. Leader notification sent if leader assigned.' },
           401: { description: 'Not authenticated' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
           409: { description: 'Community title already exists, or leader already leads another community' },
           422: { description: 'Validation error' },
         },
@@ -995,7 +995,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Paginated community list with member counts and commission data' },
           401: { description: 'Not authenticated' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
         },
       },
     },
@@ -1004,7 +1004,7 @@ export const swaggerDocument = {
       get: {
         tags: ['Community — Rankings'],
         summary: 'FR15 — Platform-wide cross-community rankings',
-        description: 'SYSTEM_ADMIN only. Rank all communities by earnings, conversions, or active campaigns. Paginated and sortable.',
+        description: 'SUPER_ADMIN only. Rank all communities by earnings, conversions, or active campaigns. Paginated and sortable.',
         security: [{ BearerAuth: [] }],
         parameters: [
           { in: 'query', name: 'page',      schema: { type: 'integer', minimum: 1, default: 1 } },
@@ -1016,7 +1016,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Ranked community list. Earnings/conversions populated by Module 4.' },
           401: { description: 'Not authenticated' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
         },
       },
     },
@@ -1025,7 +1025,7 @@ export const swaggerDocument = {
       get: {
         tags: ['Community — Admin'],
         summary: 'FR11 — Get community details',
-        description: 'Accessible by SYSTEM_ADMIN, the community leader, and community members.',
+        description: 'Accessible by SUPER_ADMIN, the community leader, and community members.',
         security: [{ BearerAuth: [] }],
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
@@ -1037,7 +1037,7 @@ export const swaggerDocument = {
       },
       patch: {
         tags: ['Community — Admin'],
-        summary: 'FR11 — Update community (SYSTEM_ADMIN only)',
+        summary: 'FR11 — Update community (SUPER_ADMIN only)',
         description: 'Update title, description, rules, status, or community leader. Title must remain unique.',
         security: [{ BearerAuth: [] }],
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
@@ -1057,7 +1057,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Community updated. New leader notified if leadership changed.' },
           400: { description: 'Invalid data' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
           404: { description: 'Community not found' },
           409: { description: 'Duplicate title or leader already assigned elsewhere' },
           422: { description: 'Validation error' },
@@ -1065,13 +1065,13 @@ export const swaggerDocument = {
       },
       delete: {
         tags: ['Community — Admin'],
-        summary: 'FR11 — Soft-delete community (SYSTEM_ADMIN only)',
+        summary: 'FR11 — Soft-delete community (SUPER_ADMIN only)',
         description: 'Marks the community as deleted and sets status INACTIVE. Cascades to members but preserves history.',
         security: [{ BearerAuth: [] }],
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
           200: { description: 'Community soft-deleted' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
           404: { description: 'Community not found' },
         },
       },
@@ -1087,7 +1087,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Community deactivated' },
           400: { description: 'Community is already inactive' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
           404: { description: 'Community not found' },
         },
       },
@@ -1101,7 +1101,7 @@ export const swaggerDocument = {
       patch: {
         tags: ['Community — Commission'],
         summary: 'FR12 — Set or update commission rules',
-        description: 'SYSTEM_ADMIN only. leaderPercentage + memberPercentage must equal 100. Creates an immutable history record. Seals the previous history record. Notifies the community leader.',
+        description: 'SUPER_ADMIN only. leaderPercentage + memberPercentage must equal 100. Creates an immutable history record. Seals the previous history record. Notifies the community leader.',
         security: [{ BearerAuth: [] }],
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: {
@@ -1120,7 +1120,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Commission updated. History record created. Leader notified.' },
           400: { description: 'leaderPercentage + memberPercentage != 100, or platform fee out of range' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
           404: { description: 'Community not found' },
           422: { description: 'Validation error' },
         },
@@ -1132,7 +1132,7 @@ export const swaggerDocument = {
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
           200: { description: 'Current commission configuration' },
-          403: { description: 'SYSTEM_ADMIN or Community Leader required' },
+          403: { description: 'SUPER_ADMIN or Community Leader required' },
           404: { description: 'Community or commission not found' },
         },
       },
@@ -1142,12 +1142,12 @@ export const swaggerDocument = {
       get: {
         tags: ['Community — Commission'],
         summary: 'FR12 — Get commission change history',
-        description: 'SYSTEM_ADMIN only. Returns all past commission configurations ordered by effectiveFrom descending. Historical records are never modified.',
+        description: 'SUPER_ADMIN only. Returns all past commission configurations ordered by effectiveFrom descending. Historical records are never modified.',
         security: [{ BearerAuth: [] }],
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
           200: { description: 'Commission history list' },
-          403: { description: 'SYSTEM_ADMIN role required' },
+          403: { description: 'SUPER_ADMIN role required' },
           404: { description: 'Community not found' },
         },
       },
@@ -1161,7 +1161,7 @@ export const swaggerDocument = {
       post: {
         tags: ['Community — Members'],
         summary: 'FR13 — Add a member to a community',
-        description: 'SYSTEM_ADMIN or Community Leader. Only GOLD_INFLUENCER and SILVER_INFLUENCER can become members. DIAMOND influencers cannot be regular members. Prevents duplicate active membership. Blocked for suspended/inactive users.',
+        description: 'SUPER_ADMIN or Community Leader. Only INFLUENCER and INFLUENCER can become members. DIAMOND influencers cannot be regular members. Prevents duplicate active membership. Blocked for suspended/inactive users.',
         security: [{ BearerAuth: [] }],
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: {
@@ -1175,7 +1175,7 @@ export const swaggerDocument = {
         responses: {
           201: { description: 'Member added. In-app notification sent to new member.' },
           400: { description: 'Ineligible role, suspended/inactive user, or inactive community' },
-          403: { description: 'SYSTEM_ADMIN or Community Leader required' },
+          403: { description: 'SUPER_ADMIN or Community Leader required' },
           404: { description: 'Community or user not found' },
           409: { description: 'User is already an active member' },
           422: { description: 'Validation error' },
@@ -1184,7 +1184,7 @@ export const swaggerDocument = {
       get: {
         tags: ['Community — Members'],
         summary: 'FR13 — List community members',
-        description: 'Accessible by SYSTEM_ADMIN, the community leader, and existing community members.',
+        description: 'Accessible by SUPER_ADMIN, the community leader, and existing community members.',
         security: [{ BearerAuth: [] }],
         parameters: [
           { in: 'path', name: 'id', required: true, schema: { type: 'string', format: 'uuid' } },
@@ -1204,7 +1204,7 @@ export const swaggerDocument = {
       delete: {
         tags: ['Community — Members'],
         summary: 'FR13 — Remove a member from a community',
-        description: 'SYSTEM_ADMIN or Community Leader. Sets member status to REMOVED and records leftAt. Sends in-app notification to removed member.',
+        description: 'SUPER_ADMIN or Community Leader. Sets member status to REMOVED and records leftAt. Sends in-app notification to removed member.',
         security: [{ BearerAuth: [] }],
         parameters: [
           { in: 'path', name: 'id',       required: true, schema: { type: 'string', format: 'uuid' } },
@@ -1213,7 +1213,7 @@ export const swaggerDocument = {
         responses: {
           200: { description: 'Member removed. In-app notification sent.' },
           400: { description: 'Member already removed' },
-          403: { description: 'SYSTEM_ADMIN or Community Leader required' },
+          403: { description: 'SUPER_ADMIN or Community Leader required' },
           404: { description: 'Community or membership not found' },
         },
       },
@@ -1227,7 +1227,7 @@ export const swaggerDocument = {
       get: {
         tags: ['Community — Leaderboard'],
         summary: 'FR14 — Community member leaderboard',
-        description: 'Rank active members by totalConversions, totalEarnings, or campaignActivity. Visible to SYSTEM_ADMIN, the community leader, and members. Conversion/earnings metrics populated by Module 4.',
+        description: 'Rank active members by totalConversions, totalEarnings, or campaignActivity. Visible to SUPER_ADMIN, the community leader, and members. Conversion/earnings metrics populated by Module 4.',
         security: [{ BearerAuth: [] }],
         parameters: [
           { in: 'path',  name: 'id',        required: true, schema: { type: 'string', format: 'uuid' } },

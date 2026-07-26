@@ -136,7 +136,7 @@ describe('FR16: createCampaign()', () => {
     expect(repo.createCampaign).toHaveBeenCalled();
   });
 
-  it('throws 403 if user is not a BUSINESS_OWNER', async () => {
+  it('throws 403 if user is not a BUSINESS', async () => {
     repo.findUserById.mockResolvedValue({ ...makeOwner(), role: 'AGENT' } as any);
     await expect(campaignService.createCampaign(dto, BIZ_ID, ctx))
       .rejects.toMatchObject({ statusCode: 403 });

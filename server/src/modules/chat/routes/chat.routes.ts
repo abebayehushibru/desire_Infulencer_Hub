@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import { chatController as ctrl } from '../controllers/chat.controller';
 import { authenticate } from '../../../middleware/authenticate';
+import { authorize } from '../../../middleware/authorize';
 import { validate } from '../../../middleware/validate';
 import {
   sendCommunityMessageValidator,
@@ -179,6 +180,8 @@ campaignContentRouter.get(
  */
 campaignContentRouter.patch(
   '/:id/review',
+  (req: import('express').Request, res: import('express').Response, next: import('express').NextFunction) =>
+    authorize('SUPER_ADMIN', 'ADMIN', 'BUSINESS')(req as any, res, next),
   reviewCampaignContentValidator, validate,
   ctrl.reviewCampaignContent.bind(ctrl),
 );

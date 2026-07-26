@@ -107,7 +107,7 @@ describe('FR06: Admin routes RBAC', () => {
     expect(res.status).toBe(403);
   });
 
-  it('GET /admin/users — 200 for SYSTEM_ADMIN', async () => {
+  it('GET /admin/users — 200 for SUPER_ADMIN', async () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
     r.listUsers.mockResolvedValue({ users: [], total: 0 });
 
@@ -141,7 +141,7 @@ describe('FR06: Admin routes RBAC', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR07: Business Profile', () => {
 
-  it('POST /business/profile — 403 for SILVER_INFLUENCER', async () => {
+  it('POST /business/profile — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .post('/api/v1/users/business/profile')
       .set('Authorization', `Bearer ${silverToken()}`)
@@ -214,7 +214,7 @@ describe('FR09: Influencer Tiers', () => {
     expect(res.status).toBe(403);
   });
 
-  it('GET /influencer/profile — 403 for BUSINESS_OWNER', async () => {
+  it('GET /influencer/profile — 403 for BUSINESS', async () => {
     const res = await request(app)
       .get('/api/v1/users/influencer/profile')
       .set('Authorization', `Bearer ${bizToken()}`);
@@ -242,14 +242,14 @@ describe('FR10: Agent Role', () => {
     expect(res.status).toBe(200);
   });
 
-  it('GET /agent/businesses — 403 for SILVER_INFLUENCER', async () => {
+  it('GET /agent/businesses — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .get('/api/v1/users/agent/businesses')
       .set('Authorization', `Bearer ${silverToken()}`);
     expect(res.status).toBe(403);
   });
 
-  it('POST /agent/profile — 403 for BUSINESS_OWNER', async () => {
+  it('POST /agent/profile — 403 for BUSINESS', async () => {
     const res = await request(app)
       .post('/api/v1/users/agent/profile')
       .set('Authorization', `Bearer ${bizToken()}`)
@@ -520,7 +520,7 @@ describe('FR08: Admin business review — happy path', () => {
 // Happy-Path: FR09 Influencer profile + tier assignment
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR09: Influencer profile + tier — happy path', () => {
-  it('POST /influencer/profile — 201 for SILVER_INFLUENCER', async () => {
+  it('POST /influencer/profile — 201 for INFLUENCER', async () => {
     const { userManagementRepository: r } = require('../../modules/users/repositories/user-management.repository');
     r.findUserById.mockResolvedValue({ id: 'silver-1', role: 'INFLUENCER', status: 'ACTIVE', deletedAt: null });
     r.findInfluencerProfileByUserId.mockResolvedValue(null);

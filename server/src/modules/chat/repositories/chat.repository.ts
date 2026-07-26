@@ -478,7 +478,7 @@ export class ChatRepository {
         action: data.action,
         ipAddress: data.ipAddress || '127.0.0.1',
         userAgent: data.userAgent || 'system',
-        metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+        metadata: data.metadata ? data.metadata as any : undefined,
       },
     });
   }
@@ -496,7 +496,7 @@ export class ChatRepository {
         type: data.type,
         title: data.title,
         message: data.message,
-        metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+        metadata: data.metadata ? data.metadata as any : undefined,
       },
     });
   }

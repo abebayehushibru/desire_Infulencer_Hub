@@ -270,7 +270,7 @@ describe('AuthService.logoutAll()', () => {
   it('should blacklist the current access token in Redis', async () => {
     mockRepo.revokeAllUserRefreshTokens.mockResolvedValue(undefined);
     const { signAccessToken } = require('../../common/utils/jwt.util');
-    const token = signAccessToken({ sub: 'user-uuid-1', email: 'x@x.com', role: 'SILVER_INFLUENCER' });
+    const token = signAccessToken({ sub: 'user-uuid-1', email: 'x@x.com', role: 'INFLUENCER' });
 
     // Verify the token is valid before passing it
     const { verifyAccessToken } = require('../../common/utils/jwt.util');

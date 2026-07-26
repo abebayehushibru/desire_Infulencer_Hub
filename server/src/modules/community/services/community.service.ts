@@ -355,7 +355,7 @@ class CommunityService {
   async removeMember(communityId: string, memberId: string, requesterId: string, requesterRole: string, ctx: { ip: string; userAgent: string }) {
     const community = await this.findOrThrow(communityId);
 
-    // Requester must be SYSTEM_ADMIN or the community leader
+    // Requester must be SUPER_ADMIN or the community leader
     this.assertCanManageMembers(community, requesterId, requesterRole);
 
     // memberId is the CommunityMember row ID — look it up directly and verify it belongs to this community
@@ -390,7 +390,7 @@ class CommunityService {
   async listMembers(communityId: string, query: ListMembersQueryDto, requesterId: string, requesterRole: string): Promise<PaginatedResult<any>> {
     const community = await this.findOrThrow(communityId);
 
-    // Accessible by SYSTEM_ADMIN or community leader/member
+    // Accessible by SUPER_ADMIN or community leader/member
     await this.assertCanViewCommunity(community, requesterId, requesterRole);
 
     const page  = Math.max(1, query.page  ?? 1);
@@ -419,7 +419,7 @@ class CommunityService {
   async getLeaderboard(communityId: string, query: LeaderboardQueryDto, requesterId: string, requesterRole: string): Promise<PaginatedResult<any>> {
     const community = await this.findOrThrow(communityId);
 
-    // Visible to community leader, community members, and SYSTEM_ADMIN
+    // Visible to community leader, community members, and SUPER_ADMIN
     await this.assertCanViewCommunity(community, requesterId, requesterRole);
 
     const page      = Math.max(1, query.page  ?? 1);
@@ -441,7 +441,7 @@ class CommunityService {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // FR15 — Cross-Community Rankings (SYSTEM_ADMIN only)
+  // FR15 — Cross-Community Rankings (SUPER_ADMIN only)
   // ─────────────────────────────────────────────────────────────────────────
 
   async getCommunityRankings(query: CommunityRankingsQueryDto): Promise<PaginatedResult<any>> {

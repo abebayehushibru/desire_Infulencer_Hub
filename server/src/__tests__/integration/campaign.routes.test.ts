@@ -149,7 +149,7 @@ describe('FR16: RBAC guards', () => {
     expect(res.status).toBe(401);
   });
 
-  it('POST /campaigns — 403 for GOLD_INFLUENCER', async () => {
+  it('POST /campaigns — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .post('/api/v1/campaigns')
       .set('Authorization', `Bearer ${goldToken()}`)
@@ -202,7 +202,7 @@ describe('FR16: RBAC guards', () => {
     expect(res.status).toBe(422);
   });
 
-  it('DELETE /campaigns/:id — 403 for GOLD_INFLUENCER', async () => {
+  it('DELETE /campaigns/:id — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .delete(`/api/v1/campaigns/${CAMP_UUID}`)
       .set('Authorization', `Bearer ${goldToken()}`);
@@ -323,7 +323,7 @@ describe('FR18: Submit campaign', () => {
 // FR19 — Admin Review
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR19: Admin review', () => {
-  it('POST /campaigns/:id/admin-review — 403 for BUSINESS_OWNER', async () => {
+  it('POST /campaigns/:id/admin-review — 403 for BUSINESS', async () => {
     const res = await request(app)
       .post(`/api/v1/campaigns/${CAMP_UUID}/admin-review`)
       .set('Authorization', `Bearer ${bizToken()}`)
@@ -365,7 +365,7 @@ describe('FR19: Admin review', () => {
 // FR20 — Leader Review
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR20: Leader review', () => {
-  it('POST /campaigns/:id/leader-review — 403 for BUSINESS_OWNER', async () => {
+  it('POST /campaigns/:id/leader-review — 403 for BUSINESS', async () => {
     const res = await request(app)
       .post(`/api/v1/campaigns/${CAMP_UUID}/leader-review`)
       .set('Authorization', `Bearer ${bizToken()}`)
@@ -408,7 +408,7 @@ describe('FR20: Leader review', () => {
 // FR22 — Lifecycle
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR22: Campaign lifecycle', () => {
-  it('POST /campaigns/:id/pause — 403 for GOLD_INFLUENCER', async () => {
+  it('POST /campaigns/:id/pause — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .post(`/api/v1/campaigns/${CAMP_UUID}/pause`)
       .set('Authorization', `Bearer ${goldToken()}`);
@@ -444,7 +444,7 @@ describe('FR22: Campaign lifecycle', () => {
 // FR21 — Tracking
 // ─────────────────────────────────────────────────────────────────────────────
 describe('FR21: Tracking resources', () => {
-  it('GET /campaigns/:id/tracking — 403 for GOLD_INFLUENCER', async () => {
+  it('GET /campaigns/:id/tracking — 403 for INFLUENCER', async () => {
     const res = await request(app)
       .get(`/api/v1/campaigns/${CAMP_UUID}/tracking`)
       .set('Authorization', `Bearer ${goldToken()}`);

@@ -231,7 +231,7 @@ describe('Authentication: Token Security', () => {
   it('401 with JWT signed by wrong secret', async () => {
     const jwt = require('jsonwebtoken');
     const fakeToken = jwt.sign(
-      { sub: 'uid', email: 'x@x.com', role: 'SYSTEM_ADMIN' },
+      { sub: 'uid', email: 'x@x.com', role: 'SUPER_ADMIN' },
       'wrong-secret-key',
       { expiresIn: '15m' }
     );
@@ -244,7 +244,7 @@ describe('Authentication: Token Security', () => {
   it('401 with "none" algorithm token (algorithm confusion)', async () => {
     const noneToken = [
       Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url'),
-      Buffer.from(JSON.stringify({ sub: 'admin', role: 'SYSTEM_ADMIN', email: 'h@h.com' })).toString('base64url'),
+      Buffer.from(JSON.stringify({ sub: 'admin', role: 'SUPER_ADMIN', email: 'h@h.com' })).toString('base64url'),
       '',
     ].join('.');
     const res = await request(app)

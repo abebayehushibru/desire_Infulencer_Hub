@@ -47,7 +47,7 @@ const adminOrBizOrLeader = (req: Request, res: Response, next: NextFunction) =>
 
 /** POST /api/v1/campaigns — FR16: Create campaign (verified BUSINESS) */
 router.post(
-  '/business',
+  '/',
   bizOnly,
   createCampaignValidator, validate,
   ctrl.createCampaign.bind(ctrl),
@@ -55,7 +55,7 @@ router.post(
 
 /** GET /api/v1/campaigns — List campaigns (admin sees all, owner sees own) */
 router.get(
-  '/business',
+  '/',
   adminOrBizOrLeader,
   listCampaignsValidator, validate,
   ctrl.listCampaigns.bind(ctrl),

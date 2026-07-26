@@ -10,7 +10,7 @@ export interface CreateCommunityDto {
   title: string;
   description?: string;
   rules?: string;
-  communityLeaderId?: string; // must be a DIAMOND_INFLUENCER user id
+  communityLeaderId?: string; // must be a INFLUENCER user id
 }
 
 export interface UpdateCommunityDto {
