@@ -1,0 +1,127 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "../pages/Home";
+import CreateCampaign from "../pages/campaign/CreateCampaigns";
+import CampaignDetail from "../pages/campaign/CampaignDetail";
+import Contents from "../pages/campaign/Contents";
+import Chat from "../pages/campaign/Chat";
+import Performance from "../pages/campaign/Performance";
+import Conversions from "../pages/campaign/Conversions";
+import Earnings from "../pages/campaign/Earnings";
+import Campaignclaims from "../pages/campaign/Campaignclaims";
+import CampaignLayout from "../layouts/CampaignLayout";
+import Campaigns from "../pages/campaign/Campaigns";
+import ResponsiveLayout from "../layouts/ResponsiveLayout";
+import ClaimDetail from "../pages/campaign/ClaimDetail";
+import { useMediaQuery } from 'react-responsive';
+import Overview from "../pages/campaign/Overview";
+import MobileOverview from "../pages/campaign/MobileOverview";
+
+import Influencers from "../pages/Influencers/Influencers";
+import CreateInfluencer from "../pages/Influencers/CreateInfluencer";
+import EditInfluencer from "../pages/Influencers/Editinfluencer";
+import InfluencerDetail from "../pages/Influencers/Influencerdetail";
+import CommunityDetail from "../pages/community/Communitydetail";
+import Communities from "../pages/community/Communities";
+import CreateCommunity from "../pages/community/Createcommunity";
+import EditCommunity from "../pages/community/Editcommunity";
+import CreateBusiness from "../pages/business/Createbusiness";
+import EditBusiness from "../pages/business/Editbusiness";
+import BusinessDetail from "../pages/business/Businessdetail";
+import Businesses from "../pages/business/Businesses";
+import TheHubLanding from "../pages/Landing";
+
+import AddConversion from "../pages/campaign/Addconversion";
+import EditConversion from "../pages/campaign/Editconversion";
+import Payments from "../pages/payments/Payments";
+import EditPayment from "../pages/payments/EditPayment";
+import Notification from "../pages/notifications/Notifications";
+import Setting from "../pages/settings/Settings";
+import PasswordSetting from "../pages/settings/Passwordsetting ";
+import EditCampaign from "../pages/campaign/Editcampaign";
+import VerifyEmail from "../pages/auth/VerifyEmail";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import VerifyResetCode from "../pages/auth/VerifyResetCode";
+import ResetPassword from "../pages/auth/ResetPassword";
+import Auth from "../pages/auth/Auth";
+import Register from "../pages/auth/Register";
+import Login from "../pages/auth/Login";
+import Unauthorized from "../pages/Unauthorized";
+import NotFound from "../pages/NotFound";
+import InfluencerEarnings from "../pages/payments/InfluencerEarnings";
+
+export default function AppRouter() {
+
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<TheHubLanding />} />
+        <Route path="auth" element={<Auth />}>
+
+          <Route path="verify-email" element={<VerifyEmail />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="verify-reset-code" element={<VerifyResetCode />} />
+          <Route path="reset-password" element={<ResetPassword />} />
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="*" element={<NotFound />} />
+
+        </Route>
+
+        <Route path="/" element={<ResponsiveLayout />}>
+
+          <Route path="dashboard" element={<Home />} />
+          <Route path="campaigns" element={<CampaignLayout />}>
+            <Route index element={<Campaigns />} />
+            <Route path="create" element={<EditCampaign />} />
+            <Route path="claims" element={<Campaignclaims />} />
+            <Route path=":id/edit" element={<EditCampaign />} />
+
+
+            <Route path=":id" element={isMobile ? <ClaimDetail /> : <CampaignDetail />}>
+
+              <Route index element={isMobile ? <MobileOverview /> : <Overview />} />
+
+              <Route path="overview" index element={isMobile ? <MobileOverview /> : <Overview />} />
+              <Route path="contents" element={<Contents />} />
+              <Route path="chat" element={<Chat />} />
+              <Route path="performance" element={<Performance />} />
+              <Route path="conversions" element={<Conversions />} />
+
+              <Route path="earnings" element={<Earnings />} />
+
+                <Route path="*" element={<NotFound />} />
+            </Route>
+              <Route path="*" element={<NotFound />} />
+          </Route>
+          <Route path="campaigns/:id/conversions/add" element={<AddConversion />} />
+          <Route path="campaigns/:id/conversions/edit/:id2" element={<EditConversion />} />
+          <Route path="influencers" element={<Influencers />} />
+          <Route path="influencers/create" element={<CreateInfluencer />} />
+          <Route path="influencers/edit/:id" element={<EditInfluencer />} />
+          <Route path="influencers/view/:id" element={<InfluencerDetail />} />
+          <Route path="communities" element={<Communities />} />
+          <Route path="communities/create" element={<CreateCommunity />} />
+          <Route path="communities/view/:id" element={<CommunityDetail />} />
+          <Route path="communities/edit/:id" element={<EditCommunity />} />
+          <Route path="businesses" element={<Businesses />} />
+          <Route path="businesses/create" element={<CreateBusiness />} />
+          <Route path="businesses/edit/:id" element={<EditBusiness />} />
+          <Route path="businesses/view/:id" element={<BusinessDetail />} />
+          <Route path="payments" element={<Payments />} />
+          <Route path="payments/view/:id" element={<EditPayment />} />
+          <Route path="notifications" element={<Notification />} />
+          <Route path="settings" element={<Setting />} />
+          <Route path="settings/password" element={<PasswordSetting />} />
+          <Route path="earnings" element={<InfluencerEarnings />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+        <Route path="login" element={<Login />} />
+  <Route path="unauthorized" element={<Unauthorized />} />
+
+          <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
