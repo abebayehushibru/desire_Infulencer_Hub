@@ -13,6 +13,8 @@
 
 .poppins {
   font-family: "Poppins", sans-serif;
+  width: 100%;
+  overflow: hidden;
 }
 
 .poppins-thin {
@@ -125,5 +127,11 @@
 
 body{
     font-family: Inter, sans-serif;
-    background:#F6F7FB;
+    background:#F6F7FB;;
+    display: flex ;
+    position: relative;
+    margin: 0;
+    padding:0;
+    width: 100%;
+    height: 100%;
 }

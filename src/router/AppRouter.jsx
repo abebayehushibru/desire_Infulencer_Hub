@@ -74,7 +74,7 @@ export default function AppRouter() {
           <Route path="dashboard" element={<Home />} />
           <Route path="campaigns" element={<CampaignLayout />}>
             <Route index element={<Campaigns />} />
-            <Route path="create" element={<CreateCampaign />} />
+            <Route path="create" element={<EditCampaign />} />
             <Route path="claims" element={<Campaignclaims />} />
             <Route path=":id/edit" element={<EditCampaign />} />
 

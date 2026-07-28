@@ -2,9 +2,9 @@
 import CreateBusiness from "../business/Createbusiness"
 
 const Register =()=>{
-    return <div className="">
+    return <div className="w-full ">
       
-        <div className="mx-auto my-6  p-4 rounded-lg max-w-7xl shadow-md bg-white ">
+        <div className="mx-auto w-full relative my-6  p-4 rounded-lg max-w-7xl shadow-md bg-white ">
              <CreateBusiness/>
 
         </div>

@@ -74,7 +74,7 @@ export default function Login() {
   
       const destination = location.state?.from?.pathname || "/dashboard";
       const data = result.data
-      await login(data?.data.user,data?.data?.accessToken);
+      await login(data?.data.user,data?.data?.token);
       
     return navigate(destination, { replace: true });
     } 

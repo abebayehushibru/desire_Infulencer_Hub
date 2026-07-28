@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { data, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Building2, Mail, Phone, Lock, Save, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, Building2, Mail, Phone, Lock, Save, Clock, Calendar, BadgeCheck } from "lucide-react";
 
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
@@ -32,22 +32,23 @@ export default function EditBusiness() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
- const businessApi = useApi({
-        request: () => ({
-            method: "GET",
-            path: "/business/id",
-           
-        }),
-    });
-     const updateBApi = useApi({
-            request: (payload) => ({
-                method: "PUT",
-                path: "/business/id",
-                data:payload
-               
-            }),
-        });
+  const businessApi = useApi({
+    request: () => ({
+      method: "GET",
+      path: `/business/${id}`,
+
+    }),
+  });
+  const updateBApi = useApi({
+    request: (payload) => ({
+      method: "PUT",
+      path: `/business/${id}`,
+      data: payload
+
+    }),
+  });
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set2 = (key,value) => setForm((f) => ({ ...f, [key]: value }));
 
   const validate = () => {
     const e = {};
@@ -55,11 +56,7 @@ export default function EditBusiness() {
     if (!form.email.trim()) e.email = "Email is required.";
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Enter a valid email.";
     if (!form.phone_1.trim()) e.phone_1 = "Primary phone number is required.";
-    if (changePassword) {
-      if (!password) e.password = "Enter a new password.";
-      else if (password.length < 8) e.password = "Use at least 8 characters.";
-      if (confirmPassword !== password || !confirmPassword) e.confirm_password = "Passwords do not match.";
-    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -68,178 +65,194 @@ export default function EditBusiness() {
     e.preventDefault();
     if (!validate()) return;
 
-    setSubmitting(true);
-    try {
+    
       const payload = {
         name_or_company_name: form.name_or_company_name,
         email: form.email,
         phone_1: form.phone_1,
-        phone_2: form.phone_2 || null,
+        phone_2: form.phone_2,
         status: form.status,
-        ...(changePassword ? { password } : {}),
-      };
-      await updateBApi.execute({...payload,successMsg:"Business updated successfully"})
-   
-      // await api.patch(`/users/${id}`, payload);
-      navigate(`/businesses/${id ?? form.id}`);
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
+
+        company_address: form.company_address,
+        business_category: form.business_category,
+        website: form.website,
+        facebook: form.facebook,
+        instagram: form.instagram,
+        telegram: form.telegram,
+        tiktok: form.tiktok,
+        company_description: form.company_description,
+        is_verified: form.isVerified
+      };
+      const res = await updateBApi.execute({ ...payload, successMsg: "Business updated successfully" })
+      if (res.success) {
+        // navigate(`/businesses/edit/${id ?? form.id}`);
+      }
+      // await api.patch(`/users/${id}`, payload);
+
+  };
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchBusiness = async () => {
+      const res = await businessApi.execute();
+
+      if (res?.success) {
+        const business = res.data.data;
+        const user = business.user;
+
+        setForm({
+          id: user.id,
+          name_or_company_name: user.name_or_company_name || "",
+          email: user.email || "",
+          phone_1: user.phone1 || "",
+          phone_2: user.phone2 || "",
+          status: user.status || "pending",
+
+          company_address: business.company_address || "",
+          business_category: business.business_category || "",
+          website: business.website || "",
+          facebook: business.facebook || "",
+          instagram: business.instagram || "",
+          telegram: business.telegram || "",
+          tiktok: business.tiktok || "",
+          company_description: business.company_description || "",
+          is_verified: business.is_verified,
+          isVerified: business.is_verified,
+          login_attempts: user.login_attempts || 0,
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+
+          successMsg: "Updated successfully"
+        });
+      }
+    };
+
+    fetchBusiness();
+  }, [id]);
   return (
     <div className="min-h-full bg-gray-50/10">
-    
 
-     {businessApi.loading?<PageLoader label="Loading Business Detail"/>: <>
-      <div className="mb-4">
-        <Title titel={"Edit Business"} disc={`Update ${form.name_or_company_name || "this business"}'s account.`}/>
-        <h1 className="text-2xl font-bold text-primary"></h1>
 
-      </div>
+      {businessApi.loading ? <PageLoader label="Loading Business Detail" /> : <>
+        <div className="mb-4">
+          <Title titel={"Edit Business"} disc={`Update ${form.name_or_company_name || "this business"}'s account.`} />
+          <h1 className="text-2xl font-bold text-primary"></h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-      >
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400">
-          Account Details
-        </h3>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="sm:col-span-2">
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="max-w-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+        >
+          <h3 className="mb-4 text-sm flex gap-4 font-semibold uppercase tracking-wide text-gray-400">
+            Account Details   {form.is_verified && <BadgeCheck className="h-5 w-5 text-sky-500" title="Verified Community" />}
+          </h3>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="sm:col-span-2 flex gap-4">
+              <Input
+                label="Company Name"
+                name="name_or_company_name"
+                required
+                leftIcon={<Building2 size={18} />}
+                value={form.name_or_company_name}
+                onChange={set("name_or_company_name")}
+                error={errors.name_or_company_name}
+              />
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => set2("isVerified", !form.isVerified)}
+                  className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${form.isVerified ? "border-sky-300 bg-sky-50 text-sky-700" : "border-slate-200 text-slate-500 hover:border-slate-300"
+                    }`}
+                >
+                  <BadgeCheck className={`h-4 w-4 ${form.isVerified ? "text-sky-600" : "text-slate-400"}`} />
+                  {form.isVerified ? "Verified" : "Unverified"}
+                </button>
+              </div>
+
+
+            </div>
+
             <Input
-              label="Company Name"
-              name="name_or_company_name"
+              label="Email"
+              name="email"
+              type="email"
               required
-              leftIcon={<Building2 size={18} />}
-              value={form.name_or_company_name}
-              onChange={set("name_or_company_name")}
-              error={errors.name_or_company_name}
+              leftIcon={<Mail size={18} />}
+              value={form.email}
+              onChange={set("email")}
+              error={errors.email}
+            />
+
+            <Select
+              label="Status"
+              name="status"
+              value={form.status}
+              onChange={set("status")}
+              data={[
+                { label: "Active", value: "active" },
+                { label: "Pending", value: "pending" },
+                { label: "Inactive", value: "inactive" },
+                { label: "Suspended", value: "suspended" },
+              ]}
+            />
+
+            <Input
+              label="Phone Number"
+              name="phone_1"
+              required
+              leftIcon={<Phone size={18} />}
+              value={form.phone_1}
+              onChange={set("phone_1")}
+              error={errors.phone_1}
+            />
+
+            <Input
+              label="Alternative Phone Number"
+              name="phone_2"
+              leftIcon={<Phone size={18} />}
+              value={form.phone_2}
+              onChange={set("phone_2")}
             />
           </div>
 
-          <Input
-            label="Email"
-            name="email"
-            type="email"
-            required
-            leftIcon={<Mail size={18} />}
-            value={form.email}
-            onChange={set("email")}
-            error={errors.email}
-          />
 
-          <Select
-            label="Status"
-            name="status"
-            value={form.status}
-            onChange={set("status")}
-            data={[
-              { label: "Active", value: "active" },
-              { label: "Pending", value: "pending" },
-              { label: "Inactive", value: "inactive" },
-              { label: "Suspended", value: "suspended" },
-            ]}
-          />
 
-          <Input
-            label="Phone Number"
-            name="phone_1"
-            required
-            leftIcon={<Phone size={18} />}
-            value={form.phone_1}
-            onChange={set("phone_1")}
-            error={errors.phone_1}
-          />
 
-          <Input
-            label="Alternative Phone Number"
-            name="phone_2"
-            leftIcon={<Phone size={18} />}
-            value={form.phone_2}
-            onChange={set("phone_2")}
-          />
-        </div>
-
-        {/* Password */}
-        <div className="mt-6 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-400">Password</h3>
-          <button
-            type="button"
-            onClick={() => {
-              setChangePassword((v) => !v);
-              setPassword("");
-              setConfirmPassword("");
-              setErrors((er) => ({ ...er, password: undefined, confirm_password: undefined }));
-            }}
-            className="text-xs font-semibold text-primary hover:underline"
-          >
-            {changePassword ? "Cancel" : "Change password"}
-          </button>
-        </div>
-
-        {changePassword ? (
-          <div className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Input
-              label="New Password"
-              name="password"
-              type="password"
-              required
-              leftIcon={<Lock size={18} />}
-              placeholder="At least 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={errors.password}
-            />
-            <Input
-              label="Confirm New Password"
-              name="confirm_password"
-              type="password"
-              required
-              leftIcon={<Lock size={18} />}
-              placeholder="Re-enter password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              error={errors.confirm_password}
-            />
+          {/* Read-only audit info */}
+          <div className="mt-6 grid grid-cols-1 gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm sm:grid-cols-3">
+            <div>
+              <p className="text-xs text-gray-400">Login Attempts</p>
+              <p className="font-medium text-gray-700">{form.login_attempts}</p>
+            </div>
+            <div>
+              <p className="flex items-center gap-1 text-xs text-gray-400">
+                <Calendar size={12} /> Created
+              </p>
+              <p className="font-medium text-gray-700">
+                {new Date(form.created_at).toLocaleDateString()}
+              </p>
+            </div>
+            <div>
+              <p className="flex items-center gap-1 text-xs text-gray-400">
+                <Clock size={12} /> Last Updated
+              </p>
+              <p className="font-medium text-gray-700">
+                {new Date(form.updated_at).toLocaleDateString()}
+              </p>
+            </div>
           </div>
-        ) : (
-          <p className="mt-2 text-sm text-gray-400">•••••••••••• (unchanged)</p>
-        )}
 
-        {/* Read-only audit info */}
-        <div className="mt-6 grid grid-cols-1 gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm sm:grid-cols-3">
-          <div>
-            <p className="text-xs text-gray-400">Login Attempts</p>
-            <p className="font-medium text-gray-700">{form.login_attempts}</p>
+          <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
+            <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
+            <Button type="submit" leftIcon={<Save size={18} />} disabled={updateBApi.loading}>
+              {updateBApi.loading ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
-          <div>
-            <p className="flex items-center gap-1 text-xs text-gray-400">
-              <Calendar size={12} /> Created
-            </p>
-            <p className="font-medium text-gray-700">
-              {new Date(form.created_at).toLocaleDateString()}
-            </p>
-          </div>
-          <div>
-            <p className="flex items-center gap-1 text-xs text-gray-400">
-              <Clock size={12} /> Last Updated
-            </p>
-            <p className="font-medium text-gray-700">
-              {new Date(form.updated_at).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-          <Button type="submit" leftIcon={<Save size={18} />} disabled={updateBApi.loading }>
-            {updateBApi.loading ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      </form></>}
+        </form></>}
     </div>
   );
 }

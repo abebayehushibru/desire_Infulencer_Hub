@@ -19,11 +19,12 @@ export default function VerifyResetCode() {
     const verifyApi = useApi({
         request: (body) => ({
           method: "POST",
-          path: "/auth/forgot-password",
+          path: "/auth/verify-code",
           data: body,
         }),
       });
   const emailFromState = location.state?.email || "";
+  const token = location.state?.token || "";
   const [email, setEmail]   = useState(emailFromState);
   const [otp, setOtp]       = useState(["", "", "", "", "", ""]);
   const [error, setError]   = useState("");
@@ -72,13 +73,12 @@ export default function VerifyResetCode() {
     // if (!email.trim())   { setError("Email is required"); return; }
 
     const result = await verifyApi.execute({
-      email:email.trim().toLowerCase(), code
+      token:token, code,successMsg:"Code verified! Set your new password."
     });
     if (result.success) {
-      toast.success("Code verified! Set your new password.");
-      navigate("/auth/reset-password", { state: { email: email.trim().toLowerCase(),otp:code } });
+      navigate("/auth/reset-password", { state: { email: email.trim().toLowerCase(),token:token } });
     } else {
-      setError(result.message || "Invalid or expired code");
+     
       setOtp(["", "", "", "", "", ""]);
       inputRefs.current[0]?.focus();
     }

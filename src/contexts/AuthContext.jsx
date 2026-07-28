@@ -12,7 +12,9 @@ export function AuthProvider({ children }) {
   // Check if a user session exists on initial load
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
+    const storedToken = localStorage.getItem('access_token');
     if (storedUser) {
+       setToken(storedToken)
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
@@ -21,7 +23,10 @@ export function AuthProvider({ children }) {
   // Login action
   const login = async (user, token) => {
     try {
+      console.log(user,token);
+      
       localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('access_token', token);
       setUser(user);
       setToken(token)
       return { success: true };

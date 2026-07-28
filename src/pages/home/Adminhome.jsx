@@ -111,20 +111,20 @@ export default function AdminHome() {
     },
   ];
 
-const revenueData = [
-  { month: "Jan", revenue: 180 },
-  { month: "Feb", revenue: 260 },
-  { month: "Mar", revenue: 320 },
-  { month: "Apr", revenue: 290 },
-  { month: "May", revenue: 410 },
-  { month: "Jun", revenue: 520 },
-  { month: "Jul", revenue: 480 },
-  { month: "Aug", revenue: 560 },
-  { month: "Sep", revenue: 630 },
-  { month: "Oct", revenue: 600 },
-  { month: "Nov", revenue: 720 },
-  { month: "Dec", revenue: 810 },
-];
+  const revenueData = [
+    { month: "Jan", revenue: 180 },
+    { month: "Feb", revenue: 260 },
+    { month: "Mar", revenue: 320 },
+    { month: "Apr", revenue: 290 },
+    { month: "May", revenue: 410 },
+    { month: "Jun", revenue: 520 },
+    { month: "Jul", revenue: 480 },
+    { month: "Aug", revenue: 560 },
+    { month: "Sep", revenue: 630 },
+    { month: "Oct", revenue: 600 },
+    { month: "Nov", revenue: 720 },
+    { month: "Dec", revenue: 810 },
+  ];
   const usersData = [
     { name: "Influencers", value: 3248 },
     { name: "Businesses", value: 412 },
@@ -152,7 +152,7 @@ const revenueData = [
           number={3248}
           compare={8}
           icon={UserCheck}
-         color="bg-blue-100 text-blue-600"
+          color="bg-blue-100 text-blue-600"
         />
 
         <StatsCard
@@ -160,7 +160,7 @@ const revenueData = [
           number={186}
           compare={4}
           icon={Users}
-                  color="bg-emerald-100 text-emerald-600"
+          color="bg-emerald-100 text-emerald-600"
         />
 
         <StatsCard
@@ -177,13 +177,13 @@ const revenueData = [
           currency="ETB"
           compare={9}
           icon={Wallet}
-          color="bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+          color="bg-orange-100 text-orange-600"
         />
       </div>
 
       {/* Content */}
-      <div className="mt-4 grid gap-4 max-w-full ">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mt-4 grid gap-4 w-full">
+        <div className="mt-4 rounded-2xl grid border border-gray-200 bg-white p-4 shadow-sm">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-primary">
               Pending Approvals
@@ -193,11 +193,14 @@ const revenueData = [
               New influencers, communities and businesses awaiting review
             </p>
           </div>
+          <div className="w-full   overflow-auto relative">
+  <Table columns={columns} data={data} />
+          </div>
 
-          <Table columns={columns} data={data} />
+        
         </div>
-        <div className="grid gap-4 lg:grid-cols-12">
-          <div className=" space-y-3 lg:col-span-8 rounded-lg border border-gray-200 bg-white pt-5 shadow-sm">
+        <div className="grid hidden  gap-4 lg:grid-cols-12 ">
+          <div className=" space-y-3 lg:col-span-8 rounded-lg border border-gray-200 bg-white pt-4 shadow-sm">
             <h3 className="mb-4 ml-4 font-semibold">
               Yearly Revenue
             </h3>

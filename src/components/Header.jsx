@@ -9,10 +9,10 @@ const  Header = () => {
   const {isAuthenticated,user}=useAuth()
 
   return   <header className="sticky top-0  z-50 bg-violet-50/80 backdrop-blur-md border-b border-violet-950/10  ">
-                <div className="max-w-7xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
-                    <div className="flex  h-full gap-3 border-b border-gray-100 px-6">
-                        <div className="flex h-full items-start justify-start overflow-hidden rounded-xl ">
-                            <img src={logo} alt="InfluenceHub" className="h-full min-w-full object-cover scale-80" />
+                <div className="max-w-6xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
+                    <div className="flex  h-full gap-3 border-b border-gray-100 ">
+                        <div className="flex h-full items-start justify-start overflow-hidden rounded-xl mr-6 ">
+                            <img src={logo} alt="InfluenceHub" className="h-full min-w-full relative -mr-16 object-cover scale-80" />
                         </div>
                         {/* <h2 className="text-lg font-bold tracking-tight text-primary">influenceHub</h2> */}
                     </div>
@@ -60,9 +60,9 @@ const  Header = () => {
 
                 {menuOpen && (
                     <div className="md:hidden flex flex-col gap-1 px-5 pb-6 border-b border-violet-950/10 bg-violet-50">
-                        <a href="#" className="py-3 border-b border-violet-950/5 font-medium">
+                        <Link to="/" className="py-3 border-b border-violet-950/5 font-medium">
                             Home
-                        </a>
+                        </Link>
                         {/* <a href="#deals" className="py-3 border-b border-violet-950/5 font-medium">
                             Deals
                         </a>
@@ -70,12 +70,20 @@ const  Header = () => {
                             Contact
                         </a> */}
                         <div className="flex gap-3 mt-4">
-                            <a href="#" className="flex-1 text-center rounded-full border border-violet-950/20 py-3 text-sm font-semibold">
+                            { !user ?<>
+                            
+                           <Link to="/auth/login" className="flex-1 text-center rounded-full border border-violet-950/20 py-3 text-sm font-semibold">
                                 Log in
-                            </a>
-                            <a href="/auth/register" className="flex-1 text-center rounded-full bg-amber-400 text-violet-950 py-3 text-sm font-semibold">
+                            </Link>
+                            <Link href="/auth/register" className="flex-1 text-center rounded-full bg-amber-400 text-violet-950 py-3 text-sm font-semibold">
                                 Register
-                            </a>
+                            </Link>
+                             </>:
+                            <Link
+                            to="/dashboard"
+                            className="flex-1 text-center rounded-full bg-amber-400 text-violet-950 py-3 text-sm font-semibold">
+                            Dashboard
+                        </Link>}
                         </div>
                     </div>
                 )}

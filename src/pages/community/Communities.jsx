@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 
@@ -8,16 +8,49 @@ import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Title from "../../components/common/Titel";
 import Pagination from "../../components/Pagination";
+import useApi from "../../hooks/useApi";
 
 export default function Communities() {
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    search: "",
+    platform: "",
+    level: ""
+  });
   const [active, setActive] = useState(false);
-
+  const [pagination, setPagination] = useState({
+    page: 1,
+    total: 0,
+    totalPages: 1
+  });
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [tier, setTier] = useState("");
   const [status, setStatus] = useState("");
+  const communitiesApi = useApi({
+    request: (payload) => ({
+      method: "GET",
+      path: "/communities",
+      query: payload,
+      manual: true
+    }),
+  });
+  const fetchCommunities = async (page = 1, filters) => {
+    const res = await communitiesApi.execute(
+      {
+        page: pagination?.page || page,
+        ...filters
 
+      }
+    )
+    if (res.success) {
+      // setPagination(res?.data?.data?.pagination)
+    }
+  }
+
+  useEffect(() => {
+    fetchCommunities(1)
+  }, [])
   const columns = [
     {
       key: "name",
@@ -30,43 +63,57 @@ export default function Communities() {
       ),
     },
     {
-      key: "category",
+      key: "categories",
       label: "Category",
-      render: (value) => <span className="capitalize">{value}</span>,
+      render: (value) => <span className="capitalize">{JSON.parse(value)}</span>,
     },
     {
-      key: "members",
-      label: "Members",
+      key: "platforms",
+      label: "Platform",
+      render: (value) => (
+        <span className="capitalize">{JSON.parse(value)}</span>
+      ),
+    }, {
+      key: "managed",
+      label: "Managed By",
+      render: (value, row) => (
+        <div className="flex flex-col">
+          <span className="font-medium text-primary capitalize">{row?.manager?.name_or_company_name}</span>
+          <span className="text-xs text-gray-400">{row?.manager?.email}</span>
+        </div>
+
+      ),
     },
     {
-      key: "tier",
-      label: "Tier",
+      key: "is_verified",
+      label: "Verified",
       render: (value) => (
         <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${
-            value === "Diamond"
-              ? "bg-purple-100 text-purple-700"
-              : value === "Gold"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-gray-100 text-gray-700"
-          }`}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shadow-sm border ${value
+            ? "bg-green-100 text-green-800 border-green-200"
+            : "bg-red-100 text-red-800 border-red-200"
+            }`}
         >
-          {value}
+          {value ? "Yes" : "No"}
         </span>
       ),
     },
+    {
+      key: "total_members",
+      label: "Members",
+    },
+
     {
       key: "status",
       label: "Status",
       render: (value) => (
         <span
-          className={`rounded-full px-3 py-1 text-xs font-medium ${
-            value === "Active"
-              ? "bg-green-100 text-green-700"
-              : value === "Pending"
+          className={`rounded-full px-3 py-1 text-xs font-medium ${value === "active"
+            ? "bg-green-100 text-green-700"
+            : value === "pending"
               ? "bg-yellow-100 text-yellow-700"
               : "bg-red-100 text-red-700"
-          }`}
+            }`}
         >
           {value}
         </span>
@@ -81,7 +128,7 @@ export default function Communities() {
           active={active}
           setActive={setActive}
           onEdit={() => navigate(`/communities/edit/${row.id}`)}
-              onView={() => navigate(`/communities/view/${row.id}`)}
+          onView={() => navigate(`/communities/view/${row.id}`)}
           onDelete={() => console.log(row)}
         />
       ),
@@ -144,11 +191,11 @@ export default function Communities() {
       <div className="mb-4 flex items-center justify-between">
         <Title titel={"Communities"} disc={"Manage all registered communities."}>
 
-        <Button leftIcon={<Plus size={18} />} onClick={() => navigate("/communities/create")}>
-          Add Community
-        </Button>
+          <Button leftIcon={<Plus size={18} />} onClick={() => navigate("/communities/create")}>
+            Add Community
+          </Button>
         </Title>
-      
+
 
       </div>
 
@@ -184,19 +231,7 @@ export default function Communities() {
               />
             </div>
 
-            <div className="w-full sm:w-40">
-              <Select
-                name="tier"
-                value={tier}
-                onChange={(e) => setTier(e.target.value)}
-                placeholder="All Tiers"
-                data={[
-                  { label: "Diamond", value: "diamond" },
-                  { label: "Gold", value: "gold" },
-                  { label: "Silver", value: "silver" },
-                ]}
-              />
-            </div>
+
 
             <div className="w-full sm:w-44">
               <Select
@@ -211,11 +246,31 @@ export default function Communities() {
                 ]}
               />
             </div>
+            <Button className="py-1" loading={communitiesApi.api} onClick={() => {
+              fetchCommunities(1, {
+                search,
+                status,
+                category
+              })
+            }}>
+              Search
+            </Button>
           </div>
         </div>
 
-        <Table columns={columns} data={filteredCommunities} />
-           <Pagination/>
+        <Table columns={columns} loading={communitiesApi.loading} data={communitiesApi.data?.data?.communities || []} />
+        <Pagination onPageChange={(pg) => {
+          setPagination(prev => ({
+            ...prev, page: pg
+          }))
+          fetchCommunities(pg, { ...filters, category, search, status })
+
+        }}
+          page={pagination.page}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+
+        />
       </div>
     </div>
   );

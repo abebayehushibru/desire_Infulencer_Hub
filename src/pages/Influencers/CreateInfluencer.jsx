@@ -27,24 +27,25 @@ import {
 import useApi from "../../hooks/useApi";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
+import { getProfiledata } from "../../services/helpers";
 
 /* ---------------------------------------------------------
    Static data
 --------------------------------------------------------- */
 
 const PLATFORMS = [
-  { value: "TikTok", icon: Music2 },
-  { value: "Instagram", icon: Camera },
-  { value: "Facebook", icon: Users },
-  { value: "YouTube", icon: Video },
-  { value: "Telegram", icon: Send },
-  { value: "Other", icon: Globe },
+  { value: "tiktok", icon: Music2 },
+  { value: "instagram", icon: Camera },
+  { value: "facebook", icon: Users },
+  { value: "youtube", icon: Video },
+  { value: "telegram", icon: Send },
+  { value: "other", icon: Globe },
 ];
 
 const LEVELS = [
-  { value: "Diamond", color: "text-sky-600 bg-sky-50 border-sky-200" },
-  { value: "Gold", color: "text-[#8a5a00] bg-[var(--color-tertiary)]/15 border-[var(--color-tertiary)]" },
-  { value: "Silver", color: "text-slate-600 bg-slate-100 border-slate-300" },
+  { value: "diamond", color: "text-sky-600 bg-sky-50 border-sky-200" },
+  { value: "gold", color: "text-[#8a5a00] bg-[var(--color-tertiary)]/15 border-[var(--color-tertiary)]" },
+  { value: "silver", color: "text-slate-600 bg-slate-100 border-slate-300" },
 ];
 
 const STATUSES = [
@@ -128,9 +129,8 @@ function TextInput({ icon: Icon, error, ...props }) {
       )}
       <input
         {...props}
-        className={`w-full rounded-lg border bg-white py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
-          Icon ? "pl-9 pr-3" : "px-3"
-        } ${error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"}`}
+        className={`w-full rounded-lg border bg-white py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${Icon ? "pl-9 pr-3" : "px-3"
+          } ${error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"}`}
       />
     </div>
   );
@@ -140,9 +140,8 @@ function TextArea({ error, ...props }) {
   return (
     <textarea
       {...props}
-      className={`w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
-        error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
-      }`}
+      className={`w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
+        }`}
     />
   );
 }
@@ -196,29 +195,26 @@ function Stepper({ step }) {
           <React.Fragment key={s.label}>
             <div className="flex flex-col items-center gap-2">
               <div
-                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${
-                  done
+                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${done
                     ? "border-[var(--color-tertiary)] bg-[var(--color-tertiary)] text-[var(--color-primary)]"
                     : active
-                    ? "border-[var(--color-secondary)] bg-white text-[var(--color-secondary)]"
-                    : "border-slate-200 bg-white text-slate-400"
-                }`}
+                      ? "border-[var(--color-secondary)] bg-white text-[var(--color-secondary)]"
+                      : "border-slate-200 bg-white text-slate-400"
+                  }`}
               >
                 {done ? <Check className="h-4 w-4" /> : i + 1}
               </div>
               <span
-                className={`hidden text-xs font-medium sm:block ${
-                  active ? "text-[var(--color-primary)]" : done ? "text-slate-600" : "text-slate-400"
-                }`}
+                className={`hidden text-xs font-medium sm:block ${active ? "text-[var(--color-primary)]" : done ? "text-slate-600" : "text-slate-400"
+                  }`}
               >
                 {s.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
               <div
-                className={`mx-2 mb-6 h-0.5 flex-1 rounded transition-colors sm:mb-6 ${
-                  i < step ? "bg-[var(--color-tertiary)]" : "bg-slate-200"
-                }`}
+                className={`mx-2 mb-6 h-0.5 flex-1 rounded transition-colors sm:mb-6 ${i < step ? "bg-[var(--color-tertiary)]" : "bg-slate-200"
+                  }`}
               />
             )}
           </React.Fragment>
@@ -238,13 +234,14 @@ export default function CreateInfluencer() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-const influencerApi = useApi({
-        request: (payload) => ({
-            method: "POST",
-            path: "/Influencers",
-            query: payload,
-        }),
-    });
+  const [gettingCount, setGetttingCount] = useState(false);
+  const influencerApi = useApi({
+    request: (payload) => ({
+      method: "POST",
+      path: "/Influencers",
+      data: payload,
+    }),
+  });
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const toggleInList = (key, item) => {
@@ -292,10 +289,7 @@ const influencerApi = useApi({
       if (!form.email.trim()) e.email = "Email is required.";
       else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Enter a valid email.";
       if (!form.phone.trim()) e.phone = "Phone number is required.";
-      if (!form.password) e.password = "Password is required.";
-      else if (form.password.length < 8) e.password = "Use at least 8 characters.";
-      if (form.confirmPassword !== form.password || !form.confirmPassword)
-        e.confirmPassword = "Passwords do not match.";
+
     }
     if (s === 1) {
       if (!form.mainPlatform) e.mainPlatform = "Choose a platform.";
@@ -344,20 +338,31 @@ const influencerApi = useApi({
         ...(form.countries.includes("Ethiopia")
           ? form.cities.length
             ? form.cities.map((city) => ({
-                country: "Ethiopia",
-                city,
-                audience_percentage: form.cityStats[city] || 0,
-              }))
+              country: "Ethiopia",
+              city,
+              audience_percentage: form.cityStats[city] || 0,
+            }))
             : [{ country: "Ethiopia", city: null, audience_percentage: form.countryStats["Ethiopia"] || 0 }]
           : []),
       ],
     };
-const res =await  influencerApi.execute({...payload,successMsg:"Infulencer created successfully!"})
-  if (res.success) {
-    setSubmitted(true);
-  }
-    
+    const res = await influencerApi.execute({ ...payload, successMsg: "Infulencer created successfully!" })
+    if (res.success) {
+      setSubmitted(true);
+    }
+
   };
+
+  const getData = async () => {
+        const profile = await getProfiledata(
+          form.profileLink
+        );
+        if (profile) {
+          setForm((prev) => ({ ...prev, followersCount: profile?.followers, mainPlatform: profile?.platform }))
+        }
+        console.log(profile);
+      }
+  
 
   const platformIcon = PLATFORMS.find((p) => p.value === form.mainPlatform)?.icon || Globe;
 
@@ -450,7 +455,7 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
                   onChange={(e) => set("altPhone", e.target.value)}
                 />
               </Field>
-              <Field label="Password" required error={errors.password}>
+              {/* <Field label="Password" required error={errors.password}>
                 <Input
                   icon={Lock}
                    type={show ? "txet" : "password"}
@@ -480,7 +485,7 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
                                         setShow(false)
                                     }} />}
                 />
-              </Field>
+              </Field> */}
             </div>
           </section>
 
@@ -494,11 +499,10 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
                   key={s.value}
                   type="button"
                   onClick={() => set("status", s.value)}
-                  className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                    form.status === s.value
+                  className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${form.status === s.value
                       ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-primary)]"
                       : "border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
+                    }`}
                 >
                   <span className={`h-2 w-2 rounded-full ${s.color}`} />
                   {s.value}
@@ -523,11 +527,10 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
                     key={value}
                     type="button"
                     onClick={() => set("mainPlatform", value)}
-                    className={`flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-xs font-medium transition ${
-                      form.mainPlatform === value
+                    className={`flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-xs font-medium transition ${form.mainPlatform === value
                         ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-primary)]"
                         : "border-slate-200 text-slate-600 hover:border-slate-300"
-                    }`}
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     {value}
@@ -546,17 +549,24 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
                   error={errors.profileLink}
                 />
               </Field>
-              <Field label="Followers Count" required error={errors.followersCount}>
-                <TextInput
-                  icon={Users}
-                  type="number"
-                  min="0"
-                  placeholder="245000"
-                  value={form.followersCount}
-                  onChange={(e) => set("followersCount", e.target.value)}
-                  error={errors.followersCount}
-                />
-              </Field>
+              <div className="flex gap-3">
+                <Field label="Followers Count" required error={errors.followersCount}>
+                  <TextInput
+                    icon={Users}
+                    type="number"
+                    min="0"
+                    placeholder="245000"
+                    value={form.followersCount}
+                    onChange={(e) => set("followersCount", e.target.value)}
+                    error={errors.followersCount}
+                    disabled
+                  />
+
+                </Field>
+                <Button onClick={ getData}>Fetch</Button>
+              </div>
+
+
             </div>
 
             <Field label="Level" hint="(Optional)">
@@ -566,9 +576,8 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
                     key={l.value}
                     type="button"
                     onClick={() => set("level", form.level === l.value ? "" : l.value)}
-                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
-                      form.level === l.value ? l.color : "border-slate-200 text-slate-500 hover:border-slate-300"
-                    }`}
+                    className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${form.level === l.value ? l.color : "border-slate-200 text-slate-500 hover:border-slate-300"
+                      }`}
                   >
                     <Gem className="h-3.5 w-3.5" />
                     {l.value}
@@ -652,11 +661,10 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
               {COUNTRIES.map((c) => (
                 <label
                   key={c}
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                    form.countries.includes(c)
+                  className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${form.countries.includes(c)
                       ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-primary)]"
                       : "border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -684,11 +692,10 @@ const res =await  influencerApi.execute({...payload,successMsg:"Infulencer creat
                 {ETHIOPIAN_CITIES.map((c) => (
                   <label
                     key={c}
-                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                      form.cities.includes(c)
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${form.cities.includes(c)
                         ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-primary)]"
                         : "border-slate-200 text-slate-600 hover:border-slate-300"
-                    }`}
+                      }`}
                   >
                     <input
                       type="checkbox"

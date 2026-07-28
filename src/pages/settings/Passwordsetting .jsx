@@ -5,6 +5,7 @@ import { ArrowLeft, Lock, Loader2, CheckCircle2, ShieldCheck } from "lucide-reac
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import Title from "../../components/common/Titel";
+import useApi from "../../hooks/useApi";
 
 function getStrength(password) {
   if (!password) return { label: "", percent: 0, color: "bg-gray-200" };
@@ -24,7 +25,13 @@ function getStrength(password) {
 
 export default function PasswordSetting() {
   const navigate = useNavigate();
-
+const passwordApi = useApi({
+        request: (body) => ({
+            method: "POST",
+            path: "/auth/update-password",
+            data: body,
+        }),
+    });
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -58,14 +65,13 @@ export default function PasswordSetting() {
     setSubmitting(true);
     try {
       console.log("Change password payload:", { currentPassword, newPassword });
-      // await api.post("/account/change-password", { currentPassword, newPassword });
-      await new Promise((r) => setTimeout(r, 700));
-
+      const res=await passwordApi.execute({ oldPassword:currentPassword, newPassword,confirmPassword,successMsg:"Password updated successfully!" });
+    if (res.success)  {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setErrors({});
-      setSaved(true);
+      setSaved(true);}
     } catch (err) {
       setSubmitError(err?.message || "Something went wrong. Please try again.");
     } finally {

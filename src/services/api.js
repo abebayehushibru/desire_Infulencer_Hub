@@ -6,19 +6,23 @@ export default async function api({
   data,
   query,
   signal,
+  isMultiPart
 }) {
-    console.log( "path = ",path,
-  data,
-  query,
-  signal,);
-    
-  const response = await client({
-    method,
+
+     const config ={
+      
+method,
     url: path,
     data,
     params: query,
     signal,
-  });
+     }
+     if (isMultiPart) {
+      config.headers=  {
+      "Content-Type": "multipart/form-data",
+    }
+     }
+  const response = await client(config);
   
 
   return response.data;

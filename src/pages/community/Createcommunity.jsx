@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Users,
   MapPin,
@@ -17,10 +17,13 @@ import {
   Gem,
   Percent,
   Wallet,
-DollarSign
+  DollarSign
 } from "lucide-react";
 import Title from "../../components/common/Titel";
 import Input from "../../components/common/Input";
+import useApi from "../../hooks/useApi";
+import SearchSelect from "../../components/common/SearchSelect";
+import Button from "../../components/common/Button";
 
 /* ---------------------------------------------------------
    Brand tokens
@@ -81,7 +84,12 @@ const initialForm = {
 
   commissionType: "Rate",
   commissionValue: "",
-  manager: "",
+
+  // Keep the id used for submission and a human-readable label used only
+  // for display (the search results that produced it are transient, so we
+  // can't recover the label from userOptions after the fact).
+  manager_user_id: "",
+  managerLabel: "",
 };
 
 /* ---------------------------------------------------------
@@ -112,9 +120,8 @@ function TextInput({ icon: Icon, error, ...props }) {
       {Icon && <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />}
       <input
         {...props}
-        className={`w-full rounded-lg border bg-white py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
-          Icon ? "pl-9 pr-3" : "px-3"
-        } ${error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"}`}
+        className={`w-full rounded-lg border bg-white py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${Icon ? "pl-9 pr-3" : "px-3"
+          } ${error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"}`}
       />
     </div>
   );
@@ -124,9 +131,8 @@ function TextArea({ error, ...props }) {
   return (
     <textarea
       {...props}
-      className={`w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
-        error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
-      }`}
+      className={`w-full resize-none rounded-lg border bg-white px-3 py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${error ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
+        }`}
     />
   );
 }
@@ -194,13 +200,12 @@ function Stepper({ step }) {
           <React.Fragment key={s.label}>
             <div className="flex flex-col items-center gap-2">
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${
-                  done
-                    ? "border-[var(--color-tertiary)] bg-[var(--color-tertiary)] text-[var(--color-primary)]"
-                    : active
+                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${done
+                  ? "border-[var(--color-tertiary)] bg-[var(--color-tertiary)] text-[var(--color-primary)]"
+                  : active
                     ? "border-[var(--color-secondary)] bg-white text-[var(--color-secondary)]"
                     : "border-slate-200 bg-white text-slate-400"
-                }`}
+                  }`}
               >
                 {done ? <Check className="h-4 w-4" /> : i + 1}
               </div>
@@ -226,8 +231,25 @@ export default function CreateCommunity() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [userOptions, setUserOptions] = useState([]);
 
+  const [submitted, setSubmitted] = useState(false);
+  const influencerApi = useApi({
+    request: (payload) => ({
+      method: "GET",
+      path: "/influencers",
+      query: payload,
+      manual: true
+    }),
+  });
+  const communityApi = useApi({
+    request: (body) => ({
+      method: "POST",
+      path: "/communities",
+      data: body,
+    }),
+  });
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
   const toggleInList = (key, item) => {
@@ -267,31 +289,163 @@ export default function CreateCommunity() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  const submit = () => {
-    const payload = {
-      community: {
-        name: form.name,
-        tier: form.tier || null,
-        location: form.location,
-        status: form.status,
-      },
-      profile: {
-        about: form.about,
-        goals: form.goals || null,
-        rules: form.rules || null,
-        categories: form.categories,
-        platforms: form.platforms,
-        manager: form.manager || null,
-      },
-      settings: {
-        commission_type: form.commissionType,
-        commission_rate: form.commissionType === "Rate" ? Number(form.commissionValue) : null,
-        commission_amount: form.commissionType === "Fixed" ? Number(form.commissionValue) : null,
-      },
-    };
-    console.log("Create Community payload:", payload);
-    setSubmitted(true);
+  const submit = async () => {
+
+    const formData = new FormData();
+
+
+    // Community data
+    formData.append(
+      "name",
+      form.name
+    );
+
+    formData.append(
+      "tier",
+      form.tier || ""
+    );
+
+    formData.append(
+      "location",
+      form.location
+    );
+
+    formData.append(
+      "status",
+      form.status
+    );
+
+
+    // Profile data
+    formData.append(
+      "about",
+      form.about
+    );
+
+    formData.append(
+      "goals",
+      form.goals || ""
+    );
+
+    formData.append(
+      "rules",
+      form.rules || ""
+    );
+
+
+    // Arrays
+    formData.append(
+      "categories",
+      form.categories
+    );
+
+
+    formData.append(
+      "platforms",
+     form.platforms
+    );
+
+
+
+    // Commission
+    formData.append(
+      "commission_type",
+      form.commissionType
+    );
+
+
+    formData.append(
+      "commission_rate",
+      form.commissionType === "Rate"
+        ? Number(form.commissionValue)
+        : ""
+    );
+
+
+    formData.append(
+      "commission_amount",
+      form.commissionType === "Fixed"
+        ? Number(form.commissionValue)
+        : ""
+    );
+
+
+
+    // Manager
+    formData.append(
+      "manager_user_id",
+      form.manager_user_id || ""
+    );
+
+
+
+    // Files
+    if (form.avatarImage) {
+
+      formData.append(
+        "profile_photo",
+        form.avatarImage
+      );
+
+    }
+
+
+    if (form.coverImage) {
+
+      formData.append(
+        "cover_photo",
+        form.coverImage
+      );
+
+    }
+    formData.append("successMsg", "Created Community successfully.")
+
+
+
+    const res = await communityApi.execute(
+      formData
+    );
+
+    if (res.success) {
+      setSubmitted(true);
+      setForm(initialForm)
+
+      console.log(
+        "Created Community:",
+        res.data
+      );
+    }
+
+
+
   };
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setUserOptions([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      // setLoading(true);
+
+      const result = await influencerApi.execute({ search: searchTerm, limit: 10 });
+      // Format results for your MySelect component (e.g., label/value pairs)
+      if (result.success) {
+        const formatted = result?.data?.data?.data?.data?.map(inf => ({
+          label: `${inf.user?.name_or_company_name} (${inf?.user?.email})`,
+          value: inf?.user?.id // or user.id
+        }));
+        setUserOptions(formatted);
+      }
+
+
+      // setLoading(false);
+
+    }, 1000); // 300ms debounce to prevent spamming APIs
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
 
   if (submitted) {
     return (
@@ -320,8 +474,8 @@ export default function CreateCommunity() {
   return (
     <div style={BRAND} className="mx-auto w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <div className="mb-4">
-        <Title titel={"Create Community"} disc={"Set up a new community in three quick steps."}/>
-      
+        <Title titel={"Create Community"} disc={"Set up a new community in three quick steps."} />
+
       </div>
 
       <Stepper step={step} />
@@ -376,9 +530,8 @@ export default function CreateCommunity() {
                   key={s.value}
                   type="button"
                   onClick={() => set("status", s.value)}
-                  className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                    form.status === s.value ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]" : "border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
+                  className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${form.status === s.value ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]" : "border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
                 >
                   <span className={`h-2 w-2 rounded-full ${s.color}`} />
                   {s.value}
@@ -431,9 +584,8 @@ export default function CreateCommunity() {
               {CATEGORIES.map((c) => (
                 <label
                   key={c}
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                    form.categories.includes(c) ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]" : "border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
+                  className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${form.categories.includes(c) ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]" : "border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -462,9 +614,8 @@ export default function CreateCommunity() {
                   key={value}
                   type="button"
                   onClick={() => toggleInList("platforms", value)}
-                  className={`flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-xs font-medium transition ${
-                    form.platforms.includes(value) ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]" : "border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
+                  className={`flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-xs font-medium transition ${form.platforms.includes(value) ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]" : "border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {value}
@@ -496,11 +647,10 @@ export default function CreateCommunity() {
                     set("commissionType", v);
                     set("commissionValue", "");
                   }}
-                  className={`flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                    form.commissionType === v
-                      ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]"
-                      : "border-slate-200 text-slate-600 hover:border-slate-300"
-                  }`}
+                  className={`flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition ${form.commissionType === v
+                    ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
                 >
                   {v === "Fixed" ? <Wallet className="h-4 w-4" /> : <Percent className="h-4 w-4" />}
                   {v}
@@ -513,58 +663,65 @@ export default function CreateCommunity() {
                 : "Commission is charged as a flat amount per campaign."}
             </p>
 
-            <div className="mt-4 grid grid-cols-2 gap-4 max-w-md">
-              
-                  <div className="relative">
-                    <Input
-                    label="Commission Rate" 
-                    required 
-                    error={errors.commission_rate}
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      placeholder="e.g. 10%"
-                      value={form.commission_rate}
-                      onChange={(e) => set("commissionValue", e.target.value)}
-                      className={`w-full rounded-lg border bg-white py-2.5 pl-3 pr-9 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
-                        errors.commission_rate ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
-                      }`}
-                    />
-                    <Percent className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  </div>
-               
-              
-                 <div className="relative">
-                    
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">ETB</span>
-                    <Input
-                    label="Commission Amount"
-                      type="number"
-                      min="0"
-                      step="1"
-                      required
-                      leftIcon={<DollarSign size={18}/>}
-                      placeholder="e.g. 500"
-                      value={form.commissionValue}
-                      onChange={(e) => set("commissionValue", e.target.value)}
-                      className={`w-full rounded-lg border bg-white py-2.5 pl-11 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${
-                        errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
-                      }`}
+            {/* Only the field matching the selected commission type is shown —
+                previously both a "Rate" and an "Amount" input rendered at the
+                same time, and the rate input was bound to a state key
+                (commission_rate) that didn't exist, so it silently did nothing. */}
+            <div className="mt-4 flex gap-4 max-w-xs">
+
+                <div className="relative">
+                  <Input
+                    label="Commission Rate"
+                    required
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    placeholder="e.g. 10"
+                    value={form.commissionValue}
+                    onChange={(e) => set("commissionValue", e.target.value)}
                     error={errors.commissionValue}
-                    />
-                  </div>
+                    className={`w-full rounded-lg border bg-white py-2.5 pl-3 pr-9 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
+                      }`}
+                  />
+                  <Percent className="pointer-events-none absolute right-3 bottom-2.5 h-4 w-4 text-slate-400" />
+                </div>
+              
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 bottom-3 text-sm text-slate-400">ETB</span>
+                  <Input
+                    label="Commission Amount"
+                    required
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="e.g. 500"
+                    value={form.commissionValue}
+                    onChange={(e) => set("commissionValue", e.target.value)}
+                    error={errors.commissionValue}
+                    className={`w-full rounded-lg border bg-white py-2.5 pl-11 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
+                      }`}
+                  />
+                </div>
             
             </div>
           </section>
 
           <section>
-            <Field label="Community Manager" hint="(Optional)">
-              <TextInput
+            <Field label="Community Manager" required={true}>
+              <SearchSelect
                 icon={Users}
-                placeholder="Assign an owner or manager by name/email"
-                value={form.manager}
-                onChange={(e) => set("manager", e.target.value)}
+                placeholder="Search manager by name or email"
+                options={userOptions}
+                isLoading={influencerApi?.loading}
+                value={form.manager_user_id}
+                onInputChange={(inputValue) => setSearchTerm(inputValue)}
+                onChange={(selectedOption) => {
+                  console.log(selectedOption);
+                  
+                  set("manager_user_id", selectedOption.value);
+                  set("managerLabel", selectedOption.label);
+                }}
               />
             </Field>
           </section>
@@ -609,12 +766,23 @@ export default function CreateCommunity() {
             </div>
           </ReviewSection>
 
-          <ReviewSection title="Settings">
-            <ReviewRow label="Visibility" value={form.visibility} />
-            <ReviewRow label="Member Approval" value={form.memberApproval} />
-            <ReviewRow label="Post Approval" value={form.postApproval ? "Required" : "Not required"} />
-            <ReviewRow label="Notifications" value={form.notifications ? "Enabled" : "Disabled"} />
-            {form.manager && <ReviewRow label="Manager" value={form.manager} />}
+          {/* Was "Settings" and referenced form.visibility / form.memberApproval /
+              form.postApproval / form.notifications — none of which exist on the
+              form anymore (this step is now Commission + Manager). Replaced with
+              the fields that are actually collected in step 3. */}
+          <ReviewSection title="Commission & Manager">
+            <ReviewRow label="Commission Type" value={form.commissionType} />
+            <ReviewRow
+              label={form.commissionType === "Rate" ? "Commission Rate" : "Commission Amount"}
+              value={
+                form.commissionValue !== ""
+                  ? form.commissionType === "Rate"
+                    ? `${form.commissionValue}%`
+                    : `ETB ${form.commissionValue}`
+                  : "—"
+              }
+            />
+            <ReviewRow label="Manager" value={form.managerLabel || "Not assigned"} />
           </ReviewSection>
         </div>
       )}
@@ -639,13 +807,15 @@ export default function CreateCommunity() {
             Next <ChevronRight className="h-4 w-4" />
           </button>
         ) : (
-          <button
+          <Button
             type="button"
             onClick={submit}
+            loading={communityApi.loading}
+            disabled={communityApi.loading}
             className="flex items-center gap-1.5 rounded-lg bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[var(--color-primary)]"
           >
             <Check className="h-4 w-4" /> Create Community
-          </button>
+          </Button>
         )}
       </div>
     </div>

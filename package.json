@@ -35,5 +35,18 @@
     "globals": "^17.6.0",
     "tailwindcss": "^4.3.1",
     "vite": "^8.1.0"
-  }
+  },
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abebayehushibru/desire_Infulencer_Hub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abebayehushibru/desire_Infulencer_Hub/issues"
+  },
+  "homepage": "https://github.com/abebayehushibru/desire_Infulencer_Hub#readme"
 }

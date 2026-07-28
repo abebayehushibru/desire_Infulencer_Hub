@@ -203,7 +203,7 @@ export default function Sidebar() {
                 alt="Account avatar"
                 className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
               />:  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary font-semibold text-primary">
-             { user?.firstName?.split("")?.[0]}
+             { user?.name?.split("")?.[0]}
             </div>}
               <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
             </div>
@@ -212,12 +212,12 @@ export default function Sidebar() {
               <>
                 <div className="min-w-0 flex-1">
                   <h4 className="truncate text-sm font-semibold text-gray-300">
-                    {user?.firstName} {user?.lastName}
+                    {user?.name}
                   </h4>
                   <p className="text-xs text-gray-400">{user?.role}</p>
                 </div>
 
-                {!showCard ? (
+                {user?.role=="business"&&<>{!showCard ? (
                   <Info
                     size={16}
                     className="shrink-0 text-gray-300 transition group-hover:text-primary"
@@ -227,7 +227,7 @@ export default function Sidebar() {
                     size={16}
                     className="shrink-0 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-primary"
                   />
-                )}
+                )}</>}
               </>
             )}
           </button>

@@ -17,6 +17,7 @@ const forgotApi = useApi({
     }),
   });
   const [email, setEmail]   = useState("");
+  const [token, setToken]   = useState("");
   const [error, setError]   = useState("");
   const [submitted, setSubmitted] = useState(false);
 
@@ -27,15 +28,14 @@ const forgotApi = useApi({
     if (!email.trim()) { setError("Email is required"); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Invalid email format"); return; }
 
-    const result = await forgotApi.execute({email:email.trim().toLowerCase()});
+    const result = await forgotApi.execute({email:email.trim().toLowerCase(),successMsg:"A reset code has been sent."});
 
     // Always navigate — backend never reveals if email exists
-    if (result.success !== false) {
+    if (result.success != false) {
+      
+      setToken(result?.data?.data?.token);
       setSubmitted(true);
-      toast.success("If an account exists, a reset code has been sent.");
-    } else {
-      toast.error(result.message || "Something went wrong. Please try again.");
-    }
+    } 
   };
 
   if (submitted) {
@@ -80,7 +80,7 @@ const forgotApi = useApi({
               <Button
                 fullWidth
                 onClick={() =>
-                  navigate("/auth/verify-reset-code?", { state: { email } })
+                  navigate("/auth/verify-reset-code?", { state: { email,token } })
                 }
               >
                 Enter reset code

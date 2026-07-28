@@ -13,7 +13,7 @@ const DatePicker = ({
   max,
 }) => {
   return (
-    <div className="w-full">
+    <div className="w-full  text-sm">
 
       {label && (
         <label
@@ -46,6 +46,7 @@ const DatePicker = ({
             pl-4
             pr-12
             outline-none
+            text-sm
 
             transition
 

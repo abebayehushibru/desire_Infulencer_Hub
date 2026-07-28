@@ -13,7 +13,7 @@ function App() {
   const [count, setCount] = useState(0)
   return (
     <AuthProvider>
-      <div className='poppins'>
+      <div className='poppins min-w-full w-full mx-auto absolute'>
         {/* <Login/> */}
         <Toaster
           position="bottom-right"

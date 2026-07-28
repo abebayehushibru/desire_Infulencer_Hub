@@ -13,7 +13,7 @@ const RadioGroup = ({
     <div className="w-full">
 
       {label && (
-        <label className="block mb-3 text-sm font-medium text-gray-700">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           {label}
 
           {required && (
@@ -34,10 +34,11 @@ const RadioGroup = ({
               key={option.value}
               className={`
                 flex items-center gap-3
-                rounded-xl border
+                rounded-lg border
                 px-5 py-3
                 cursor-pointer
                 transition
+                text-sm
 
                 ${
                   selected

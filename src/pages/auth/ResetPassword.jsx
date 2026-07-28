@@ -52,7 +52,7 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || "";
-  const otp = location.state?.otp || "";
+  const token = location.state?.token || "";
 
   const [form, setForm] = useState({
     newPassword: "",
@@ -64,7 +64,7 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
 
   // Redirect if landed here without state (direct URL access)
-  if (!email || !otp ) {
+  if (!email || !token ) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -102,7 +102,7 @@ export default function ResetPassword() {
       return;
     }
 
-    const result = await resetApi.execute({ email,otp, newPassword: form.newPassword, confirmPassword: form.confirmPassword,successMsg:"Password reset successfully!" });
+    const result = await resetApi.execute({ email,token, newPassword: form.newPassword, confirmPassword: form.confirmPassword,successMsg:"Password reset successfully!" });
     if (result.success) {
       setSuccess(true);
 
@@ -120,7 +120,7 @@ export default function ResetPassword() {
           <p className="text-gray-500 mb-8">
             Your password has been changed successfully. You can now log in with your new password.
           </p>
-          <Button fullWidth onClick={() => navigate("/login")}>
+          <Button fullWidth onClick={() => navigate("/auth/login")}>
             Go to login
           </Button>
         </div>
@@ -158,7 +158,7 @@ export default function ResetPassword() {
               <Lock className="text-primary" size={18} />
             </div>
 
-            <h2 className="text-2xl text-gray-800 font-bold mb-1">New password{otp}</h2>
+            <h2 className="text-2xl text-gray-800 font-bold mb-1">New password</h2>
             <p className="text-gray-500 mb-4">
               Resetting password for <strong>{email.split("").map((chr,index)=>{
                   

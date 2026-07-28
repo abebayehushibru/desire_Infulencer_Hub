@@ -6,7 +6,7 @@ import Header from "../../components/header"
 const Auth =()=>{
     return <div className="">
         <Header/>
-        <div className="mx-auto my-6  p-4 rounded-lg max-w-7xl  ">
+        <div className="mx-auto my-6  p-4 rounded-lg max-w-7xl w-full  ">
              <Outlet/>
 
         </div>

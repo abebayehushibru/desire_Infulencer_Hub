@@ -14,6 +14,7 @@ import useApi from "../../hooks/useApi";
 import toast from "react-hot-toast";
 
 export default function CreateBusiness() {
+      
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [show, setShow] = useState(false)
@@ -131,7 +132,7 @@ export default function CreateBusiness() {
             formData.append(key, form[key]);
         });
         formData.append("role", "business");
-        formData.append("successMsg", "business");
+        formData.append("successMsg", "Business Created");
 
         // Mock network execution processing pipeline
         const result = await businessApi.execute(formData);
@@ -172,12 +173,12 @@ export default function CreateBusiness() {
     }
 
     return (
-        <div className=" relative min-h-full min-w-full bg-gray-50/10 flex flex-col gap-4 w-fit mx-auto">
+        <div className=" relative min-h-full min-w-full bg-gray-50/10 flex flex-col gap-4 w-full sm:w-fit mx-auto">
             <Titel titel={"Add Business"} disc={"Complete the pipeline to provision a custom dashboard portal."} />
 
             {/* ── Stepper Block Component Architecture ── */}
-            <div className="flex mx-auto min-w-[600px] mt-1 ">
-                <div className="w-full flex items-center">
+            <div className="flex mx-auto max-w-[600px] w-full mt-1 ">
+                <div className="w-full flex justify-evenly items-center">
 
                     {steps.map((s, i) => {
                         const done = i < currentStep - 1;
@@ -381,7 +382,7 @@ export default function CreateBusiness() {
                                 name="company_logo"
                                 required
                                 leftIcon={null}
-                                value={form.company_logo}
+                               
                                 onChange={set("company_logo")}
                                 error={errors.company_logo}
                                 type="file"
@@ -392,7 +393,7 @@ export default function CreateBusiness() {
                                 required
                                 leftIcon={null}
                                 placeholder="Bole, Addis Ababa"
-                                value={form.business_license}
+                              
                                 onChange={set("business_license")}
                                 error={errors.business_license}
                                 type="file"

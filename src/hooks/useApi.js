@@ -24,7 +24,13 @@ export default function useApi({ request, manual = true, initialData = null }) {
     const isFormData = payload instanceof FormData;
     // Safely extract successMsg based on type
     const successMsg = isFormData ? payload.get("successMsg") : payload?.successMsg;
-
+if (isFormData) {
+  // Use the FormData delete method
+  payload.delete("successMsg");
+} else if (payload) {
+  // Use the JavaScript delete operator
+  delete payload.successMsg;
+}
     if (controller.current) {
         controller.current.abort();
     }
@@ -39,6 +45,7 @@ export default function useApi({ request, manual = true, initialData = null }) {
 
         const result = await api({
             signal: controller.current.signal,
+            isMultiPart:isFormData,
             ...requestOptions,
         });
 

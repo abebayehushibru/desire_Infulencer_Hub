@@ -164,11 +164,11 @@ export default function Navbar() {
             className="flex cursor-pointer items-center gap-3 rounded-xl bg-white/10 px-2 py-2 transition hover:bg-white/20"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary font-semibold text-primary">
-             { user?.firstName?.split("")?.[0]}
+             { user?.name.split("")?.[0]}
             </div>
 
             <div className="hidden text-left sm:block">
-              <h4 className="text-sm font-semibold text-white">{user?.firstName} {user?.lastName}</h4>
+              <h4 className="text-sm font-semibold text-white">{user?.name} </h4>
               <p className="text-xs text-white/60">{user?.role}</p>
             </div>
 

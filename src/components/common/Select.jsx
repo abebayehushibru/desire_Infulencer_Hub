@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { ChevronDown, Loader2, CircleAlert } from "lucide-react";
+import useApi from "../../hooks/useApi";
 
 const Select = ({
   label,
@@ -31,7 +32,15 @@ const Select = ({
   const [options, setOptions] = useState(data);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
-
+  // Fixed path syntax bug (changed single quotes to backticks)
+  const getApi = useApi({
+    request: (payload) => ({
+      method: "GET",
+      path: api,
+      query: payload,
+      manual: true
+    }),
+  });
   useEffect(() => {
     // Static data takes priority; only hit the API when no data was given.
     if (!api) {
@@ -46,9 +55,11 @@ const Select = ({
         setLoading(true);
         setApiError("");
 
-        const res = await axios.get(api);
+        const res = await getApi.execute();
 
-        if (mounted&& res) {
+        if (mounted&& res.success) {
+          console.log(res.data?.data);
+          
           // setOptions(res.data || []);
         }
       } catch (err) {
@@ -64,7 +75,7 @@ const Select = ({
       }
     }
 
-    // loadData();
+    loadData();
 
     return () => {
       mounted = false;

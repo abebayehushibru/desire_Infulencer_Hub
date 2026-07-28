@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 
@@ -11,10 +11,10 @@ import Pagination from "../../components/Pagination";
 import useApi from "../../hooks/useApi";
 
 const STATUS_STYLE = {
-  Active: "bg-green-100 text-green-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-  Inactive: "bg-gray-100 text-gray-600",
-  Suspended: "bg-red-100 text-red-600",
+  active: "bg-green-100 text-green-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  inactive: "bg-gray-100 text-gray-600",
+  suspended: "bg-red-100 text-red-600",
 };
 
 export default function Businesses() {
@@ -41,28 +41,32 @@ export default function Businesses() {
       label: "Business",
       render: (value, row) => (
         <Link to={`/businesses/view/${row.id}`} className="flex flex-col hover:underline">
-          <span className="font-medium text-primary">{value}</span>
-          <span className="text-xs text-gray-400">{row.email}</span>
+          <span className="font-medium text-primary">{row?.user?.name_or_company_name}</span>
+          <span className="text-xs text-gray-400">{row?.user.email}</span>
         </Link>
       ),
     },
     {
       key: "phone_1",
       label: "Phone",
+       render: (value, row)  => (
+        <span className={`font-medium `}>{row?.user.phone1}</span>
+      ),
+    
     },
     {
-      key: "login_attempts",
-      label: "Login Attempts",
-      render: (value) => (
-        <span className={`font-medium ${value > 3 ? "text-red-500" : "text-gray-600"}`}>{value}</span>
+      key: "email",
+      label: "Email",
+      render: (value, row)  => (
+        <span className={`font-medium `}>{row?.user.email}</span>
       ),
     },
     {
       key: "status",
       label: "Status",
-      render: (value) => (
-        <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_STYLE[value]}`}>
-          {value}
+      render: (value,row) => (
+        <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_STYLE[row?.user.status.toLowerCase()]}`}>
+          {row?.user?.status}
         </span>
       ),
     },
@@ -92,17 +96,24 @@ export default function Businesses() {
 
   
 
-  const filteredBusinesses = () => {
+  const filteredBusinesses = async (page=1) => {
     const q = search.trim().toLowerCase();
-    const result=businessApi.execute({
-      search,status,page:pagination
+    const result=await businessApi.execute({
+      search,status,page:page
     })
+    if (result.success) {
+      setPagination(result?.data?.data?.pagination)
+    }
   }
+  useEffect(() => {
+    filteredBusinesses()
+  }, [])
+  
 
   return (
     <div className="min-h-full bg-gray-50/10">
       <div className="mb-4 flex items-center justify-between">
-        <Titel titel={"Add Businesses"} disc={"Manage all registered business accounts."}>
+        <Titel titel={"Businesses"} disc={"Manage all registered business accounts."}>
                 <Button leftIcon={<Plus size={18} />} onClick={() => navigate("/businesses/create")}>
           Add Business
         </Button>
@@ -140,13 +151,17 @@ export default function Businesses() {
             />
           </div>
         </div>
+        
 
-        <Table columns={columns} data={businessApi?.data?.data||[]} loading={businessApi.loading} />
+        <Table columns={columns} data={businessApi?.data?.data?.businesses||[]} loading={businessApi.loading} />
            <Pagination  onPageChange={(pg)=>{
             setPagination(prev=>({
               ...prev,page:pg
             }))
+            filteredBusinesses(pg)
+
            }}
+           page={pagination.page}
            total={pagination.total}
            totalPages={pagination.totalPages}
            
