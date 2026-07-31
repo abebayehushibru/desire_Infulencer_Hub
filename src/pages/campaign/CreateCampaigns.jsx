@@ -27,7 +27,7 @@ import DatePicker from "../../components/common/DatePicker";
 import FileUpload from "../../components/common/FileUpload";
 import Textarea from "../../components/common/Textarea";
 import Checkbox from "../../components/common/Checkbox";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 import useApi from "../../hooks/useApi";
 import { useEffect } from "react";
 import SearchSelect from "../../components/common/SearchSelect";
@@ -210,10 +210,10 @@ export default function CreateCampaign() {
       }
     )
     const formatted = res?.data?.data?.communities?.map(cm => ({
-        label: `${cm?.name}`,
-        value: cm?.id // or user.id
-      }));
-      setUserOptions(formatted);
+      label: `${cm?.name}`,
+      value: cm?.id // or user.id
+    }));
+    setUserOptions(formatted);
 
   }
   const fetchInfulencers = async (page = 1, filters) => {
@@ -234,9 +234,9 @@ export default function CreateCampaign() {
     else setUserOptions([]);
 
   }
-   useEffect(() => {
-    
-set("target_id","")
+  useEffect(() => {
+
+    set("target_id", "")
 
   }, [targetType])
   useEffect(() => {
@@ -340,16 +340,16 @@ set("target_id","")
       }
 
       if (selectedGoal === "sales") {
-  if (form.fund_type === "conversion") {
-    if (!form.conversion_rate && !form.amount) {
-      stepErrors.conversion_rate = "Either Conversion rate or Amount is required.";
-      stepErrors.amount = "Either Conversion rate or Amount is required.";
-    }
-  }
-  if (!form.total_budget) {
-    stepErrors.total_budget = "Total budget is required.";
-  }
-}
+        if (form.fund_type === "conversion") {
+          if (!form.conversion_rate && !form.amount) {
+            stepErrors.conversion_rate = "Either Conversion rate or Amount is required.";
+            stepErrors.amount = "Either Conversion rate or Amount is required.";
+          }
+        }
+        if (!form.total_budget) {
+          stepErrors.total_budget = "Total budget is required.";
+        }
+      }
 
       if (selectedGoal === "awareness") {
         if (!form.total_views) stepErrors.total_views = "Target views is required.";
@@ -426,8 +426,8 @@ set("target_id","")
     payload.append("start_date", form.start_date);
     payload.append("end_date", form.end_date);
     payload.append("locations", form.locations || []);
-    payload.append("ethiopia_locations",form.EthiopiaLc || []);
-   payload.append("platforms", JSON.stringify(form.platforms));
+    payload.append("ethiopia_locations", form.EthiopiaLc || []);
+    payload.append("platforms", JSON.stringify(form.platforms));
     payload.append("run_type", form.run_type);
     payload.append("target_type", targetType);
     payload.append("target_id", form.target_id);
@@ -455,7 +455,7 @@ set("target_id","")
     if (form.video) {
       payload.append("video", form.video);
     }
-     if (form.photo) {
+    if (form.photo) {
       payload.append("photo", form.video);
     }
     payload.append("successMsg", "Campaign added successfully!")
@@ -463,7 +463,7 @@ set("target_id","")
   };
 
   const handleSubmit = async () => {
-    
+
     if (!validateAllSteps()) return;
 
     const payload = buildPayload();
@@ -920,7 +920,7 @@ set("target_id","")
                   console.log(selectedOption);
 
                   set("target_id", selectedOption.value);
-                  setTarget( selectedOption.label);
+                  setTarget(selectedOption.label);
                 }}
               />
               <FieldError message={errors.target} />

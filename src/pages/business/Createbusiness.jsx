@@ -1,20 +1,95 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     ArrowLeft, Building2, Mail, Phone, Lock, Check, MapPin,
     Layers, Globe, Send, Video, FileText, Upload, Eye,
-    EyeClosed
+    EyeClosed, CheckCircle2, Hourglass
 } from "lucide-react";
 
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
-import Titel from "../../components/common/Titel";
+import Titel from "../../components/common/Title";
 import useApi from "../../hooks/useApi";
 import toast from "react-hot-toast";
 
+const EMPTY_FORM = {
+    // Step 1: User Information Fields
+    name_or_company_name: "",
+    email: "",
+    phone_1: "",
+    phone_2: "",
+    password: "",
+    confirm_password: "",
+    status: "pending",
+
+    // Step 2: Business Profile Fields
+    company_address: "",
+    business_category: "",
+    website: "",
+    facebook: "",
+    instagram: "",
+    telegram: "",
+    tiktok: "",
+    company_description: "",
+    company_logo: null,
+    business_license: null,
+
+    // Step 3: Subscription Allocation
+    subscription_type: "free",
+};
+
+function ReviewItem({ label, value }) {
+    return (
+        <div className="flex items-start justify-between gap-4 py-2.5 border-b border-gray-100 last:border-0">
+            <span className="text-sm text-gray-500 shrink-0">{label}</span>
+            <span className="text-sm font-medium text-gray-800 text-right">{value || "—"}</span>
+        </div>
+    );
+}
+
+function FilePreview({ file, label, icon: Icon }) {
+    const isImage = file instanceof File && file.type?.startsWith("image/");
+    const previewUrl = useMemo(() => (isImage ? URL.createObjectURL(file) : null), [file, isImage]);
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
+
+    if (!file) {
+        return (
+            <div className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0">
+                <span className="text-sm text-gray-500">{label}</span>
+                <span className="text-sm text-gray-400">No file uploaded</span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center justify-between gap-4 py-2.5 border-b border-gray-100 last:border-0">
+            <span className="text-sm text-gray-500 shrink-0">{label}</span>
+            <div className="flex items-center gap-2 min-w-0">
+                {isImage ? (
+                    <img
+                        src={previewUrl}
+                        alt={`${label} preview`}
+                        className="h-10 w-10 rounded-lg border border-gray-200 object-cover shrink-0"
+                    />
+                ) : (
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-400 shrink-0">
+                        <Icon size={16} />
+                    </span>
+                )}
+                <span className="truncate text-sm font-medium text-gray-800">{file.name}</span>
+            </div>
+        </div>
+    );
+}
+
 export default function CreateBusiness() {
-      
+
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [show, setShow] = useState(false)
@@ -28,39 +103,15 @@ export default function CreateBusiness() {
     });
 
     // Unified application form state schema
-    const [form, setForm] = useState({
-        // Step 1: User Information Fields
-        name_or_company_name: "",
-        email: "",
-        phone_1: "",
-        phone_2: "",
-        password: "",
-        confirm_password: "",
-        status: "pending",
-
-        // Step 2: Business Profile Fields
-        company_address: "",
-        business_category: "",
-        website: "",
-        facebook: "",
-        instagram: "",
-        telegram: "",
-        tiktok: "",
-        company_description: "",
-        company_logo: null,
-        business_license: null,
-
-        // Step 3: Subscription Allocation
-        subscription_type: "free",
-    });
+    const [form, setForm] = useState({ ...EMPTY_FORM });
 
     const [errors, setErrors] = useState({});
-    const [createAndGoBack, setCreateAndGoBack] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
 
     // Text state field updates handler
     const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-    // Dedicated local binary file parser 
+    // Dedicated local binary file parser
     const handleFileChange = (key) => (e) => {
         if (e.target.files && e.target.files[0]) {
             setForm((f) => ({ ...f, [key]: e.target.files[0] }));
@@ -110,19 +161,10 @@ export default function CreateBusiness() {
         setCurrentStep((prev) => prev - 1);
     };
 
-    const handleStepClick = (stepNumber) => {
-        // Blocks moving forward without clean form validations
-        if (stepNumber < currentStep) {
-            setCurrentStep(stepNumber);
-        } else if (stepNumber === currentStep + 1) {
-            handleNext();
-        }
-    };
-
     const handleSubmit = async (e) => {
         if (e) e.preventDefault();
         if (!validateStep(1) || !validateStep(2)) {
-            alert("Please review Step 1 and Step 2 fields before submitting.");
+            toast.error("Please review Step 1 and Step 2 fields before submitting.");
             return;
         }
 
@@ -134,42 +176,51 @@ export default function CreateBusiness() {
         formData.append("role", "business");
         formData.append("successMsg", "Business Created");
 
-        // Mock network execution processing pipeline
         const result = await businessApi.execute(formData);
         if (result?.success) {
-            if (createAndGoBack) {
-                navigate("/businesses");
-            }
-            else{
-                setForm({
-        // Step 1: User Information Fields
-        name_or_company_name: "",
-        email: "",
-        phone_1: "",
-        phone_2: "",
-        password: "",
-        confirm_password: "",
-        status: "pending",
-
-        // Step 2: Business Profile Fields
-        company_address: "",
-        business_category: "",
-        website: "",
-        facebook: "",
-        instagram: "",
-        telegram: "",
-        tiktok: "",
-        company_description: "",
-        company_logo: null,
-        business_license: null,
-
-        // Step 3: Subscription Allocation
-        subscription_type: "free",
-    })
-            }
-            
+            toast.success(result?.message || "Registration submitted successfully.");
+            setSubmitted(true);
         }
+    };
 
+    const startAnotherRegistration = () => {
+        setForm({ ...EMPTY_FORM });
+        setErrors({});
+        setCurrentStep(1);
+        setSubmitted(false);
+    };
+
+    if (submitted) {
+        return (
+            <div className="min-h-full flex items-center justify-center px-4 py-16">
+                <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+                        <CheckCircle2 size={30} className="text-green-600" />
+                    </div>
+
+                    <h2 className="text-lg font-bold text-gray-800">Registration Submitted</h2>
+
+                    <p className="mt-2 text-sm leading-6 text-gray-500">
+                        Thank you for registering <span className="font-semibold text-gray-700">{form.name_or_company_name || "your business"}</span>.
+                        We've received your application and it's now pending review.
+                    </p>
+
+                    <div className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs font-medium text-amber-700">
+                        <Hourglass size={14} />
+                        Your account will be activated once the review is complete.
+                    </div>
+
+                    <div className="mt-6 flex flex-col gap-2">
+                        <Button onClick={() => navigate("/businesses")} variant="primary">
+                            Go to Businesses
+                        </Button>
+                        <Button onClick={startAnotherRegistration} variant="outline">
+                            Register Another Business
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -184,7 +235,7 @@ export default function CreateBusiness() {
                         const done = i < currentStep - 1;
                         const active = i === currentStep - 1;
                         return (
-                            <div className="flex-1 flex items-center" key={s.label}>
+                            <div className="flex-1 flex items-center" key={s}>
                                 <div className="flex flex-col items-center gap-1">
                                     <div
                                         className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors ${done
@@ -278,7 +329,7 @@ export default function CreateBusiness() {
                                 <Input
                                     label="Password"
                                     name="password"
-                                    type={show ? "txet" : "password"}
+                                    type={show ? "text" : "password"}
                                     required
                                     leftIcon={<Lock size={18} />}
                                     placeholder="At least 8 characters"
@@ -293,7 +344,7 @@ export default function CreateBusiness() {
                                     label="Confirm Password"
                                     name="confirm_password"
                                     required
-   type={show ? "txet" : "password"}
+                                    type={show ? "text" : "password"}
                                     leftIcon={<Lock size={18} />}
                                     placeholder="Re-enter password"
                                     value={form.confirm_password}
@@ -382,19 +433,17 @@ export default function CreateBusiness() {
                                 name="company_logo"
                                 required
                                 leftIcon={null}
-                               
-                                onChange={set("company_logo")}
+                                onChange={handleFileChange("company_logo")}
                                 error={errors.company_logo}
                                 type="file"
+                                accept="image/*"
                             />
                             <Input
-                                label="business license"
+                                label="Business License"
                                 name="business_license"
                                 required
                                 leftIcon={null}
-                                placeholder="Bole, Addis Ababa"
-                              
-                                onChange={set("business_license")}
+                                onChange={handleFileChange("business_license")}
                                 error={errors.business_license}
                                 type="file"
                             />
@@ -443,7 +492,7 @@ export default function CreateBusiness() {
                                 </div>
                             </div>
                             <p className="text-sm text-gray-600 mt-2">
-                                FreeProvides fundamental directory visibility and limited daily data lookup queries.
+                                Free — provides fundamental directory visibility and limited daily data lookup queries.
                             </p>
                         </div>
 
@@ -471,73 +520,45 @@ export default function CreateBusiness() {
                         </div>
                     </div>
                 )}
-                {/* STEP 4: Parameters Compilation Review Panel */}
+                {/* STEP 4: Review & Confirm */}
                 {currentStep === 4 &&
-                    <div className="space-y-2">
-                        <h3 className="text-lg font-semibold text-gray-8₀₀">Final Manifest Review Verification</h3>
-                        <p className="text-sm text-gray_6₀₀">
-                            Double-check administrative records before pushing changes to cloud infrastructure storage arrays.
-                        </p>
-
-                        {/* COMPANY BRAND */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">COMPANY BRAND:</span>
-                            <span>{form.name_or_company_name || "—"}</span>
+                    <div className="space-y-4">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-800">Review Your Registration</h3>
+                            <p className="text-sm text-gray-500">
+                                Please confirm the details below before submitting your business registration.
+                            </p>
                         </div>
 
-                        {/* EMAIL ACCOUNT */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">EMAIL ACCOUNT:</span>
-                            <span>{form.email || "—"}</span>
+                        <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Account</h4>
+                            <ReviewItem label="Business Name" value={form.name_or_company_name} />
+                            <ReviewItem label="Email" value={form.email} />
+                            <ReviewItem label="Primary Phone" value={form.phone_1} />
+                            <ReviewItem label="Alternative Phone" value={form.phone_2} />
                         </div>
 
-                        {/* PRIMARY COMMUNICATIONS */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">PRIMARY COMMUNICATIONS:</span>
-                            <span>{form.phone_1 || "—"}</span>
+                        <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Business Profile</h4>
+                            <ReviewItem label="Office Address" value={form.company_address} />
+                            <ReviewItem label="Category" value={form.business_category} />
+                            <ReviewItem label="Website" value={form.website} />
+                            <ReviewItem label="Description" value={form.company_description || "No description provided."} />
                         </div>
 
-                        {/* ACCOUNT REGISTRATION STATUS */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">ACCOUNT REGISTRATION STATUS:</span>
-                            <span>{form.status}</span>
+                        <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Documents</h4>
+                            <FilePreview file={form.company_logo} label="Company Logo" icon={Upload} />
+                            <FilePreview file={form.business_license} label="Business License" icon={FileText} />
                         </div>
 
-                        {/* PHYSICAL LOCATION HQ */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">PHYSICAL LOCATION HQ:</span>
-                            <span>{form.company_address || "—"}</span>
+                        <div className="rounded-xl border border-gray-100 bg-gray-50/40 p-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Plan</h4>
+                            <ReviewItem
+                                label="Subscription Plan"
+                                value={form.subscription_type === "pro" ? "Premium Pro" : "Standard Tier"}
+                            />
                         </div>
-
-                        {/* BUSINESS DOMAIN SEGMENT */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">BUSINESS DOMAIN SEGMENT:</span>
-                            <span>{form.business_category || "—"}</span>
-                        </div>
-
-                        {/* SUMMARY OBJECTIVES */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">SUMMARY OBJECTIVES:</span>
-                            <span>{form.company_description || "No description provided."}</span>
-                        </div>
-
-                        {/* PROVISION PLAN */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">PROVISION PLAN:</span>
-                            <span>{form.subscription_type}</span>
-                        </div>
-
-                        {/* Logo */}
-                        <div className="flex items-start space-x_4">
-                            <span className="font-medium text-gray_8₀₀">Logo:</span>
-                            <span>{form.company_logo ? form.company_logo.name : "Missing file"}</span>
-                        </div>
-
-                        {/* License */}
-                        <div className={"flex items-start space-x_4"}>
-                            {"License:"}
-                            {"{form.business_license ? form.business_license.name : \"Missing file\"}"}
-                        </ div>
                     </div>
                 }
                 <div className="flex justify-end w-full  gap-4 mt-6 ">
@@ -555,29 +576,13 @@ export default function CreateBusiness() {
                             Continue
                         </Button>
                     ) : (
-                        <>
-                            <Button
-                                type="submit"
-                                disabled={businessApi.loading}
-                                onClick={(e)=>{
-                                    setCreateAndGoBack(true)
-                                    handleSubmit(e)
-                                }}
-                            >
-                                {businessApi.loading ? "Processing..." : "Create"}
-                            </Button>
-
-                            <Button
-                                type="submit"
-                                disabled={businessApi.loading}
-                                 onClick={(e)=>{
-                                    setCreateAndGoBack(false)
-                                    handleSubmit(e)
-                                }}
-                            >
-                                {businessApi.loading ? "Processing..." : "Create And Stay"}
-                            </Button>
-                        </>
+                        <Button
+                            type="submit"
+                            disabled={businessApi.loading}
+                            onClick={handleSubmit}
+                        >
+                            {businessApi.loading ? "Submitting..." : "Submit Registration"}
+                        </Button>
                     )}
                 </div>
             </div>

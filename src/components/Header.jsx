@@ -9,7 +9,7 @@ const  Header = () => {
   const {isAuthenticated,user}=useAuth()
 
   return   <header className="sticky top-0  z-50 bg-violet-50/80 backdrop-blur-md border-b border-violet-950/10  ">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 h-20 flex items-center justify-between">
                     <div className="flex  h-full gap-3 border-b border-gray-100 ">
                         <div className="flex h-full items-start justify-start overflow-hidden rounded-xl mr-6 ">
                             <img src={logo} alt="InfluenceHub" className="h-full min-w-full relative -mr-16 object-cover scale-80" />

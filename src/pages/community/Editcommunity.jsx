@@ -384,8 +384,8 @@ export default function EditCommunity() {
       platforms: form.platforms.join(","),
       commission_type: form.commissionType,
       manager_user_id: form.manager_user_id,
-      commission_rate: isRate ? Number(form.commission_rate) : 0,
-      commission_amount: !isRate ? Number(form.commissionValue) : 0,
+      commission_rate:  Number(form.commission_rate),
+      commission_amount:  Number(form.commissionValue),
       successMsg: "Community details updated successfully.",
     };
 
@@ -635,7 +635,7 @@ export default function EditCommunity() {
                   type="button"
                   onClick={() => {
                     set("commissionType", v);
-                    set("commissionValue", "");
+                    // set("commissionValue", "");
                   }}
                   className={`flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm font-medium transition ${form.commissionType === v
                       ? "border-[var(--color-secondary)] bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]"

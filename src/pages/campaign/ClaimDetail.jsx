@@ -11,20 +11,41 @@ import {
     Building2,
     Calendar,
     Link2,
+    BadgeDollarSign,
 } from "lucide-react";
 import Contents from "./Contents";
 import Chat from "./Chat";
 import Earnings from "./Earnings";
-import { Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "contents", label: "Content" },
-    { id: "chat", label: "Chat" },
-    { id: "earnings", label: "Earnings" },
-];
+
 
 export default function ClaimDetail() {
+    const loc = useLocation()
+    const { id } = useParams();
+    
+    const tabs = [
+        {
+            id: "overview",
+            label: "Overview",
+            path: `/campaigns/${id}`,
+            icon: <PlayCircle size={18} />,
+        },
+        {
+            id: "contents",
+            label: "Contents",
+            path: `/campaigns/${id}/contents`,
+            icon: <PlayCircle size={18} />,
+        },
+        {
+            id: "chat",
+            label: "Chat",
+            path: `/campaigns/${id}/chat`,
+            icon: <MessageCircle size={18} />,
+        },
+       
+    
+    ];
     const [searchParam] = useSearchParams()
     const [activeTab, setActiveTab] = useState(
         tabs.find((tab) => tab?.id?.includes(searchParam))?.id || "overview"
@@ -45,14 +66,14 @@ export default function ClaimDetail() {
 
             <div className=" bg-white border-b sticky border-gray-200 top-0 z-20">
 
-                <div className="flex items-center justify-between px-4 gap-4 py-4">
+                <div className="flex items-center justify-between px-1 gap-4 py-1">
 
-                    <button>
+                    <button onClick={handleBack}>
                         <ArrowLeft size={22} />
                     </button>
 
                     <h2 className="font-semibold flex-1 text-sm">
-                        Online English Course
+                       Chat Room 
                     </h2>
 
                     <button>
@@ -66,35 +87,21 @@ export default function ClaimDetail() {
                 <div className="flex overflow-x-auto">
 
                     {tabs.map((tab) => (
-                        <button
+                        <NavLink
                             key={tab.id}
-                            onClick={() => {
-                                setActiveTab(tab.id)
-                                if (tab.id === "chat") {
-                                    navigate("/campaigns/123/chat");
-                                }
-                                else if (tab.id === "contents") {
-                                    navigate("/campaigns/123/contents");
-                                }
-                                else if (tab.id === "earnings") {
-                                    navigate("/campaigns/123/earnings");
-                                }
-                                else {
-                                    navigate("/campaigns/123/overview");
-                                }
-                            }}
-                            className={`px-5 py-3 text-sm whitespace-nowrap border-b-2 transition
-
-              ${activeTab === tab.id
-                                    ? "border-primary text-primary font-semibold"
-                                    : "border-transparent text-gray-500"
-                                }
-              `}
+                            to={tab.path}
+                            end={tab.id === "overview"}
+                            className={({ isActive }) =>
+                                `flex items-center gap-2 p-2 py-3 border-b-2 font-semibold whitespace-nowrap transition ${isActive
+                                    ? "border-primary text-primary "
+                                    : "border-transparent text-gray-500 hover:text-primary hover:border-gray-300"
+                                }`
+                            }
                         >
-                            {tab.label}
-                        </button>
+                            {tab.icon}
+                            <span>{tab.label}</span>
+                        </NavLink>
                     ))}
-
                 </div>
 
             </div>

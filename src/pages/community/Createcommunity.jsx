@@ -19,7 +19,7 @@ import {
   Wallet,
   DollarSign
 } from "lucide-react";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 import Input from "../../components/common/Input";
 import useApi from "../../hooks/useApi";
 import SearchSelect from "../../components/common/SearchSelect";

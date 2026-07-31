@@ -22,7 +22,7 @@ import {
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 
 /* ---------------------------------------------------------
    Mock data — swap for a real fetch by :id / real API calls

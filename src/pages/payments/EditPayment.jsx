@@ -1,293 +1,483 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   User,
   Wallet,
   CreditCard,
   Calendar,
-  Clock,
   Loader2,
   CheckCircle2,
   AlertCircle,
   Save,
+  Landmark,
+  Hash,
+  Mail,
+  MessageSquare,
+  ShieldCheck,
+  ShieldX,
+  BadgeCheck,
+  Clock,
 } from "lucide-react";
 
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
+import useApi from "../../hooks/useApi";
 
-// Stand-in for a record loaded from the API — swap for a real fetch by :id.
-const SAMPLE_PAYMENT = {
-  id: "PAY-2041",
-  payee: "Abebe Kebede",
-  payee_type: "Influencer",
-  amount: "12,400 ETB",
-  method: "Telebirr",
-  account:"0964799523",
-  status: "pending",
-  reason: "",
-  requested_at: "2026-07-12T09:00:00Z",
-  created_at: "2026-07-12T09:00:00Z",
-  updated_at: "2026-07-12T09:00:00Z",
-};
 
-const STATUS_OPTIONS = [
-  { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Paid", value: "paid" },
-  { label: "Rejected", value: "rejected" },
-];
 
 const STATUS_STYLE = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-sky-100 text-sky-700",
-  paid: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-600",
+  PENDING: "bg-yellow-100 text-yellow-700",
+  APPROVED: "bg-sky-100 text-sky-700",
+  PAID: "bg-green-100 text-green-700",
+  REJECTED: "bg-red-100 text-red-600",
 };
 
-const fetchPayment = (id) =>
-  new Promise((resolve) => setTimeout(() => resolve({ ...SAMPLE_PAYMENT, id }), 600));
+const BANKS = {
+  cbe: { label: "Commercial Bank of Ethiopia", color: "bg-[#FFDA00] text-[#16115A]" },
+  dashen: { label: "Dashen Bank", color: "bg-secondary text-white" },
+};
+
+const formatMoney = (value) =>
+  `${Number(value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} ETB`;
+
+const formatDateTime = (value) =>
+  value
+    ? new Date(value).toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+    : null;
+
+function InfoCard({ icon: Icon, label, children }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-100 bg-white text-gray-400 shadow-sm">
+        <Icon size={16} />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{label}</p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function TimelineStep({ icon: Icon, label, timestamp, actor, tone = "gray", pending }) {
+  const toneStyles = {
+    gray: "bg-gray-100 text-gray-400",
+    green: "bg-green-100 text-green-600",
+    red: "bg-red-100 text-red-600",
+    sky: "bg-sky-100 text-sky-600",
+  };
+
+  return (
+    <div className="flex items-start gap-3">
+      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${toneStyles[tone]}`}>
+        <Icon size={14} />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-gray-700">{label}</p>
+        {pending ? (
+          <p className="text-[11px] text-gray-400">Not yet</p>
+        ) : (
+          <>
+            <p className="text-[11px] text-gray-500">{formatDateTime(timestamp)}</p>
+            {actor && <p className="text-[11px] text-gray-400">by {actor}</p>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function EditPayment() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  const getPaymentApi = useApi({
+    request: (paymentId) => ({
+      method: "GET",
+      path: `/withdrawals/${paymentId}`,
+      manual: true,
+    }),
+  });
+
+  const updatePaymentApi = useApi({
+    request: (payload) => ({
+      method: "PATCH",
+      path: `/withdrawals/${id}`,
+      manual: true,
+      data: payload,
+    }),
+  });
+
   useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    fetchPayment(id).then((data) => {
-      if (mounted) {
-        setForm(data);
-        setLoading(false);
+    if (!id) return;
+
+    const fetchPayment = async () => {
+      setSubmitError("");
+      const response = await getPaymentApi.execute(id);
+
+      if (!response?.success) {
+        setSubmitError(response?.message || "Failed to load payment information.");
+        return;
       }
-    });
-    return () => {
-      mounted = false;
+
+      // Adjust this line if your API wraps the record differently.
+      const w = response?.data?.data?.withdrawal || response?.data?.data;
+      console.log(w);
+
+      if (!w) {
+        setSubmitError("Payment record not found.");
+        return;
+      }
+
+      setForm({
+        id: w.id,
+        requesterName: w.requested_by?.name_or_company_name || "N/A",
+        requesterEmail: w.requested_by?.email || null,
+        fullName: w.full_name || "—",
+        amount: w.amount,
+        bankType: w.bank_type,
+        account: w.account_number || "—",
+        status: String(w.status || "pending").toUpperCase(),
+         old_status: String(w.status || "pending").toUpperCase(),
+        rejection_reason: w.rejection_reason || "",
+        transaction_reference: w.transaction_reference || "",
+        note: w.note || "",
+        createdAt: w.createdAt,
+        approvedAt: w.approved_at,
+        approvedBy: w.approved_by?.name_or_company_name || null,
+        rejectedAt: w.rejected_at,
+        rejectedBy: w.rejected_by?.name_or_company_name || null,
+        paidAt: w.paid_at,
+        paidBy: w.paid_by?.name_or_company_name || null,
+      });
     };
+
+    fetchPayment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  if (loading || !form) {
+  if (getPaymentApi.loading || !form) {
     return (
-      <div className="flex min-h-[420px] items-center justify-center text-gray-400">
-        <Loader2 size={22} className="animate-spin" />
-        <span className="ml-2 text-sm font-medium">Loading payment...</span>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 size={28} className="animate-spin text-violet-600" />
+          <p className="text-sm font-medium text-gray-500">Loading payment data...</p>
+        </div>
       </div>
     );
   }
-
-  const isRejected = form.status === "rejected";
+  const STATUS_OPTIONS = [
+    ...(form.old_status === "PENDING" ? [{ label: "Approved", value: "APPROVED" }] : []),
+    ...(form.old_status === "APPROVED" ? [{ label: "Paid", value: "PAID" }] : []),
+    ...(form.old_status === "PENDING" ? [{ label: "Rejected", value: "REJECTED" }] : [])
+  ];
+  const isRejected = form.status === "REJECTED";
+  const isPaid = form.status === "PAID";
+  const bank = BANKS[form.bankType] || { label: form.bankType || "Bank", color: "bg-gray-200 text-gray-600" };
 
   const setStatus = (e) => {
     const value = e.target.value;
-    setForm((f) => ({ ...f, status: value, reason: value === "rejected" ? f.reason : "" }));
-    setErrors((er) => ({ ...er, reason: undefined }));
+
+    setForm((current) => ({
+      ...current,
+      status: value,
+      rejection_reason: value === "REJECTED" ? current.rejection_reason : "",
+      transaction_reference: value === "PAID" ? current.transaction_reference : "",
+    }));
+
+    setErrors({});
+    setSubmitError("");
   };
 
   const validate = () => {
-    const e = {};
-    if (isRejected && !form.reason.trim()) {
-      e.reason = "A rejection reason is required.";
+    const validationErrors = {};
+
+    if (isRejected && !form.rejection_reason.trim()) {
+      validationErrors.rejection_reason = "A rejection reason is required.";
     }
-    setErrors(e);
-    return Object.keys(e).length === 0;
+
+    if (isPaid && !form.transaction_reference.trim()) {
+      validationErrors.transaction_reference = "A transaction reference is required to mark this as paid.";
+    }
+
+    setErrors(validationErrors);
+    return Object.keys(validationErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
+
     if (!validate()) return;
 
-    setSubmitting(true);
-    try {
-      const payload = {
-        status: form.status,
-        reason: isRejected ? form.reason : null,
-      };
-      console.log("Update payment payload:", payload);
-      // await api.patch(`/payments/${id}`, payload);
-      await new Promise((r) => setTimeout(r, 700));
+    const payload = {
+      status: form.status.toLowerCase(),
+      rejection_reason: isRejected ? form.rejection_reason.trim() : null,
+      transaction_reference: isPaid ? form.transaction_reference.trim() : form.transaction_reference || null,
+      note: form.note?.trim() || null,
+    };
 
+    const res = await updatePaymentApi.execute(payload);
+
+    if (res?.success) {
       setSubmitted(true);
-    } catch (err) {
-      setSubmitError(err?.message || "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
+    } else {
+      setSubmitError(res?.message || "Something went wrong. Please try again.");
     }
   };
 
   if (submitted) {
     return (
-      <div className="mx-auto flex min-h-[420px] max-w-2xl flex-col items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-          <CheckCircle2 size={28} className="text-primary" />
+      <div className="flex min-h-[500px] items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
+            <CheckCircle2 size={30} className="text-green-600" />
+          </div>
+
+          <h2 className="text-lg font-bold text-gray-800">Payment Updated Successfully</h2>
+
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            {form.requesterName}'s payment is now marked as{" "}
+            <span className="font-semibold text-gray-700">{form.status}</span>.
+          </p>
+
+          <Button onClick={() => navigate(-1)} variant="primary" className="mt-6">
+            Back to Payments
+          </Button>
         </div>
-        <h2 className="text-lg font-semibold text-gray-800">Payment updated</h2>
-        <p className="max-w-sm text-sm text-gray-500">
-          {form.payee}'s payment is now marked as <span className="font-medium capitalize">{form.status}</span>.
-        </p>
-        <Button onClick={() => navigate(-1)}>Back to Payments</Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-full bg-gray-50/10">
-     
-
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <Title titel={"Edit Payment"} disc={`Review payment #${form.id}. `}>
- <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="mb-4 flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-700"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
-        </Title>
-        
-        
-      </div>
+    <div className="space-y-4">
+      <Title
+        titel="Edit Payment"
+        disc={`Review and update platform payment entry status #${form.id}.`}
+      />
 
       <form
         onSubmit={handleSubmit}
-        className="max-w-full rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+        className="flex max-w-full flex-col gap-6 mt-4 rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
       >
-        {/* Read-only payment info */}
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400">
-          Payment Details <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${STATUS_STYLE[form.status]}`}>
-          {form.status}
-        </span>
-        </h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
-              <User size={16} />
+        {/* Payment Details */}
+        <div>
+          <div className="mb-4 flex items-center gap-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Payment Details</h3>
+
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${STATUS_STYLE[form.status] || "bg-gray-100 text-gray-600"
+                }`}
+            >
+              {form.old_status}
             </span>
-            <div>
-              <p className="text-xs text-gray-400">Payee</p>
-              <p className="text-sm font-medium text-gray-700">
-                {form.payee} <span className="text-xs font-normal text-gray-400">· {form.payee_type}</span>
-              </p>
-            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
-              <Wallet size={16} />
-            </span>
-            <div>
-              <p className="text-xs text-gray-400">Amount</p>
-              <p className="text-sm font-medium text-gray-700">{form.amount}</p>
-            </div>
-          </div>
+          <div className="grid grid-cols-1 gap-5 rounded-xl border border-gray-100 bg-gray-50/40 p-4 sm:grid-cols-3">
+            <InfoCard icon={User} label="Requested By">
+              <p className="truncate text-xs font-semibold text-gray-700">{form.requesterName}</p>
+            </InfoCard>
 
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
-              <CreditCard size={16} />
-            </span>
-            <div>
-              <p className="text-xs text-gray-400">Method</p>
-              <p className="text-sm font-medium text-gray-700">{form.method}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
-              <CreditCard size={16} />
-            </span>
-            <div>
-              <p className="text-xs text-gray-400">Account Number</p>
-              <p className="text-sm font-medium text-gray-700">{form.account}</p>
-            </div>
-          </div>
+            {form.requesterEmail && (
+              <InfoCard icon={Mail} label="Email">
+                <p className="truncate text-xs font-medium text-gray-600">{form.requesterEmail}</p>
+              </InfoCard>
+            )}
 
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-gray-400">
-              <Calendar size={16} />
-            </span>
-            <div>
-              <p className="text-xs text-gray-400">Requested</p>
-              <p className="text-sm font-medium text-gray-700">
-                {new Date(form.requested_at).toLocaleDateString()}
-              </p>
-            </div>
+            <InfoCard icon={Wallet} label="Amount">
+              <p className="text-xs font-bold text-green-600">{formatMoney(form.amount)}</p>
+            </InfoCard>
+
+            <InfoCard icon={Landmark} label="Bank">
+              <span className={`mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${bank.color}`}>
+                {bank.label}
+              </span>
+            </InfoCard>
+
+            <InfoCard icon={CreditCard} label="Account Number">
+              <p className="font-mono text-xs font-medium text-gray-600">{form.account}</p>
+            </InfoCard>
+
+            <InfoCard icon={User} label="Account Holder">
+              <p className="truncate text-xs font-medium text-gray-600">{form.fullName}</p>
+            </InfoCard>
+
+            {form.transaction_reference && (
+              <InfoCard icon={Hash} label="Transaction Reference">
+                <p className="font-mono text-xs font-medium text-gray-600">{form.transaction_reference}</p>
+              </InfoCard>
+            )}
+
+            <InfoCard icon={Calendar} label="Requested">
+              <p className="text-xs font-semibold text-gray-700">{formatDateTime(form.createdAt)}</p>
+            </InfoCard>
           </div>
         </div>
 
-        {/* Status */}
-        <h3 className="mb-4 mt-6 text-sm font-semibold uppercase tracking-wide text-gray-400">
-          Status
-        </h3>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <Select label="Status" name="status" value={form.status} onChange={setStatus} data={STATUS_OPTIONS} />
+        {/* Lifecycle timeline */}
+        <div className="border-t border-gray-100 pt-4">
+          <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">Payment Lifecycle</h3>
+
+          <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-100 bg-gray-50/40 p-4 sm:grid-cols-3">
+            <TimelineStep icon={Clock} label="Requested" timestamp={form.createdAt} tone="gray" />
+
+            {form.rejectedAt ? (
+              <TimelineStep
+                icon={ShieldX}
+                label="Rejected"
+                timestamp={form.rejectedAt}
+                actor={form.rejectedBy}
+                tone="red"
+              />
+            ) : (
+              <TimelineStep icon={ShieldCheck} label="Approved" timestamp={form.approvedAt} actor={form.approvedBy} tone="sky" pending={!form.approvedAt} />
+            )}
+
+            <TimelineStep icon={BadgeCheck} label="Paid" timestamp={form.paidAt} actor={form.paidBy} tone="green" pending={!form.paidAt} />
+          </div>
+
+          {form.rejectedAt && form.rejection_reason && (
+            <div className="mt-3 rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-700">
+              <span className="font-semibold">Rejection reason: </span>
+              {form.rejection_reason}
+            </div>
+          )}
         </div>
 
+        {/* Update Status */}
+        <div className="border-t border-gray-100 pt-4">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-400">Update Workflow Action</h3>
+
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Select label="Select New Status" name="status" value={form.status} onChange={setStatus} data={STATUS_OPTIONS} />
+          </div>
+        </div>
+
+        {/* Rejection Reason */}
         {isRejected && (
-          <div className="mt-5">
-            <label className="mb-1.5 flex items-center gap-1 text-sm font-medium text-gray-700">
-              Rejection Reason <span className="text-red-500">*</span>
+          <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+            <label className="mb-1.5 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-gray-700">
+              Rejection Reason
+              <span className="font-bold text-rose-500">*</span>
             </label>
+
             <textarea
               rows={3}
-              placeholder="Explain why this payment is being rejected..."
-              value={form.reason}
-              onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
-              className={`w-full resize-none rounded-xl border px-3.5 py-2.5 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:ring-2 ${
-                errors.reason
-                  ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-                  : "border-gray-200 focus:border-primary focus:ring-primary/20"
-              }`}
+              placeholder="Explain transparently why this specific payment request is being rejected..."
+              value={form.rejection_reason}
+              onChange={(e) => setForm((current) => ({ ...current, rejection_reason: e.target.value }))}
+              className={`w-full rounded-xl border bg-white p-3 text-xs font-medium text-gray-800 outline-none transition-all duration-200 placeholder:font-normal placeholder:text-gray-400 focus:ring-4 ${errors.rejection_reason
+                  ? "border-rose-400 bg-rose-50/5 focus:border-rose-400 focus:ring-rose-400/10"
+                  : "border-gray-200 hover:border-gray-300 focus:border-violet-500 focus:ring-violet-500/10"
+                }`}
             />
-            {errors.reason && (
-              <span className="mt-1.5 flex items-center gap-1 text-xs font-medium text-red-500">
-                <AlertCircle size={13} /> {errors.reason}
-              </span>
+
+            {errors.rejection_reason && (
+              <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
+                <AlertCircle size={13} />
+                {errors.rejection_reason}
+              </p>
             )}
           </div>
         )}
 
-        {/* Read-only audit info */}
-        <div className="mt-6 grid grid-cols-1 gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 text-sm sm:grid-cols-2">
-          <div>
-            <p className="flex items-center gap-1 text-xs text-gray-400">
-              <Calendar size={12} /> Created At
-            </p>
-            <p className="font-medium text-gray-700">{new Date(form.created_at).toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="flex items-center gap-1 text-xs text-gray-400">
-              <Clock size={12} /> Last Updated
-            </p>
-            <p className="font-medium text-gray-700">{new Date(form.updated_at).toLocaleString()}</p>
-          </div>
-        </div>
+        {/* Transaction Reference — required when marking Paid */}
+        {isPaid && (
+          <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+            <label className="mb-1.5 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-gray-700">
+              Transaction Reference
+              <span className="font-bold text-rose-500">*</span>
+            </label>
 
-        {submitError && (
-          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
-            {submitError}
-          </p>
+            <div className="relative">
+              <Hash size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="e.g. FT24201XXXXX"
+                value={form.transaction_reference}
+                onChange={(e) => setForm((current) => ({ ...current, transaction_reference: e.target.value }))}
+                className={`w-full rounded-xl border bg-white py-2.5 pl-9 pr-3 text-xs font-medium text-gray-800 outline-none transition-all duration-200 placeholder:font-normal placeholder:text-gray-400 focus:ring-4 ${errors.transaction_reference
+                    ? "border-rose-400 bg-rose-50/5 focus:border-rose-400 focus:ring-rose-400/10"
+                    : "border-gray-200 hover:border-gray-300 focus:border-violet-500 focus:ring-violet-500/10"
+                  }`}
+              />
+            </div>
+
+            {errors.transaction_reference && (
+              <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
+                <AlertCircle size={13} />
+                {errors.transaction_reference}
+              </p>
+            )}
+          </div>
         )}
 
-        <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
-          <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={submitting}>
+        {/* Admin Note — optional, independent of status */}
+        <div>
+          <label className="mb-1.5 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-gray-700">
+            <MessageSquare size={12} /> Admin Note
+            <span className="text-[10px] font-normal normal-case text-gray-400">(Optional, internal)</span>
+          </label>
+
+          <textarea
+            rows={2}
+            placeholder="Any internal notes about this payment..."
+            value={form.note}
+            onChange={(e) => setForm((current) => ({ ...current, note: e.target.value }))}
+            className="w-full rounded-xl border border-gray-200 bg-white p-3 text-xs font-medium text-gray-800 outline-none transition-all duration-200 placeholder:font-normal placeholder:text-gray-400 hover:border-gray-300 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10"
+          />
+        </div>
+
+        {/* Submit Error */}
+        {submitError && (
+          <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-600">
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span>{submitError}</span>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => navigate(-1)}
+            disabled={updatePaymentApi.loading}
+          >
             Cancel
           </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? (
-              <span className="flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin" /> Saving...
-              </span>
+
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={updatePaymentApi.loading}
+            className="flex items-center gap-2"
+          >
+            {updatePaymentApi.loading ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                Saving...
+              </>
             ) : (
-              <span className="flex items-center gap-2">
-                <Save size={16} /> Save Changes
-              </span>
+              <>
+                <Save size={15} />
+                Save Changes
+              </>
             )}
           </Button>
         </div>

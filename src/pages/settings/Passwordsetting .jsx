@@ -4,7 +4,7 @@ import { ArrowLeft, Lock, Loader2, CheckCircle2, ShieldCheck } from "lucide-reac
 
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 import useApi from "../../hooks/useApi";
 
 function getStrength(password) {

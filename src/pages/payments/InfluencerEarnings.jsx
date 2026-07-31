@@ -13,10 +13,13 @@ import {
   ArrowDownToLine,
   WalletCards,
   WalletIcon,
+  User,
 } from "lucide-react";
 import Input from "../../components/common/Input";
 import { useAuth } from "../../contexts/AuthContext";
 import { formatFollowers } from "../../services/helpers";
+import { useEffect } from "react";
+import useApi from "../../hooks/useApi";
 
 const BANKS = [
   { id: "dashen", name: "Dashen Bank", color: "bg-secondary" },
@@ -30,15 +33,17 @@ const WITHDRAW_HISTORY = [
 ];
 
 const STATUS_STYLE = {
-  Completed: "bg-green-100 text-green-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-  Rejected: "bg-red-100 text-red-700",
+  approved: "bg-green-100 text-green-700",
+  paid: "bg-green-100 text-green-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  rejected: "bg-red-100 text-red-700",
 };
 
 const STATUS_ICON = {
-  Completed: CheckCircle2,
-  Pending: Clock,
-  Rejected: XCircle,
+  approved: CheckCircle2,
+  paid: CheckCircle2,
+  pending: Clock,
+  rejected: XCircle,
 };
 
 export default function InfluencerEarnings() {
@@ -46,13 +51,33 @@ export default function InfluencerEarnings() {
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [step, setStep] = useState(1); // 1: pick bank, 2: enter details
   const [selectedBank, setSelectedBank] = useState(null);
+  const [error, setError] = useState("");
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
+  const [amount, setAmount] = useState("");
   const totalEarnings = 3025.198;
   const currentBalance = 2115.19;
+  const withdrawalApi = useApi({
+    request: (payload, method = "GET") => ({
+      method: method,
+      path: `/withdrawals/my`,
+      manual: true,
+      data: payload,
+
+    }),
+  });
+  const withdrawApi = useApi({
+    request: (payload) => ({
+      method: "POST",
+      path: `/withdrawals`,
+      manual: true,
+      data: payload,
+
+    }),
+  });
+
 
   function resetWithdraw() {
     setShowWithdraw(false);
@@ -64,20 +89,81 @@ export default function InfluencerEarnings() {
     setSubmitting(false);
   }
 
-  function handleConfirm() {
+  const handleConfirm = async () => {
+    if (!selectedBank || !account || !password || !amount) {
+      return;
+    }
+
+    setError("")
+
+    const withdrawalAmount = Number(amount);
+
+    const availableBalance = Number(
+      withdrawalApi.data?.data?.summary?.available_balance || 0
+    );
+    const cbeRegex = /^1000\d{9}$/;
+    const dashenRegex = /^55\d{7,11}$/;
+    let isAccountValid = false;
+
+    if (selectedBank?.id == 'cbe') {
+      isAccountValid = cbeRegex.test(account);
+    } else if (selectedBank?.id== 'dashen') {
+      isAccountValid = dashenRegex.test(account);
+    }
+
+    if (!isAccountValid) {
+      setError("Enter a valid bank account number.");
+      return;
+    }
+
+    // 2. Withdrawal Amount Validation
+    if (withdrawalAmount <= 0) {
+      setError("Enter a valid withdrawal amount.");
+      return;
+    }
+
+    if (withdrawalAmount > availableBalance) {
+      setError("Insufficient available balance.");
+      return;
+    }
+
     setSubmitting(true);
-    setTimeout(() => {
-      // TODO: replace with real withdraw API call
+
+    const res = await withdrawApi.execute(
+      {
+        amount: withdrawalAmount,
+        account_number: account,
+        bank_type: selectedBank.id,
+        password,
+        full_name: user.name
+      }
+    );
+
+    if (res?.success) {
       resetWithdraw();
-    }, 1200);
-  }
+
+      // Refresh wallet summary and withdrawals
+      await withdrawalApi.execute();
+    }
+
+    setSubmitting(false);
+
+  };
+
+  useEffect(() => {
+    if (!user?.id) {
+      return null
+    }
+    (async () => {
+      await withdrawalApi.execute();
+
+    })();
+  }, [user?.id,])
 
   return (
     <div className="min-h-full bg-primary/10 bg-blur-sm rounded-lg">
       <div className="mx-auto max-w-full space-y-4 p-4">
         {/* ---------------- PROFILE ---------------- */}
-
-
         {/* ---------------- BALANCE CARD ---------------- */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary p-5 text-white shadow-lg">
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10" />
@@ -102,19 +188,19 @@ export default function InfluencerEarnings() {
                 <p className="flex items-center gap-1.5 text-xs text-white/70">
                   <Wallet size={13} /> Current Balance
                 </p>
-                <p className="mt-1 text-xl font-bold tabular-nums">{formatFollowers(currentBalance)} ETB</p>
+                <p className="mt-1 text-xl font-bold tabular-nums">{formatFollowers(withdrawalApi.data?.data?.summary?.available_balance)} ETB</p>
               </div>
               <div>
                 <p className="flex items-center gap-1.5 text-xs text-white/70">
                   <Wallet size={13} /> Pending Balance
                 </p>
-                <p className="mt-1 text-xl font-bold tabular-nums">{formatFollowers(currentBalance)} ETB</p>
+                <p className="mt-1 text-xl font-bold tabular-nums">{formatFollowers(withdrawalApi.data?.data?.summary?.pending_balance)} ETB</p>
               </div>
               <div className="border-l border-white/20 pl-4">
                 <p className="flex items-center gap-1.5 text-xs text-white/70">
                   <TrendingUp size={13} /> Total Earnings
                 </p>
-                <p className="mt-1 text-xl font-bold tabular-nums">{formatFollowers(totalEarnings)} ETB</p>
+                <p className="mt-1 text-xl font-bold tabular-nums">{formatFollowers(withdrawalApi.data?.data?.summary?.total_earned)} ETB</p>
               </div>
             </div>
 
@@ -135,9 +221,9 @@ export default function InfluencerEarnings() {
               See all <ChevronRight size={14} />
             </button> */}
           </div>
-
+          {JSON.stringify(selectedBank)}
           <div className="divide-y divide-gray-50">
-            {WITHDRAW_HISTORY.map((w) => {
+            {withdrawalApi.data?.data?.withdrwals?.map((w) => {
               const StatusIcon = STATUS_ICON[w.status];
               return (
                 <div key={w.id} className="flex items-center justify-between py-3">
@@ -145,15 +231,17 @@ export default function InfluencerEarnings() {
                     <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-gray-400">
                       <Landmark size={16} />
                     </span>
+
+
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{w.amount}</p>
-                      <p className="text-xs text-gray-400">
-                        {w.bank} · {new Date(w.date).toLocaleDateString()}
+                      <p className="text-sm font-medium text-gray-800">{w.amount} ETB</p>
+                      <p className="text-xs uppercase text-gray-400">
+                        {w.bank_type} · {new Date(w.createdAt)?.toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <span
-                    className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLE[w.status]}`}
+                    className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLE}`}
                   >
                     <StatusIcon size={12} /> {w.status}
                   </span>
@@ -224,11 +312,41 @@ export default function InfluencerEarnings() {
 
                   <Input
                     type="text"
+                    label={"Account Holder name"}
+                    leftIcon={<User size={18} />}
+                    value={user.name}
+
+                    disabled
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary"
+                  />
+
+
+                </div>
+                <div>
+
+                  <Input
+                    name={"account"}
+                    type="text"
                     label={"Account number"}
-                    leftIcon={<WalletIcon size={18} />}
+                    // leftIcon={< size={18} />}
                     value={account}
                     onChange={(e) => setAccount(e.target.value)}
                     placeholder="Enter account number"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary"
+                  />
+
+
+                </div>
+
+                <div>
+                  <Input
+                    name={"amount"}
+                    type="number"
+                    label="Withdrawal amount"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Enter amount"
+                    leftIcon={<span className="text-gray-400 text-sm font-semibold" size={10} >ETB</span>}
                     className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </div>
@@ -254,10 +372,12 @@ export default function InfluencerEarnings() {
                   </div>
                 </div>
 
+                <p className="text-sm my-2 text-red-500">{error}</p>
+
                 <button
                   onClick={handleConfirm}
                   disabled={!account || !password || submitting}
-                  className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white transition disabled:opacity-40"
+                  className="w-full rounded-xl cursor-pointer bg-primary py-3 text-sm font-semibold text-white transition disabled:opacity-40"
                 >
                   {submitting ? "Processing..." : "Confirm Withdrawal"}
                 </button>

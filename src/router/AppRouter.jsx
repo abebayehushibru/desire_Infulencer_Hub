@@ -48,6 +48,9 @@ import Login from "../pages/auth/Login";
 import Unauthorized from "../pages/Unauthorized";
 import NotFound from "../pages/NotFound";
 import InfluencerEarnings from "../pages/payments/InfluencerEarnings";
+import BusinessWallet from "../pages/payments/Businesswallet";
+import Recharges from "../pages/payments/Recharges";
+import RechargeDetails from "../pages/payments/RechargeDetails";
 
 export default function AppRouter() {
 
@@ -83,17 +86,17 @@ export default function AppRouter() {
 
               <Route index element={isMobile ? <MobileOverview /> : <Overview />} />
 
-              <Route path="overview" index element={isMobile ? <MobileOverview /> : <Overview />} />
+            <Route index element={isMobile ? <MobileOverview /> : <Overview />} />
               <Route path="contents" element={<Contents />} />
               <Route path="chat" element={<Chat />} />
               <Route path="performance" element={<Performance />} />
               <Route path="conversions" element={<Conversions />} />
-
+              <Route path="earnings" element={<Earnings />} />
               <Route path="earnings" element={<Earnings />} />
 
-                <Route path="*" element={<NotFound />} />
-            </Route>
               <Route path="*" element={<NotFound />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="campaigns/:id/conversions/add" element={<AddConversion />} />
           <Route path="campaigns/:id/conversions/edit/:id2" element={<EditConversion />} />
@@ -115,12 +118,16 @@ export default function AppRouter() {
           <Route path="settings" element={<Setting />} />
           <Route path="settings/password" element={<PasswordSetting />} />
           <Route path="earnings" element={<InfluencerEarnings />} />
+           <Route path="wallet" element={<BusinessWallet />} />
+
+            <Route path="recharges" element={<Recharges />} />
+               <Route path="recharges/view/:id" element={<RechargeDetails />} />
           <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="login" element={<Login />} />
-  <Route path="unauthorized" element={<Unauthorized />} />
+        <Route path="unauthorized" element={<Unauthorized />} />
 
-          <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

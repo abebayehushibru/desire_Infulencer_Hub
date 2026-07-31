@@ -15,7 +15,7 @@ import {
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
 import Toggle from "../../components/common/Toggle";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 
 const BUSINESS = {
   name: "Desire Online School",

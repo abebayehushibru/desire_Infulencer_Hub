@@ -18,43 +18,52 @@ import Overview from "./Overview";
 import Performance from "./Performance";
 import Conversions from "./Conversions";
 import Earnings from "./Earnings";
-import { Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-const tabs = [
-    {
-        id: "overview",
-        label: "Overview",
-        icon: <PlayCircle size={18} />,
-    },
-    {
-        id: "contents",
-        label: "Content",
-        icon: <PlayCircle size={18} />,
-    },
-    {
-        id: "chat",
-        label: "Chat",
-        icon: <MessageCircle size={18} />,
-    },
-    {
-        id: "performance",
-        label: "Performance",
-        icon: <BarChart3 size={18} />,
-    },
-    {
-        id: "conversions",
-        label: "Conversions",
-        icon: <BadgeDollarSign size={18} />,
-    },
-    {
-        id: "earnings",
-        label: "Earnings",
-        icon: <DollarSign size={18} />,
-    },
-];
+
 
 export default function CampaignDetail() {
     const loc = useLocation()
+    const { id } = useParams();
+    
+    const tabs = [
+        {
+            id: "overview",
+            label: "Overview",
+            path: `/campaigns/${id}`,
+            icon: <PlayCircle size={18} />,
+        },
+        {
+            id: "contents",
+            label: "Contents",
+            path: `/campaigns/${id}/contents`,
+            icon: <PlayCircle size={18} />,
+        },
+        {
+            id: "chat",
+            label: "Chat",
+            path: `/campaigns/${id}/chat`,
+            icon: <MessageCircle size={18} />,
+        },
+        {
+            id: "performance",
+            label: "Performance",
+            path: `/campaigns/${id}/performance`,
+            icon: <BarChart3 size={18} />,
+        },
+        {
+            id: "conversions",
+            label: "Conversions",
+            path: `/campaigns/${id}/conversions`,
+            icon: <BadgeDollarSign size={18} />,
+        },
+        {
+            id: "earnings",
+            label: "Earnings",
+            path: `/campaigns/${id}/earnings`,
+            icon: <DollarSign size={18} />,
+        },
+    ];
 
 
     const [activeTab, setActiveTab] = useState("overview");
@@ -105,8 +114,8 @@ export default function CampaignDetail() {
                 <ChevronRight size={16} />
 
                 <span className="text-gray-900 font-semibold">
-                    Online English Course 
-                </span>
+                    Online English Course
+                </span>{JSON.stringify(loc.pathname)}
 
             </div>
 
@@ -167,29 +176,22 @@ export default function CampaignDetail() {
             <div className="bg-white rounded-lg border border-gray-200">
 
                 <div className="flex overflow-x-auto">
-
                     {tabs.map((tab) => (
-
-                        <button
+                        <NavLink
                             key={tab.id}
-                            onClick={() => handleNavigate(tab.id)}
-                            className={`flex items-center cursor-pointer text-sm gap-2 px-5 py-4 border-b-2 whitespace-nowrap transition
-${activeTab === tab.id
-                                    ? "border-primary text-primary font-semibold"
-                                    : "border-transparent text-gray-500 hover:text-primary"
-                                }
-
-              `}
+                            to={tab.path}
+                            end={tab.id === "overview"}
+                            className={({ isActive }) =>
+                                `flex items-center gap-2 px-5 py-4 border-b-2 font-semibold whitespace-nowrap transition ${isActive
+                                    ? "border-primary text-primary "
+                                    : "border-transparent text-gray-500 hover:text-primary hover:border-gray-300"
+                                }`
+                            }
                         >
-
                             {tab.icon}
-
-                            {tab.label}
-
-                        </button>
-
+                            <span>{tab.label}</span>
+                        </NavLink>
                     ))}
-
                 </div>
 
             </div>

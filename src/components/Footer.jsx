@@ -1,7 +1,7 @@
 import logo2 from "../assets/logos/logo2.png"
 const Footer=()=>{
   return  <footer className=" bg-gradient-to-br from-primary via-secondary to-primary text-violet-200/70 pt-16 pb-7">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
                     <div className="grid sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] gap-10 pb-10 border-b border-white/10">
                         <div>
                             <a href="#" className="flex relative  items-center gap-2 font-bold text-lg h-12 w-full text-white">

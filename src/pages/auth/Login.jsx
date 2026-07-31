@@ -87,7 +87,7 @@ export default function Login() {
   return (
     <div className="h-full md:my-auto bg-gray-100 flex items-center justify-center md:px-16  p-4">
 
-      <div className="w-full min-h-[400px]  max-w-6xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
+      <div className="w-full min-h-[400px]  max-w-[1440px] bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
 
         {/* LEFT */}
 

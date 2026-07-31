@@ -47,14 +47,14 @@ export default function InfulencerHubLanding() {
     };
 
     return (
-        <div className="min-h-full poppins bg-white text-primary font-sans ">
+        <div className="min-h-full poppins bg-red-500 bg-white text-primary font-sans ">
             {/* ============ HEADER ============ */}
             <Header />
             {/* ============ HERO ============ */}
             <section className="relative  overflow-hidden  bg-gradient-to-br from-primary via-secondary to-primary py-16 sm:py-24">
                 <div className="pointer-events-none absolute -top-40 -right-32 w-96 h-40 rounded-full bg-amber-400/20 blur-3xl" />
 
-                <div className="max-w-6xl mx-auto px-5 sm:px-8 relative grid lg:grid-cols-2 gap-14 items-center">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 relative grid lg:grid-cols-2 gap-14 items-center">
                     <div>
                         <span className="inline-flex items-center gap-2 text-amber-400 text-xs font-bold tracking-widest uppercase">
                             <span className="w-5 h-0.5 bg-amber-400 rounded-full" />
@@ -135,7 +135,7 @@ export default function InfulencerHubLanding() {
 
             {/* ============ PASSION SECTION ============ */}
             <section className="py-20 sm:py-28">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8 grid lg:grid-cols-2 gap-14 items-center">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 grid lg:grid-cols-2 gap-14 items-center">
                     <div className="order-2 lg:order-1">
                         <span className="inline-flex items-center gap-2 text-violet-800 text-xs font-bold tracking-widest uppercase">
                             <span className="w-5 h-0.5 bg-secondary rounded-full" />
@@ -236,7 +236,7 @@ export default function InfulencerHubLanding() {
 
             {/* ============ IT'S SIMPLE / STEPS ============ */}
             <section id="deals" className="py-4 sm:py-4 bg-violet-100/60">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
                     <div className="max-w-lg mb-14">
                         <span className="inline-flex items-center gap-2 text-violet-800 text-xs font-bold tracking-widest uppercase">
                             <span className="w-5 h-0.5 bg-amber-400 rounded-full" />
@@ -302,7 +302,7 @@ export default function InfulencerHubLanding() {
 
             {/* ============ STATS ============ */}
             <section className="py-20">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                     {[
                         ["12.4k", "Active creators"],
                         ["860+", "Partner brands"],
@@ -319,7 +319,7 @@ export default function InfulencerHubLanding() {
 
             {/* ============ TESTIMONIAL ============ */}
             <section className="pb-24">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
                     <div className="rounded-3xl  bg-gradient-to-br from-primary via-secondary to-primary p-10 sm:p-16 grid sm:grid-cols-[auto_1fr] gap-8 items-center shadow-xl text-center sm:text-left">
                         <span className="text-7xl sm:text-8xl font-bold text-amber-400 leading-none mx-auto sm:mx-0">"</span>
                         <div>
@@ -342,7 +342,7 @@ export default function InfulencerHubLanding() {
 
             {/* ============ CTA BANNER ============ */}
             <section id="contact" className="pb-24">
-                <div className="max-w-6xl mx-auto px-5 sm:px-8">
+                <div className="max-w-[1440px] mx-auto px-5 sm:px-8">
                     <div className="relative overflow-hidden rounded-3xl bg-amber-400 px-8 py-16 sm:py-20 text-center">
                         <div className="pointer-events-none absolute -top-24 -left-16 w-56 h-56 rounded-full bg-violet-950/10" />
                         <div className="pointer-events-none absolute -bottom-20 -right-10 w-40 h-40 rounded-full bg-violet-950/10" />

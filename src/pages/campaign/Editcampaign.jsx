@@ -28,7 +28,7 @@ import DatePicker from "../../components/common/DatePicker";
 import FileUpload from "../../components/common/FileUpload";
 import Textarea from "../../components/common/Textarea";
 import Checkbox from "../../components/common/Checkbox";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 import useApi from "../../hooks/useApi";
 import SearchSelect from "../../components/common/SearchSelect";
 
@@ -460,42 +460,51 @@ export default function CreateCampaign() {
   const buildPayload = (isPublish = false) => {
     const payload = new FormData();
 
+    // Core fields
     payload.append("type", selectedGoal);
     payload.append("title", form.title.trim());
     payload.append("description", form.description || "");
     payload.append("start_date", form.start_date);
     payload.append("end_date", form.end_date);
-    payload.append("locations", JSON.stringify(form.locations || []));
-    payload.append("ethiopia_locations", JSON.stringify(form.EthiopiaLc || []));
-    payload.append("platforms", JSON.stringify(form.platforms));
+    payload.append("locations", form.locations.join(','));
+    payload.append("ethiopia_locations", form.EthiopiaLc.join(","));
+    payload.append("platforms", form.platforms.join(","))
     payload.append("run_type", form.run_type);
     payload.append("target_type", targetType);
     payload.append("target_id", form.target_id);
     payload.append("conversion_event", tracking.conversion_event);
     payload.append("status", isPublish ? "pending" : "draft");
 
+    // Sales Goal Fields & Validation
     if (selectedGoal === "sales") {
       if (form.fund_type === "conversion") {
         if (!form.conversion_rate && !form.amount) {
           stepErrors.conversion_rate = "Either Conversion rate or Amount is required.";
-          // stepErrors.amount = "Either Conversion rate or Amount is required.";
+        } else {
+          if (form.conversion_rate) payload.append("conversion_rate", form.conversion_rate);
+          if (form.amount) payload.append("amount", form.amount);
         }
       }
       if (!form.total_budget) {
         stepErrors.total_budget = "Total budget is required.";
+      } else {
+        payload.append("total_budget", form.total_budget);
       }
     }
 
+    // Awareness Goal Fields
     if (selectedGoal === "awareness") {
       payload.append("total_views", form.total_views);
       payload.append("total_budget", form.total_budget);
     }
 
+    // Growth Goal Fields
     if (selectedGoal === "growth") {
       payload.append("followers", form.followers);
       payload.append("follower_price", form.follower_price);
     }
 
+    // Media Files
     if (form.video instanceof File) {
       payload.append("video", form.video);
     }
@@ -503,7 +512,9 @@ export default function CreateCampaign() {
       payload.append("photo", form.photo);
     }
 
-    payload.append("successMsg", isEditMode ? "Campaign updated successfully!" : "Campaign launched successfully!")
+    // Context Meta
+    payload.append("successMsg", isEditMode ? "Campaign updated successfully!" : "Campaign launched successfully!");
+
     return payload;
   };
 
@@ -511,13 +522,13 @@ export default function CreateCampaign() {
     if (!validateAllSteps()) return;
 
     const payload = buildPayload();
-   const res = await campaignApi.execute(
+    const res = await campaignApi.execute(
       payload
 
     );
 
     if (res.success) {
-      
+
     }
   };
   const handlePublish = async () => {
@@ -808,7 +819,7 @@ export default function CreateCampaign() {
         {currentStep === 3 && (
           <div className="space-y-8">
             <div className="bg-white rounded-2xl border border-gray-200 p-4">
-              <h3 className="font-semibold text-sm mb-4">Campaign Information 77</h3>
+              <h3 className="font-semibold text-sm mb-4">Campaign Information </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col flex-1 gap-3">
                   <div>
@@ -869,7 +880,10 @@ export default function CreateCampaign() {
                             name="conversion_rate"
                             type="number"
                             value={form.conversion_rate}
-                            onChange={handleChange}
+                            onChange={(e) => {
+                              set("amount", "")
+                              handleChange(e)
+                            }}
                           />
                           <FieldError message={errors.conversion_rate} />
                         </div>
@@ -877,18 +891,21 @@ export default function CreateCampaign() {
 
                       <div>
                         <Input
-                          label={form.fund_type === "conversion" ? "Amount Per Conversion" : "Fixed Amount"}
+                          label={form.fund_type === "conversion" ? "Amount Per Conversion (ETB)" : "Fixed Amount (ETB)"}
                           name="amount"
                           type="number"
                           value={form.amount}
-                          onChange={handleChange}
+                          onChange={(e) => {
+                            set("conversion_rate", "")
+                            handleChange(e)
+                          }}
                         />
                         <FieldError message={errors.amount} />
                       </div>
 
                       <div>
                         <Input
-                          label="Total Budget"
+                          label="Total Budget (ETB)"
                           name="total_budget"
                           type="number"
                           value={form.total_budget}

@@ -6,7 +6,7 @@ import Table, { ActionMenu } from "../../components/common/Table";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 import Pagination from "../../components/Pagination";
 import useApi from "../../hooks/useApi";
 import { useEffect } from "react";

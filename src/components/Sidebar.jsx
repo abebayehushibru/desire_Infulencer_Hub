@@ -44,6 +44,8 @@ const NAV_GROUPS = [
     items: [
       // { name: "Earnings", icon: Wallet },
       { name: "Payments", icon: CreditCard },
+      { name: "Recharges", icon: Banknote },
+      { name: "Wallet", icon: CreditCard },
       { name: "Earnings", icon: Banknote },
       
     ],

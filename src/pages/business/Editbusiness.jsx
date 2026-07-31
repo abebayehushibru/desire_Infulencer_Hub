@@ -5,7 +5,7 @@ import { ArrowLeft, Building2, Mail, Phone, Lock, Save, Clock, Calendar, BadgeCh
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 import useApi from "../../hooks/useApi";
 import PageLoader from "../../components/PageLoader";
 
@@ -14,7 +14,7 @@ const SAMPLE_BUSINESS = {
   id: "b1f0c2b2-2f3a-4a5b-9e2a-6d1f2c3a4b5c",
   name_or_company_name: "Desire Online School",
   email: "info@desire.et",
-  phone_1: "0911223344",
+  phone1: "0911223344",
   phone_2: "",
   status: "active",
   login_attempts: 0,
@@ -55,7 +55,7 @@ export default function EditBusiness() {
     if (!form.name_or_company_name.trim()) e.name_or_company_name = "Company name is required.";
     if (!form.email.trim()) e.email = "Email is required.";
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Enter a valid email.";
-    if (!form.phone_1.trim()) e.phone_1 = "Primary phone number is required.";
+    if (!form.phone1.trim()) e.phone1 = "Primary phone number is required.";
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -69,7 +69,7 @@ export default function EditBusiness() {
       const payload = {
         name_or_company_name: form.name_or_company_name,
         email: form.email,
-        phone_1: form.phone_1,
+        phone1: form.phone1,
         phone_2: form.phone_2,
         status: form.status,
 
@@ -105,7 +105,7 @@ export default function EditBusiness() {
           id: user.id,
           name_or_company_name: user.name_or_company_name || "",
           email: user.email || "",
-          phone_1: user.phone1 || "",
+          phone1: user.phone1 || "",
           phone_2: user.phone2 || "",
           status: user.status || "pending",
 
@@ -200,12 +200,12 @@ export default function EditBusiness() {
 
             <Input
               label="Phone Number"
-              name="phone_1"
+              name="phone1"
               required
               leftIcon={<Phone size={18} />}
-              value={form.phone_1}
-              onChange={set("phone_1")}
-              error={errors.phone_1}
+              value={form.phone1}
+              onChange={set("phone1")}
+              error={errors.phone1}
             />
 
             <Input

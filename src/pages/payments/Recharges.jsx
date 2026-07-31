@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Plus, Search } from "lucide-react"; // Added Search visual anchor
+import { Copy, Plus, Search } from "lucide-react"; // Added Search visual anchor
 import { useState, useEffect } from "react";
 
 import Table, { ActionMenu } from "../../components/common/Table";
@@ -11,8 +11,9 @@ import Pagination from "../../components/Pagination";
 import StatsCard from "../../components/common/StatsCard."; // Fixed trailing dot error ("StatsCard.")
 import useApi from "../../hooks/useApi";
 import Avatar from "../../components/common/Avatar";
+import toast from "react-hot-toast";
 
-export default function Payments() {
+export default function Recharges() {
   const navigate = useNavigate();
   const [active, setActive] = useState(false);
   const [summary, setSummary] = useState(null);
@@ -30,18 +31,18 @@ export default function Payments() {
   const [limit, setLimit] = useState(10);
 
   // 2. Clear API Wrapper setup matching structural manual hooks
-  const withdrawalApi = useApi({
+  const rechargesApi = useApi({
     request: (payload, method = "GET") => ({
       method: method,
-      path: `/withdrawals`,
+      path: `/recharges`,
       manual: true,
       query: payload,
     }),
   });
 
   // 3. Trigger Fetch Function on filter search execution click or page swap
-  const fetchPayments = async () => {
-    const res = await withdrawalApi.execute({
+  const fetchRecharges = async () => {
+    const res = await rechargesApi.execute({
       page,
       limit,
       search: filters.search,
@@ -60,12 +61,12 @@ export default function Payments() {
 
   // Fetch initial batch records on initialization
   useEffect(() => {
-    fetchPayments();
+    fetchRecharges();
   }, [page, limit]);
 
   // Extract variables out from API tracking framework hook values
-  const apiData = withdrawalApi?.data?.data || {};
-  const backendWithdrawals = apiData?.withdrwals || [];
+  const apiData = rechargesApi?.data?.data || {};
+  const rechargesDatas = apiData?.recharges || [];
   const totalCount = apiData?.count || 0;
   const summaryMetrics = apiData?.summary || {};
 
@@ -79,19 +80,19 @@ export default function Payments() {
   // Table Column Schema Bindings mapped against actual database data payloads
   const columns = [
     {
-      key: "influencer",
+      key: "recipient",
       label: "Recipient",
       render: (_, row) => (
         <div className="flex items-center gap-3">
-          {row?.requested_by?.avatar ?
+          {row?.business?.avatar ?
             <img
-              src={row?.requested_by?.avatar || "/default-avatar.png"}
+              src={row?.business?.avatar || "/default-avatar.png"}
               alt=""
               className="w-10 h-10 rounded-full object-cover"
-            /> : <Avatar name={row?.  requested_by?.name_or_company_name}></Avatar>
+            /> : <Avatar name={row?.  business?.name_or_company_name}></Avatar>
           }
 
-        <p>{row?.  requested_by?.name_or_company_name}</p>
+        <p>{row?.  business?.name_or_company_name}</p>
         </div>
       ),
     },
@@ -116,11 +117,32 @@ export default function Payments() {
     },
     {
       key: "account_number",
-      label: "Account Number",
-      render: (value) => (
-        <span className="font-mono text-gray-600 text-xs">{value || "—"}</span>
+      label: "Business Name",
+      render: (value,row) => (
+        <span className="font-mono text-gray-600 text-xs">{row?.business?.name_or_company_name || "—"}</span>
       ),
     },
+    {
+  key: "transaction_reference",
+  label: "Reference",
+  render: (value) => {
+    if (!value) return "—";
+    
+    return (
+      <div 
+        className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors"
+        onClick={() => {
+          toast.success("copied successfully")
+          navigator.clipboard.writeText(value)
+        }}
+        title="Click to copy reference"
+      >
+        <span>{value}</span>
+        <Copy size={14} className="text-gray-400 hover:text-current" />
+      </div>
+    );
+  },
+},
     {
       key: "createdAt",
       label: "Payment Date",
@@ -133,8 +155,7 @@ export default function Payments() {
         const val = String(value).toUpperCase();
         return (
           <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${val === "APPROVED" || val === "PAID"
-                ? "bg-green-100 text-green-700"
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${val === "VERIFIED"  ? "bg-green-100 text-green-700"
                 : val === "PENDING"
                   ? "bg-yellow-100 text-yellow-700"
                   : "bg-red-100 text-red-700"
@@ -153,7 +174,7 @@ export default function Payments() {
           index={index}
           active={active}
           setActive={setActive}
-          onEdit={() => navigate(`/payments/view/${row.id}`)}
+          onEdit={() => navigate(`/Recharges/view/${row.id}`)}
         
         />
       ),
@@ -165,8 +186,8 @@ export default function Payments() {
       {/* Structural Title Area Setup */}
       <div className="mb-4">
         <Title
-          titel="Payments"
-          disc="Track, manage and verify influencer platform withdrawals."
+          titel="Recharges"
+          disc="Track, manage and verify business wallet recharges."
         />
       </div>
 
@@ -206,7 +227,7 @@ export default function Payments() {
             name="search"
             value={filters.search}
             onChange={handleFilterChange}
-            placeholder="Search influencer name..."
+            placeholder="Search business name..."
             className="max-w-sm w-full"
           />
 
@@ -223,16 +244,7 @@ export default function Payments() {
               ]}
             />
 
-            <Select
-              name="bank_type"
-              value={filters.bank_type}
-              onChange={handleFilterChange}
-              data={[
-                { label: "All", value: "" },
-                { label: "CBE", value: "cbe" },
-                { label: "Dashen", value: "dashen" },
-              ]}
-            />
+    
 
             <div className="flex items-center gap-2">
               <Input
@@ -254,8 +266,8 @@ export default function Payments() {
 
             <Button
               variant="primary"
-              onClick={fetchPayments}
-              loading={withdrawalApi.loading}
+              onClick={fetchRecharges}
+              loading={rechargesApi.loading}
               className="flex items-center gap-2"
             >
               <Search className="w-4 h-4" />
@@ -265,12 +277,12 @@ export default function Payments() {
         </div>
 
         {/* Dynamic Data Content Rendering Engine */}
-        {withdrawalApi.loading ? (
+        {rechargesApi.loading ? (
           <div className="py-10 text-center text-gray-500 text-sm">
             Loading transaction registers...
           </div>
         ) : (
-          <Table columns={columns} data={backendWithdrawals} />
+          <Table columns={columns} data={rechargesDatas} />
         )}
 
         {/* Global Pagination Footprint Block */}

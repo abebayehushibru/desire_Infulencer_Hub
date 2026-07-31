@@ -1,16 +1,17 @@
-import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { MessageCircle, Plus } from "lucide-react";
 
 import Table, { ActionMenu } from "../../components/common/Table";
 import Button from "../../components/common/Button";
 import { useEffect, useState } from "react";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
-import Title from "../../components/common/Titel";
+import Title from "../../components/common/Title";
 import Pagination from "../../components/Pagination";
 import useApi from "../../hooks/useApi";
 import { useAuth } from "../../contexts/AuthContext";
 import { RejectionModal } from "../../components/RejectionModal";
+import CreateChat from "../../components/CreateChat";
 
 export default function Campaigns() {
 
@@ -42,6 +43,7 @@ export default function Campaigns() {
   const [activeMenuIndex, setActiveMenuIndex] = useState(null);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
 
   const columns = [
     {
@@ -67,7 +69,7 @@ export default function Campaigns() {
     {
       key: "locations",
       label: "Locations",
-      render: (value) => `${JSON.parse(JSON.parse(value)).join(",")}`,
+      render: (value) => value,
     },
 
     {
@@ -100,6 +102,27 @@ export default function Campaigns() {
     },
 
     {
+      key: "Chats",
+      key: "chat",
+      render: (value, row) => (
+        <div className="space-y-1">
+        
+          {row.chat ? (
+            <Link
+              to={`/campaigns/${row.id}/chat`}
+              className="inline-flex items-center gap-1 rounded-lg border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary hover:text-white transition"
+            >
+              <MessageCircle size={14} />
+              Open Chat
+            </Link>
+          ) : <Button onClick={() => {
+            setSelectedCampaign({ id: row?.id, name: row?.title })
+            setIsChatModalOpen(true)
+          }}> <MessageCircle size={14} /> Create </Button>}
+        </div>
+      ),
+    },
+    {
       key: "actions",
       label: "",
       render: (_, row, index) => {
@@ -118,14 +141,14 @@ export default function Campaigns() {
         }
 
         // 2. Role-Based Permissions Overrides
-        const isAdminOrSuper = role === "admin" || role === "superadmin";
+        const isAdminOrSuper = role === "admin" || role === "super_admin";
 
         // Admin/SuperAdmin: Pending -> Approve
         if (isAdminOrSuper && status === "pending") {
 
           actions.onApprove = () => handleAction(row.id, "approved");
           actions.onReject = () => {
-            setSelectedCampaign({id:row?.id,name:row?.name})
+            setSelectedCampaign({ id: row?.id, name: row?.name })
             setIsRejectModalOpen(true)
           };
         }
@@ -134,7 +157,7 @@ export default function Campaigns() {
         if (role === "influencer" && status === "approved") {
           actions.onAccept = () => handleAction(row.id, "accepted");
           actions.onReject = () => {
-             setSelectedCampaign({id:row?.id,name:row?.name})
+            setSelectedCampaign({ id: row?.id, name: row?.name })
             setIsRejectModalOpen(true)
           };
         }
@@ -200,14 +223,14 @@ export default function Campaigns() {
       setPagination(res?.data?.data?.data?.pagination)
     }
   }
-  const handleAction = async (id, status, reason="") => {
-  
+  const handleAction = async (id, status, reason = "") => {
+
     // Fire the stripped-down endpoint we built earlier
     const res = await updateApi.execute({
       id,
       status,
       rejection_reason: reason,
-      successMsg:"Updated Successfully."
+      successMsg: "Updated Successfully."
     })
     if (res.success) {
       // Refresh the table view rows data from your database backend
@@ -293,8 +316,20 @@ export default function Campaigns() {
           setIsRejectModalOpen(false);
           setSelectedCampaign(null);
         }}
-        onSubmit={(reason)=>{
-          handleAction(selectedCampaign?.id,"rejected",reason)
+        onSubmit={(reason) => {
+          handleAction(selectedCampaign?.id, "rejected", reason)
+        }}
+      />
+       <CreateChat
+        open={isChatModalOpen}
+        campaignName={selectedCampaign?.name}
+        campaignId={selectedCampaign?.id}
+        onClose={() => {
+          setIsChatModalOpen(false);
+          setSelectedCampaign(null);
+        }}
+        onSuccess={(reason) => {
+          // handleAction(selectedCampaign?.id, "rejected", reason)
         }}
       />
 

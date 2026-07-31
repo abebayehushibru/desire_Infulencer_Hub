@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { XCircle, AlertTriangle, Loader2 } from "lucide-react";
 
-export function RejectionModal({ isOpen, onClose, onSubmit, campaignName = "Campaign" }) {
+export function RejectionModal({ isOpen, onClose, onSubmit, campaignName = "Campaign", title="Campaign" }) {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,7 +46,7 @@ export function RejectionModal({ isOpen, onClose, onSubmit, campaignName = "Camp
             <AlertTriangle size={22} />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">Reject Campaign</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Reject {title}</h3>
             <p className="text-sm text-gray-500 mt-0.5">
               Are you sure you want to reject <span className="font-medium text-gray-700">"{campaignName}"</span>?
             </p>

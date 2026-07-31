@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   User,
   Phone,
   Send,
-  Megaphone,
   Users,
   UserCheck,
   Wallet,
@@ -13,48 +12,20 @@ import {
   Share2,
   Loader2,
   CheckCircle2,
+  AlertCircle,
   Camera,
   Video,
   Music2,
   Globe,
   MessageCircleReply,
+  Percent,
 } from "lucide-react";
 
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Button from "../../components/common/Button";
-import Title from "../../components/common/Titel";
-
-/* ---------------------------------------------------------
-   Mock data — swap for real API calls (see fetch* functions below)
---------------------------------------------------------- */
-
-const MOCK_CAMPAIGNS = [
-  { value: "c1", label: "Summer Refresh — Coca-Cola", target_type: "community" },
-  { value: "c2", label: "Run Addis 2026 — Nike", target_type: "influencer", targeted_influencer: { id: "inf5", name: "Abebe Kebede" } },
-  { value: "c3", label: "Glow Summer Launch — Nivea", target_type: "community" },
-  { value: "c4", label: "Unfold Your Story — Samsung", target_type: "influencer", targeted_influencer: { id: "inf6", name: "Liya Alemu" } },
-];
-
-const MOCK_COMMUNITIES_BY_CAMPAIGN = {
-  c1: [
-    { label: "Sara Beauty Community", value: "comm1" },
-    { label: "Fit Ethiopia", value: "comm2" },
-  ],
-  c3: [
-    { label: "Sara Beauty Community", value: "comm1" },
-    { label: "Foodies Addis", value: "comm3" },
-  ],
-};
-
-const MOCK_INFLUENCERS_BY_COMMUNITY = {
-  comm1: [
-    { label: "Sara Beauty", value: "inf1" },
-    { label: "Hana T.", value: "inf2" },
-  ],
-  comm2: [{ label: "Fit Coach Dawit", value: "inf3" }],
-  comm3: [{ label: "Foodie Meron", value: "inf4" }],
-};
+import Title from "../../components/common/Title";
+import useApi from "../../hooks/useApi";
 
 const PLATFORMS = [
   { label: "TikTok", value: "tiktok", icon: Music2 },
@@ -64,134 +35,169 @@ const PLATFORMS = [
   { label: "Telegram", value: "telegram", icon: Send },
   { label: "Other", value: "other", icon: Globe },
 ];
+function calculateCampaignSplit(campaign, paidAmount, returnRole = null) {
+  // 1. Setup unified decimal percentage rate & variables
+  const ruleType = campaign?.commission_rule_type || ""; // 'Rate' or 'Fixed'
+  const commValue = parseFloat(campaign?.commission_value || 0);
+  
+  const campaignRate = parseFloat(campaign?.commission_rate || 0) / 100;
+  const campaignAmount = parseFloat(campaign?.amount || 0);
+  const actualPaid = parseFloat(paidAmount || 0);
 
-// Simulated async lookups — replace bodies with real axios/api calls.
-const fetchCampaigns = () => new Promise((resolve) => setTimeout(() => resolve(MOCK_CAMPAIGNS), 500));
-const fetchCommunities = (campaignId) =>
-  new Promise((resolve) => setTimeout(() => resolve(MOCK_COMMUNITIES_BY_CAMPAIGN[campaignId] || []), 500));
-const fetchInfluencers = (communityId) =>
-  new Promise((resolve) => setTimeout(() => resolve(MOCK_INFLUENCERS_BY_COMMUNITY[communityId] || []), 500));
-const fetchTargetedInfluencer = (campaign) =>
-  new Promise((resolve) => setTimeout(() => resolve(campaign?.targeted_influencer || null), 400));
+  // 3. Initialize pools
+  let totalPool = 0;
+  let leaderCommission = 0;
+  let influencerCommission = 0;
+
+  // 4. Determine the Total Pool base
+  if (campaignAmount > 0) {
+    totalPool = campaignAmount;
+  } else {
+    totalPool = actualPaid;
+  }
+
+  // 4b. Calculate Leader Share based on community rule
+  if (ruleType === 'Fixed') {
+    leaderCommission = commValue;
+  } else if (ruleType === 'Rate') {
+    const ratePercentage = commValue / 100;
+    leaderCommission = totalPool * ratePercentage;
+  }
+
+  // Influencer gets the remainder of the pool
+  influencerCommission = totalPool - leaderCommission;
+
+  // Prevent negative balances if Fixed fee exceeds total pool
+  if (influencerCommission < 0) {
+    influencerCommission = 0;
+    leaderCommission = totalPool;
+  }
+
+  // 5. Build output object
+  const results = {
+    leader: Number(leaderCommission.toFixed(2)) || 0,
+    influencer: Number(influencerCommission.toFixed(2)) || 0,
+    totalPool: Number(totalPool.toFixed(2)) || 0
+  };
+
+  // 6. Return specific role value or entire calculation payload
+  if (returnRole === 'leader') return results.leader;
+  if (returnRole === 'influencer') return results.influencer;
+
+  return results.totalPool; // Returning full object allows access to all calculated pieces
+}
 
 export default function AddConversion() {
   const navigate = useNavigate();
+  const { id } = useParams(); // campaign id — this page is scoped to one specific campaign
 
   // Customer info
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerTelegram, setCustomerTelegram] = useState("");
 
-  // Campaign / targeting
-  const [campaigns, setCampaigns] = useState([]);
-  const [campaignsLoading, setCampaignsLoading] = useState(true);
-  const [campaignId, setCampaignId] = useState("");
-  const selectedCampaign = campaigns.find((c) => c.value === campaignId) || null;
+  // The campaign itself — fetched once by id, already carries its fixed
+  // target (either one community or one influencer, per the Campaign model).
+  const [campaign, setCampaign] = useState(null);
+  const targetType = campaign?.target_type; // "community" | "influencer"
+  const targetedCommunity = campaign?.community || null;
+  const targetedInfluencer = campaign?.influencer || null;
 
-  const [communities, setCommunities] = useState([]);
-  const [communitiesLoading, setCommunitiesLoading] = useState(false);
-  const [communityId, setCommunityId] = useState("");
-
+  // Only relevant when target_type === "community" — which member of that
+  // community actually gets credit for this conversion.
   const [influencers, setInfluencers] = useState([]);
-  const [influencersLoading, setInfluencersLoading] = useState(false);
   const [influencerId, setInfluencerId] = useState("");
-
-  const [targetedInfluencer, setTargetedInfluencer] = useState(null);
-  const [targetedInfluencerLoading, setTargetedInfluencerLoading] = useState(false);
 
   // Conversion details
   const [platform, setPlatform] = useState("");
   const [paidAmount, setPaidAmount] = useState("");
   const [description, setDescription] = useState("");
 
+  // Commission division (for community leader) — total rate entered by
+  // the user, split evenly between the community leader and the
+  // referring influencer.
+  const [commissionRate, setCommissionRate] = useState("");
+  const leaderCommission = commissionRate ? Number(commissionRate) / 2 : 0;
+  const influencerCommission = commissionRate ? Number(commissionRate) / 2 : 0;
+
   const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  // Load campaigns on mount
-  useEffect(() => {
-    let mounted = true;
-    setCampaignsLoading(true);
-    fetchCampaigns().then((data) => {
-      if (mounted) {
-        setCampaigns(data);
-        setCampaignsLoading(false);
-      }
+  // ── Real API calls ───────────────────────────────────────────────────
+  const campaignApi = useApi({
+    request: () => ({
+      method: "GET",
+      path: `/campaigns/${id}`,
+      manual: true,
+    }),
+  });
+
+  const getInfulencerApi = useApi({
+    request: (payload) => ({
+      method: "GET",
+      path: `/communities/${payload.community_id}/members`,
+      // query: payload,
+      manual: true,
+    }),
+  });
+
+  const conversionApi = useApi({
+    request: (payload) => ({
+      method: "POST",
+      path: "/conversions",
+      data: payload,
+      manual: true,
+    }),
+  });
+
+  // ── Fetchers ──────────────────────────────────────────────────────────
+  const fetchCampaign = async () => {
+    const res = await campaignApi.execute();
+    if (res?.success) {
+      setCampaign(res?.data?.data?.campaign || res?.data?.data || null);
+    } else {
+      setCampaign(null);
+    }
+  };
+
+  const fetchInfulencers = async (page = 1, filters) => {
+    const res = await getInfulencerApi.execute({
+      page: page,
+      ...filters,
     });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    if (res.success) {
+      console.log(res.data?.data);
 
-  // When campaign changes, reset downstream selections and load what's needed
+      const formatted = res?.data?.data?.map((inf) => ({
+        label: `${inf.user?.name_or_company_name} (${inf?.user?.email})`,
+        value: inf?.user?.id, // or user.id
+      }));
+      setInfluencers(formatted);
+    } else setInfluencers([]);
+  };
+
+  // Fetch the campaign once, by route id
   useEffect(() => {
-    setCommunityId("");
-    setInfluencerId("");
-    setCommunities([]);
-    setInfluencers([]);
-    setTargetedInfluencer(null);
-
-    if (!selectedCampaign) return;
-
-    if (selectedCampaign.target_type === "community") {
-      let mounted = true;
-      setCommunitiesLoading(true);
-      fetchCommunities(selectedCampaign.value).then((data) => {
-        if (mounted) {
-          setCommunities(data);
-          setCommunitiesLoading(false);
-        }
-      });
-      return () => {
-        mounted = false;
-      };
-    }
-
-    if (selectedCampaign.target_type === "influencer") {
-      let mounted = true;
-      setTargetedInfluencerLoading(true);
-      fetchTargetedInfluencer(selectedCampaign).then((data) => {
-        if (mounted) {
-          setTargetedInfluencer(data);
-          setTargetedInfluencerLoading(false);
-        }
-      });
-      return () => {
-        mounted = false;
-      };
-    }
+    if (!id) return;
+    fetchCampaign();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignId]);
+  }, [id]);
 
-  // When community changes, load its influencers
+  // Once we know it's a community campaign, load that community's influencers
   useEffect(() => {
-    setInfluencerId("");
-    setInfluencers([]);
-    if (!communityId) return;
-
-    let mounted = true;
-    setInfluencersLoading(true);
-    fetchInfluencers(communityId).then((data) => {
-      if (mounted) {
-        setInfluencers(data);
-        setInfluencersLoading(false);
-      }
-    });
-    return () => {
-      mounted = false;
-    };
-  }, [communityId]);
+    if (targetType !== "community" || !targetedCommunity?.id) return;
+    fetchInfulencers(1, { community_id: targetedCommunity.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetType, targetedCommunity?.id]);
 
   const validate = () => {
     const e = {};
     if (!customerName.trim()) e.customerName = "Customer name is required.";
     if (!customerPhone.trim()) e.customerPhone = "Customer phone is required.";
 
-    if (!campaignId) e.campaignId = "Select a campaign.";
-    if (selectedCampaign?.target_type === "community") {
-      if (!communityId) e.communityId = "Select a community.";
-      if (communityId && !influencerId) e.influencerId = "Select an influencer.";
+    if (targetType === "community") {
+      if (!influencerId) e.influencerId = "Select the influencer who gets credit.";
+
     }
 
     if (!platform) e.platform = "Select a platform.";
@@ -202,42 +208,75 @@ export default function AddConversion() {
     return Object.keys(e).length === 0;
   };
 
+  const resetForm = () => {
+    setCustomerName("");
+    setCustomerPhone("");
+    setCustomerTelegram("");
+    setInfluencerId("");
+    setPlatform("");
+    setPaidAmount("");
+    setDescription("");
+    setCommissionRate("");
+    setErrors({});
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError("");
     if (!validate()) return;
 
-    setSubmitting(true);
-    try {
-      const payload = {
-        customer: {
-          name: customerName,
-          phone: customerPhone,
-          telegram: customerTelegram || null,
-        },
-        campaign_id: campaignId,
-        target_type: selectedCampaign?.target_type,
-        community_id: selectedCampaign?.target_type === "community" ? communityId : null,
-        influencer_id:
-          selectedCampaign?.target_type === "community"
-            ? influencerId
-            : targetedInfluencer?.id ?? null,
-        platform,
-        paid_amount: Number(paidAmount),
-        description: description || null,
-      };
+    const isCommunityFlow = targetType === "community";
 
-      console.log("Add conversion payload:", payload);
-      // await api.post("/conversions", payload);
-      await new Promise((r) => setTimeout(r, 700)); // simulate network latency
+    const payload = {
 
+      customer_name: customerName,
+      phone_number: customerPhone,
+      customer_telegram: customerTelegram || null,
+
+      campaign_id: id,
+      target_type: targetType,
+      community_id: isCommunityFlow ? targetedCommunity?.id : null,
+      influencer_id: isCommunityFlow ? influencerId : targetedInfluencer?.id ?? null,
+      platform,
+      paid_amount: Number(paidAmount),
+      description: description || null,
+      ...(isCommunityFlow && commissionRate
+        ? {
+          commission_rate: Number(commissionRate),
+          leader_commission_rate: leaderCommission,
+          influencer_commission_rate: influencerCommission,
+        }
+        : {}),
+    };
+
+    const res = await conversionApi.execute(payload, "Conversion recorded successfully!");
+    if (res?.success) {
       setSubmitted(true);
-    } catch (err) {
-      setSubmitError(err?.message || "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
     }
   };
+
+  // ── Loading / not-found states for the campaign fetch ──────────────────
+  if (campaignApi.loading) {
+    return (
+      <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-lg border border-gray-200 bg-white">
+        <Loader2 className="animate-spin text-primary" size={28} />
+        <p className="text-sm text-gray-500">Loading campaign…</p>
+      </div>
+    );
+  }
+
+  if (!campaign) {
+    return (
+      <div className="flex min-h-[420px] flex-col items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white text-center">
+        <AlertCircle className="text-red-500" size={28} />
+        <p className="text-sm text-gray-600">
+          {campaignApi.error?.message || "Couldn't load this campaign."}
+        </p>
+        <Button variant="outline" onClick={() => navigate(-1)} className="mt-2">
+          Back
+        </Button>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -247,25 +286,24 @@ export default function AddConversion() {
         </div>
         <h2 className="text-lg font-semibold text-gray-800">Conversion recorded</h2>
         <p className="max-w-sm text-sm text-gray-500">
-          {customerName}'s conversion has been logged for {selectedCampaign?.label}.
+          {customerName}'s conversion has been logged for {campaign.title}.
         </p>
+
+        <p className="mt-1 text-sm font-medium text-gray-600">
+          Would you like to add another conversion?
+        </p>
+
         <div className="mt-2 flex gap-3">
           <Button variant="outline" onClick={() => navigate(-1)}>
-            Back to Campaign
+            No, go back
           </Button>
           <Button
             onClick={() => {
               setSubmitted(false);
-              setCustomerName("");
-              setCustomerPhone("");
-              setCustomerTelegram("");
-              setCampaignId("");
-              setPlatform("");
-              setPaidAmount("");
-              setDescription("");
+              resetForm();
             }}
           >
-            Add Another
+            Yes, add another
           </Button>
         </div>
       </div>
@@ -274,18 +312,9 @@ export default function AddConversion() {
 
   return (
     <div className="min-h-full bg-gray-50/10">
-                <Title titel={"Add Conversion"} disc={"Log a new conversion for a campaign."}>
 
-      <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="mb-4 flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-700"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
-      
 
-   </Title>
+      <Title titel={"Add Conversion"} disc={`Log a new conversion for "${campaign.title}".`} />
 
       <form
         onSubmit={handleSubmit}
@@ -328,82 +357,74 @@ export default function AddConversion() {
           />
         </div>
 
-        {/* Campaign & Targeting */}
+        {/* Campaign & Targeting — campaign itself is fixed by the route */}
         <h3 className="mb-4 mt-6 text-sm font-semibold uppercase tracking-wide text-gray-400">
-          Campaign
+          Campaign Target
         </h3>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div className="sm:col-span-2 grid grid-cols-2">
-
-            <Select
-              label="Campaign"
-              name="campaign_id"
-              required
-              leftIcon={<Megaphone size={18} />}
-              placeholder={campaignsLoading ? "Loading campaigns..." : "Select a campaign"}
-              disabled={campaignsLoading}
-              value={campaignId}
-              onChange={(e) => setCampaignId(e.target.value)}
-              data={campaigns}
-              error={errors.campaignId}
-              api={null}
-            />
-            
-          {selectedCampaign?.target_type === "community" && (
+          {targetType === "community" && (
             <>
-              <Select
-                label="Community"
-                name="community_id"
-                required
-                leftIcon={<Users size={18} />}
-                placeholder={communitiesLoading ? "Loading communities..." : "Select a community"}
-                disabled={communitiesLoading}
-                value={communityId}
-                onChange={(e) => setCommunityId(e.target.value)}
-                data={communities}
-                error={errors.communityId}
-              />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Community</label>
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm">
+                  <Users size={16} className="text-primary" />
+                  <span className="font-medium text-gray-700">{targetedCommunity?.name || "—"}</span>
+                </div>
+              </div>
 
               <Select
-                label="Influencer"
+                label="Influencer (who gets credit)"
                 name="influencer_id"
                 required
                 leftIcon={<UserCheck size={18} />}
-                placeholder={
-                  !communityId
-                    ? "Select a community first"
-                    : influencersLoading
-                    ? "Loading influencers..."
-                    : "Select an influencer"
-                }
-                disabled={!communityId || influencersLoading}
+                placeholder={getInfulencerApi.loading ? "Loading influencers..." : "Select an influencer"}
+                disabled={getInfulencerApi.loading}
                 value={influencerId}
                 onChange={(e) => setInfluencerId(e.target.value)}
                 data={influencers}
+
                 error={errors.influencerId}
               />
+
+              {/* Commission Division — split with the community leader */}
+              {influencerId && (
+                <div className="sm:col-span-2 rounded-xl border border-primary/15 bg-primary/5 p-4">
+             
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                       <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                        <p className="text-xs text-gray-400">Campaign Commission</p>
+                        <p className="font-semibold text-primary">{campaign.commission_rule_type}-{campaign.commission_value} {campaign.commission_rule_type=="Fixed"?"ETB":"%"}</p>
+                      </div>
+                       <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                        <p className="text-xs text-gray-400">Total Commission</p>
+                        <p className="font-semibold text-primary">{calculateCampaignSplit(campaign, paidAmount, "total")}ETB</p>
+                      </div>
+                      <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                        <p className="text-xs text-gray-400">Leader receives</p>
+                        <p className="font-semibold text-primary">{calculateCampaignSplit(campaign, paidAmount, "leader")}ETB</p>
+                      </div>
+                      <div className="rounded-lg bg-white px-3 py-2 shadow-sm">
+                        <p className="text-xs text-gray-400">Influencer receives</p>
+                        <p className="font-semibold text-primary">{calculateCampaignSplit(campaign, paidAmount, "influencer")} ETB</p>
+                      </div>
+                    </div>
+                
+                </div>
+              )}
             </>
           )}
 
-          {selectedCampaign?.target_type === "influencer" && (
+          {targetType === "influencer" && (
             <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-sm font-medium text-gray-700">Targeted Influencer</label>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">Influencer</label>
               <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm">
-                {targetedInfluencerLoading ? (
-                  <span className="flex items-center gap-2 text-gray-400">
-                    <Loader2 size={16} className="animate-spin" /> Loading influencer...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2 font-medium text-gray-700">
-                    <UserCheck size={16} className="text-primary" />
-                    {targetedInfluencer?.name || "—"}
-                  </span>
-                )}
+                <UserCheck size={16} className="text-primary" />
+                <span className="font-medium text-gray-700">
+                  {targetedInfluencer?.name_or_company_name || "—"}{calculateCampaignSplit(campaign, commissionRate, paidAmount, "leader")}
+                </span>
               </div>
             </div>
           )}
-          </div>
-
         </div>
 
         {/* Conversion Details */}
@@ -451,18 +472,20 @@ export default function AddConversion() {
           />
         </div>
 
-        {submitError && (
+        {conversionApi.error && (
           <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600">
-            {submitError}
+            {conversionApi.error?.message || "Something went wrong. Please try again."}
           </p>
         )}
 
+        {JSON.stringify(errors)}
+
         <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
-          <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={conversionApi.loading}>
             Cancel
           </Button>
-          <Button type="submit" disabled={submitting || campaignsLoading}>
-            {submitting ? (
+          <Button type="submit" disabled={conversionApi.loading}>
+            {conversionApi.loading ? (
               <span className="flex items-center gap-2">
                 <Loader2 size={16} className="animate-spin" /> Saving...
               </span>
