@@ -118,7 +118,7 @@ export default function Campaigns() {
         }
 
         // 2. Role-Based Permissions Overrides
-        const isAdminOrSuper = role === "admin" || role === "superadmin";
+        const isAdminOrSuper = role === "admin" || role === "super_admin";
 
         // Admin/SuperAdmin: Pending -> Approve
         if (isAdminOrSuper && status === "pending") {

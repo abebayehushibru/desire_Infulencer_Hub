@@ -101,14 +101,17 @@ export default function AppRouter() {
           <Route path="influencers/create" element={<CreateInfluencer />} />
           <Route path="influencers/edit/:id" element={<EditInfluencer />} />
           <Route path="influencers/view/:id" element={<InfluencerDetail />} />
+
           <Route path="communities" element={<Communities />} />
           <Route path="communities/create" element={<CreateCommunity />} />
           <Route path="communities/view/:id" element={<CommunityDetail />} />
           <Route path="communities/edit/:id" element={<EditCommunity />} />
+
           <Route path="businesses" element={<Businesses />} />
           <Route path="businesses/create" element={<CreateBusiness />} />
           <Route path="businesses/edit/:id" element={<EditBusiness />} />
           <Route path="businesses/view/:id" element={<BusinessDetail />} />
+          
           <Route path="payments" element={<Payments />} />
           <Route path="payments/view/:id" element={<EditPayment />} />
           <Route path="notifications" element={<Notification />} />

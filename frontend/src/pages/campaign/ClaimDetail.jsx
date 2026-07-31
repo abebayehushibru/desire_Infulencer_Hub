@@ -1,21 +1,12 @@
 // src/pages/mobile/ClaimDetail.jsx
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ArrowLeft,
     Share2,
-    PlayCircle,
-    MessageCircle,
-    DollarSign,
-    FileText,
-    Building2,
-    Calendar,
-    Link2,
 } from "lucide-react";
-import Contents from "./Contents";
-import Chat from "./Chat";
-import Earnings from "./Earnings";
-import { Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Outlet, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import useApi from "../../hooks/useApi";
 
 const tabs = [
     { id: "overview", label: "Overview" },
@@ -25,19 +16,46 @@ const tabs = [
 ];
 
 export default function ClaimDetail() {
+    const { id } = useParams();
     const [searchParam] = useSearchParams()
     const [activeTab, setActiveTab] = useState(
         tabs.find((tab) => tab?.id?.includes(searchParam))?.id || "overview"
     );
+    const [campaign, setCampaign] = useState(null);
+
+    const {
+        execute: executeCampaign,
+        loading,
+        error,
+    } = useApi({
+        request: () => ({
+            method: "GET",
+            path: `/campaigns/${id}`,
+            manual: true,
+        }),
+    });
 
     const navigate = useNavigate();
-    
-    const handleNavigate = () => {
 
-    }
     const handleBack = () => {
         navigate(-1);
     }
+    
+
+    useEffect(() => {
+        if (!id) return;
+
+        (async () => {
+            const res = await executeCampaign();
+            if (res?.success) {
+                setCampaign(res?.data?.data || res?.data || null);
+            }
+        })();
+    }, [id, executeCampaign]);
+
+    const campaignTitle = campaign?.title || "Campaign details";
+    const campaignStatus = campaign?.status ? campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1) : "Loading";
+
     return (
         <div className="min-h-full flex-1 flex flex-col text-primary ">
 
@@ -47,15 +65,19 @@ export default function ClaimDetail() {
 
                 <div className="flex items-center justify-between px-4 gap-4 py-4">
 
-                    <button>
+                    <button type="button" onClick={handleBack} aria-label="Go back">
                         <ArrowLeft size={22} />
                     </button>
 
                     <h2 className="font-semibold flex-1 text-sm">
-                        Online English Course
+                        {campaignTitle}
                     </h2>
 
-                    <button>
+                    <span className="hidden sm:inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                        {campaignStatus}
+                    </span>
+
+                    <button type="button" aria-label="Share campaign">
                         <Share2 size={20} />
                     </button>
 
@@ -71,16 +93,16 @@ export default function ClaimDetail() {
                             onClick={() => {
                                 setActiveTab(tab.id)
                                 if (tab.id === "chat") {
-                                    navigate("/campaigns/123/chat");
+                                    navigate(`/campaigns/${id}/chat`);
                                 }
                                 else if (tab.id === "contents") {
-                                    navigate("/campaigns/123/contents");
+                                    navigate(`/campaigns/${id}/contents`);
                                 }
                                 else if (tab.id === "earnings") {
-                                    navigate("/campaigns/123/earnings");
+                                    navigate(`/campaigns/${id}/earnings`);
                                 }
                                 else {
-                                    navigate("/campaigns/123/overview");
+                                    navigate(`/campaigns/${id}/overview`);
                                 }
                             }}
                             className={`px-5 py-3 text-sm whitespace-nowrap border-b-2 transition
@@ -101,33 +123,15 @@ export default function ClaimDetail() {
 
             {/* Body */}
             <div className="flex-1 flex flex-col min-h-full  overflow-y-auto">
-                <Outlet />
+                <Outlet
+                    context={{
+                        campaign,
+                        loading,
+                        error,
+                    }}
+                />
 
             </div>
-        </div>
-    );
-}
-
-function InfoItem({ icon, title, value }) {
-    return (
-        <div className="flex gap-3">
-
-            <div className="text-primary mt-1">
-                {icon}
-            </div>
-
-            <div>
-
-                <p className="text-gray-500 text-sm">
-                    {title}
-                </p>
-
-                <h4 className="font-semibold">
-                    {value}
-                </h4>
-
-            </div>
-
         </div>
     );
 }

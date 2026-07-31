@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Search, CheckCircle2, Clock, XCircle, Layers, Plus } from "lucide-react";
 
 import Table, { ActionMenu } from "../../components/common/Table";
@@ -69,6 +69,7 @@ const filters = ["All", "Confirmed", "Pending", "Rejected"];
 
 export default function Conversions() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [active, setActive] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
   const [query, setQuery] = useState("");
@@ -151,7 +152,7 @@ export default function Conversions() {
         
         
 
-        <Button leftIcon={<Plus size={18} />} onClick={() => navigate("/campaigns/123/conversions/add")}>
+        <Button leftIcon={<Plus size={18} />} onClick={() => navigate(`/campaigns/${id}/conversions/add`)}>
           Add Conversion
         </Button>
         </Title>

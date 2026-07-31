@@ -54,6 +54,7 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const menuRef = useRef(null);
   const searchRef = useRef(null);
+  const userInitial = (user?.name || user?.email || "U").trim().charAt(0).toUpperCase();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -164,7 +165,7 @@ export default function Navbar() {
             className="flex cursor-pointer items-center gap-3 rounded-xl bg-white/10 px-2 py-2 transition hover:bg-white/20"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary font-semibold text-primary">
-             { user?.name.split("")?.[0]}
+              {userInitial}
             </div>
 
             <div className="hidden text-left sm:block">

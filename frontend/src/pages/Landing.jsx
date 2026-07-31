@@ -24,9 +24,11 @@ import Footer from "../components/Footer";
 import hero1 from "../assets/habiba.png";
 import hero2 from "../assets/fasika.png";
 import { AnimatePresence, motion } from "framer-motion";
+import CreatorTelegramModal from "../components/CreatorTelegramModal";
 
 export default function InfulencerHubLanding() {
     const [current, setCurrent] = useState(0);
+    const [isCreatorModalOpen, setIsCreatorModalOpen] = useState(false);
     const images = [hero1, hero2, hero1, hero2, hero1, hero2];
 
     useEffect(() => {
@@ -70,12 +72,13 @@ export default function InfulencerHubLanding() {
                         </p>
 
                         <div className="mt-8 flex flex-wrap gap-4">
-                            <a
-                                href="#"
+                            <button
+                                type="button"
+                                onClick={() => setIsCreatorModalOpen(true)}
                                 className="inline-flex items-center rounded-full bg-amber-400 text-violet-950 font-semibold px-7 py-4 shadow-lg hover:bg-amber-500 hover:-translate-y-0.5 transition"
                             >
                                 I'm a Creator
-                            </a>
+                            </button>
                             <a
                                 href="#"
                                 className="inline-flex items-center rounded-full border border-white/40 text-white font-semibold px-7 py-4 hover:bg-white/10 hover:-translate-y-0.5 transition"
@@ -354,9 +357,13 @@ export default function InfulencerHubLanding() {
                             Join thousands of creators and brands already growing together on InfulencerHub.
                         </p>
                         <div className="relative mt-8 flex flex-wrap gap-4 justify-center">
-                            <a href="#" className="rounded-full bg-violet-950 text-white font-semibold px-7 py-4 hover:bg-violet-900 hover:-translate-y-0.5 transition">
+                            <button
+                                type="button"
+                                onClick={() => setIsCreatorModalOpen(true)}
+                                className="rounded-full bg-violet-950 text-white font-semibold px-7 py-4 hover:bg-violet-900 hover:-translate-y-0.5 transition"
+                            >
                                 I'm a Creator
-                            </a>
+                            </button>
                             <a href="#" className="rounded-full bg-white text-violet-950 font-semibold px-7 py-4 hover:-translate-y-0.5 transition">
                                 I'm a Brand
                             </a>
@@ -367,6 +374,11 @@ export default function InfulencerHubLanding() {
 
             {/* ============ FOOTER ============ */}
             <Footer />
+
+            <CreatorTelegramModal
+                open={isCreatorModalOpen}
+                onClose={() => setIsCreatorModalOpen(false)}
+            />
         </div>
     );
 }

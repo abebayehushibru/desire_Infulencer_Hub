@@ -6,8 +6,11 @@ const {
   Document,
   CommunityMember,
   CampaignClaim,
+  Conversion,
   User,
 } = require("../../models");
+
+const toNumber = (value) => Number.parseFloat(value || 0) || 0;
 
 exports.create = async (data) => {
   return Campaign.create(data);
@@ -49,6 +52,93 @@ exports.findById = async (id) => {
     ],
   });
 }
+
+exports.getOverviewMetrics = async (campaignId) => {
+  const campaign = await Campaign.findByPk(campaignId, {
+    attributes: ["id", "title", "type", "status", "start_date", "end_date", "total_budget", "total_views", "platforms", "target_type"],
+    include: [
+      {
+        model: Community,
+        as: "community",
+        attributes: ["id", "name"],
+      },
+      {
+        model: User,
+        as: "influencer",
+        attributes: ["id", "name_or_company_name", "email"],
+      },
+    ],
+  });
+
+  if (!campaign) {
+    return null;
+  }
+
+  const overviewBaseUrl = (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
+
+  const [claimsCount, conversionsCount, revenueTotal, budgetUsedTotal, processedConversionsCount] = await Promise.all([
+    CampaignClaim.count({ where: { campaign_id: campaignId } }),
+    Conversion.count({ where: { campaign_id: campaignId } }),
+    Conversion.sum("paid_amount", {
+      where: { campaign_id: campaignId },
+    }),
+    Conversion.sum("campiagn_payout_amount", {
+      where: { campaign_id: campaignId },
+    }),
+    Conversion.count({
+      where: {
+        campaign_id: campaignId,
+        status: {
+          [Op.in]: ["confimed", "confirmed", "approved"],
+        },
+      },
+    }),
+  ]);
+
+  const totalBudget = toNumber(campaign.total_budget || campaign.amount || campaign.conversion_rate || campaign.follower_price);
+  const budgetUsed = toNumber(budgetUsedTotal);
+  const budgetRemaining = Math.max(totalBudget - budgetUsed, 0);
+  const budgetUsedPercent = totalBudget > 0 ? Math.min((budgetUsed / totalBudget) * 100, 100) : 0;
+  const startDate = campaign.start_date ? new Date(campaign.start_date) : null;
+  const endDate = campaign.end_date ? new Date(campaign.end_date) : null;
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const daysRemaining = endDate ? Math.max(0, Math.ceil((endDate.getTime() - Date.now()) / msPerDay)) : null;
+
+  const activePlatforms = Object.entries(campaign.platforms || {})
+    .filter(([, enabled]) => Boolean(enabled))
+    .map(([platform]) => platform.charAt(0).toUpperCase() + platform.slice(1));
+
+  const trackingLink = `${overviewBaseUrl}/campaigns/${campaignId}/overview`;
+
+  return {
+    campaign: campaign.toJSON(),
+    summary: {
+      views: toNumber(campaign.total_views),
+      clicks: claimsCount,
+      conversions: conversionsCount,
+      revenue: toNumber(revenueTotal),
+    },
+    details: {
+      campaignType: campaign.type,
+      platform: activePlatforms.length ? activePlatforms.join(", ") : (campaign.target_type === "community" ? "Community" : campaign.target_type === "influencer" ? "Influencer" : "Unknown"),
+      startDate,
+      endDate,
+      budget: totalBudget,
+      creators: claimsCount,
+      targetLabel:
+        campaign.community?.name ||
+        campaign.influencer?.name_or_company_name ||
+        campaign.target_id,
+      status: campaign.status,
+      budgetUsed,
+      budgetRemaining,
+      budgetUsedPercent,
+      daysRemaining,
+      trackingLink,
+      processedConversionsCount,
+    },
+  };
+};
 
 exports.findAll = async (query) => {
   // 1. Separate pagination and raw user payloads from the filters

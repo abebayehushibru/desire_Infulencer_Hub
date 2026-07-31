@@ -1,49 +1,70 @@
-// src/pages/campaign/Overview.jsx
-
 import {
-  Calendar,
-  Globe,
-  Wallet,
-  Target,
-  Link2,
-  Copy,
-  Users,
-  Eye,
-  MousePointerClick,
-  ShoppingCart,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  CheckCircle2,
+  Calendar,Globe,Wallet,Target,Link2,Copy,Users,Eye,MousePointerClick,ShoppingCart,DollarSign,Clock,CheckCircle2,
 } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
+
+const formatNumber = (value) => {
+  const numericValue = Number(value || 0);
+  if (Number.isNaN(numericValue)) return "0";
+  return numericValue.toLocaleString();
+};
+
+const formatDate = (value) => {
+  if (!value) return "Not set";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Not set";
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+const missingValue = "Not available";
 
 export default function Overview() {
+  const { campaign, loading, error } = useOutletContext() || {};
+
+  const metrics = campaign?.overview?.summary || {};
+  const details = campaign?.overview?.details || {};
+  const status = (details.status || campaign?.status || "").toLowerCase();
+
   const stats = [
     {
       title: "Views",
-      value: "235.4K",
+      value: formatNumber(metrics.views),
       icon: Eye,
       color: "bg-blue-50 text-blue-600",
     },
     {
       title: "Clicks",
-      value: "18,320",
+      value: formatNumber(metrics.clicks),
       icon: MousePointerClick,
       color: "bg-purple-50 text-purple-600",
     },
     {
       title: "Conversions",
-      value: "742",
+      value: formatNumber(metrics.conversions),
       icon: ShoppingCart,
       color: "bg-green-50 text-green-600",
     },
     {
       title: "Revenue",
-      value: "371K",
+      value: `${formatNumber(metrics.revenue)} ETB`,
       icon: DollarSign,
       color: "bg-orange-50 text-orange-600",
     },
   ];
+
+  if (loading && !campaign) {
+    return <div className="rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-500">Loading campaign overview...</div>;
+  }
+
+  if (error && !campaign) {
+    return <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700">{error}</div>;
+  }
+
+  const trackingLink = campaign?.overview?.details?.trackingLink || campaign?.tracking_link || campaign?.tracking_url || campaign?.overview?.trackingLink || missingValue;
 
   return (
     <div className="space-y-4 text-primary">
@@ -92,47 +113,51 @@ export default function Overview() {
         {/* Left */}
 
         <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="font-semibold text-lg mb-4">
-            Campaign Information
-          </h2>
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <h2 className="font-semibold text-lg">Campaign Information</h2>
+            <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary capitalize">
+              {status || "unknown"}
+            </span>
+          </div>
 
           <div className="grid  md:grid-cols-4 gap-3">
             <Info
               icon={Target}
               title="Campaign Type"
-              value="Sales"
+              value={campaign?.type ? `${campaign.type.charAt(0).toUpperCase()}${campaign.type.slice(1)}` : missingValue}
             />
 
             <Info
               icon={Globe}
               title="Platform"
-              value="TikTok"
+              value={details.platform || missingValue}
             />
 
             <Info
               icon={Calendar}
               title="Start Date"
-              value="15 July 2026"
+              value={formatDate(campaign?.start_date)}
             />
 
             <Info
               icon={Calendar}
               title="End Date"
-              value="30 August 2026"
+              value={formatDate(campaign?.end_date)}
             />
 
             <Info
               icon={Wallet}
               title="Budget"
-              value="500,000 ETB"
+              value={campaign?.total_budget ? `${formatNumber(campaign.total_budget)} ETB` : missingValue}
             />
 
             <Info
               icon={Users}
               title="Creators"
-              value="45 Joined"
+              value={details.creators != null ? `${formatNumber(details.creators)} Joined` : missingValue}
             />
           </div>
+          
 
           {/* Progress */}
 
@@ -142,17 +167,20 @@ export default function Overview() {
                 Budget Used
               </span>
 
-              <span>68%</span>
+              <span>{details.budgetUsedPercent != null ? `${Math.round(details.budgetUsedPercent)}%` : missingValue}</span>
             </div>
 
             <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div className="w-[68%] h-full bg-primary rounded-full"></div>
+              <div
+                className="h-full bg-primary rounded-full"
+                style={{ width: `${Math.min(details.budgetUsedPercent || 0, 100)}%` }}
+              />
             </div>
 
             <div className="flex justify-between mt-3 text-sm text-gray-500">
-              <span>340,000 ETB Used</span>
+              <span>{details.budgetUsed != null ? `${formatNumber(details.budgetUsed)} ETB Used` : missingValue}</span>
 
-              <span>160,000 ETB Remaining</span>
+              <span>{details.budgetRemaining != null ? `${formatNumber(details.budgetRemaining)} ETB Remaining` : missingValue}</span>
             </div>
           </div>
         </div>
@@ -175,11 +203,11 @@ export default function Overview() {
 
               <div>
                 <h4 className="font-semibold text-sm">
-                  Active
+                  {campaign?.status || "Unknown"}
                 </h4>
 
                 <p className="text-xs text-gray-500">
-                  Campaign is currently running.
+                  {campaign?.status === "active" ? "Campaign is currently running." : "Campaign is currently not running."}
                 </p>
               </div>
             </div>
@@ -192,11 +220,11 @@ export default function Overview() {
 
               <div>
                 <h4 className="font-medium text-sm">
-                  24 Days Remaining
+                  {details.daysRemaining != null ? `${details.daysRemaining} Days Remaining` : "Not available"}
                 </h4>
 
                 <p className="text-xs text-gray-500">
-                  Ends on 30 August 2026
+                  Ends on {formatDate(campaign?.end_date)}
                 </p>
               </div>
             </div>
@@ -217,7 +245,7 @@ export default function Overview() {
                 />
 
                 <p className="truncate text-sm">
-                  https://desire.com/ref/ENG2026
+                  {trackingLink}
                 </p>
               </div>
 

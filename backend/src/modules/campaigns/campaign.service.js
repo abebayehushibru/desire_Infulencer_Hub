@@ -75,7 +75,12 @@ exports.getById = async (id) => {
     if (!campaign)
         throw new Error("Campaign not found");
 
-    return campaign;
+    const overview = await repo.getOverviewMetrics(id);
+
+    return {
+        ...campaign.toJSON(),
+        overview,
+    };
 }
 
 exports.delete = async (id) => {

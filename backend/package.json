@@ -1,0 +1,8 @@
+{
+  "name": "backend-root",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix src start",
+    "dev": "npm --prefix src run dev"
+  }
+}

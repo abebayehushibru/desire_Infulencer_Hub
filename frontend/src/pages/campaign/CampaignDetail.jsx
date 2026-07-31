@@ -18,7 +18,8 @@ import Overview from "./Overview";
 import Performance from "./Performance";
 import Conversions from "./Conversions";
 import Earnings from "./Earnings";
-import { Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
+import useApi from "../../hooks/useApi";
 
 const tabs = [
     {
@@ -54,10 +55,18 @@ const tabs = [
 ];
 
 export default function CampaignDetail() {
-    const loc = useLocation()
+    const { id } = useParams();
+    const [campaign, setCampaign] = useState(null);
 
 
     const [activeTab, setActiveTab] = useState("overview");
+    const campaignApi = useApi({
+        request: () => ({
+            method: "GET",
+            path: `/campaigns/${id}`,
+            manual: true,
+        }),
+    });
 
 
     const navigate = useNavigate();
@@ -91,8 +100,32 @@ export default function CampaignDetail() {
                 current = "/overview";
         }
         setActiveTab(tab);
-        navigate(`/campaigns/123${current}`);
+        navigate(`/campaigns/${id}${current}`);
     };
+
+    useEffect(() => {
+        if (!id) return;
+
+        (async () => {
+            const res = await campaignApi.execute();
+            if (res?.success) {
+                setCampaign(res?.data?.data || res?.data || null);
+            }
+        })();
+    }, [id]);
+
+    const campaignType = campaign?.type
+        ? `${campaign.type.charAt(0).toUpperCase()}${campaign.type.slice(1)} Campaign`
+        : "Campaign";
+
+    const payoutAmount =
+        campaign?.conversion_rate ??
+        campaign?.amount ??
+        campaign?.follower_price ??
+        campaign?.overview?.details?.budget ??
+        campaign?.total_budget ??
+        null;
+    const payoutLabel = payoutAmount === null ? "Not set" : `${Number(payoutAmount).toLocaleString()} ETB`;
 
     return (
         <div className="space-y-4">
@@ -105,7 +138,7 @@ export default function CampaignDetail() {
                 <ChevronRight size={16} />
 
                 <span className="text-gray-900 font-semibold">
-                    Online English Course 
+                    {campaign?.title || "Campaign details"}
                 </span>
 
             </div>
@@ -121,18 +154,18 @@ export default function CampaignDetail() {
                         <div className="flex items-center gap-3 mb-1">
 
                             <h1 className="text-lg font-semibold ">
-                                Online English Course
+                                {campaign?.title || "Campaign details"}
                             </h1>
 
-                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">
-                                Active
+                            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs capitalize">
+                                {campaign?.status || "loading"}
                             </span>
 
                         </div>
                         <div className="hidden md:flex items-center justify-between w-full ">
                             <div className="flex gap-4 text-xs ">
                                 <p className="text-primary  bg-primary/10 rounded-full px-4 py-1">
-                                    Sales Campaign
+                                    {campaignType}
                                 </p>
 
 
@@ -143,7 +176,7 @@ export default function CampaignDetail() {
                                     </span> {"  : "}
 
                                     <span className="font-semibold">
-                                        500 ETB
+                                        {payoutLabel}
                                     </span>
 
                                 </div>
@@ -197,7 +230,13 @@ ${activeTab === tab.id
             {/* Page */}
 
             <div>
-                <Outlet />
+                <Outlet
+                    context={{
+                        campaign,
+                        loading: campaignApi.loading,
+                        error: campaignApi.error,
+                    }}
+                />
 
             </div>
 
