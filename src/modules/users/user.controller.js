@@ -6,10 +6,11 @@ class UserController {
     try {
       const result = await service.getAll(req.query);
 
-      return success(
+      return successResponse(
         res,
-        result,
-        "Users fetched successfully."
+       {    message:  "Users fetched successfully.",
+         data:result,
+   }
       );
     } catch (error) {
         return errorResponse(res, {

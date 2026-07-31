@@ -141,6 +141,18 @@ module.exports = (sequelize) => {
         ),
         defaultValue: "purchase",
       },
+      commission_rule_type: {
+        type: DataTypes.ENUM(
+          "Rate",
+          "Fixed"
+        ),
+        allowNull: true,
+      },
+
+      commission_value: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: true,
+      },
 
       // Target
       target_type: {
@@ -214,10 +226,10 @@ module.exports = (sequelize) => {
       as: "business",
     });
 
-      Campaign.belongsTo(models.User, {
+    Campaign.belongsTo(models.User, {
       foreignKey: "rejected_by_user_id",
       as: "rejected_by",
-      
+
     });
 
     // Campaign Video
@@ -244,12 +256,17 @@ module.exports = (sequelize) => {
       as: "claims",      // Or whatever plural alias you prefer
     });
 
-   
-  Campaign.hasOne(models.Chat, {
-    foreignKey: "target_id",
-    as: "chat",
-    constraints: false,
-  });
+
+    Campaign.hasOne(models.Chat, {
+      foreignKey: "target_id",
+      as: "chat",
+      constraints: false,
+    });
+    Campaign.hasMany(models.Conversion, {
+      foreignKey: "campaign_id",
+      as: "conversions",
+      // constraints: false,
+    });
   };
 
   return Campaign;

@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -27,7 +27,12 @@ app.get("/", (req, res) => {
     message: "Influencer Hub API Running",
   });
 });
-
+app.use(
+  "/api/v1/uploads",
+  express.static(
+    path.join(__dirname, "../uploads")
+  )
+);
 
 app.use(
 "/api/v1/",
@@ -40,7 +45,7 @@ async function startServer() {
   await connectDB();
   
   try {
-    await sequelize.sync({ alter: true });
+    //  await sequelize.sync({ alter: true });
     console.log('✅ Database synced successfully');
   } catch (error) {
     console.error('❌ Database sync failed:', error);

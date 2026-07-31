@@ -28,10 +28,8 @@ exports.create = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
     try {
-        console.log(req.body);
-
-        const platforms = JSON.parse(req.body.platforms);
-        const campaign =
+       
+          const campaign =
             await service.update(
                 req.params.id,
                 {
@@ -57,8 +55,7 @@ exports.update = async (req, res, next) => {
 };
 exports.updateStatus = async (req, res, next) => {
     try {
-        console.log("Incoming Status Update:", req.body);
-
+    
         // Pass only status data and the user context to the service layer
         const campaign = await service.updateStatus(
             req.params.id,

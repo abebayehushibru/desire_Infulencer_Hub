@@ -40,6 +40,7 @@ module.exports = (sequelize) => {
           "image",
           "video",
           "pdf",
+          "audio",
           "document",
           "other"
         ),

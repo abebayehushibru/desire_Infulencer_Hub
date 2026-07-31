@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { User } = require("../../models");
 
 class UserRepository {
@@ -17,10 +18,25 @@ class UserRepository {
     });
   }
 
-  async findAll({ page = 1, limit = 10 }) {
+  async findAll({ page = 1, limit = 10 ,query}) {
     const offset = (page - 1) * limit;
+ const where = {};
+
+    console.log(query);
+  if (query.search) {
+        where[Op.or] = [
+            { name_or_company_name: { [Op.like]: `%${query.search}%` } }, // Case-insensitive partial match
+            { email: { [Op.like]: `%${query.search}%` } }
+        ];
+    }
+
+    // If 'role' exists in the query, apply it directly to the filters
+    if (query.role) {
+        // where.role = query.role;
+    }
 
     return await User.findAndCountAll({
+      where,
       attributes: {
         exclude: ["password"],
       },

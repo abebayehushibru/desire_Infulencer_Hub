@@ -1,4 +1,6 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
   const Wallet = sequelize.define(
     "Wallet",
     {
@@ -19,6 +21,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0,
       },
+      total_recharged: {
+        type: DataTypes.DECIMAL(12, 2),
+        allowNull: false,
+        defaultValue: 0,
+      },
+    
 
       total_withdrawn: {
         type: DataTypes.DECIMAL(12, 2),
@@ -37,6 +45,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 0,
       },
+      holded_balance: {
+        type: DataTypes.DECIMAL(12, 2),
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       tableName: "wallets",
@@ -48,6 +61,11 @@ module.exports = (sequelize, DataTypes) => {
     Wallet.belongsTo(models.User, {
       foreignKey: "user_id",
       as: "user",
+    });
+
+    Wallet.hasMany(models.WalletTransaction, {
+      foreignKey: "wallet_id",
+      as: "transactions",
     });
 
   };

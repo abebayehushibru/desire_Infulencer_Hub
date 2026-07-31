@@ -1,29 +1,32 @@
+const { successResponse, errorResponse } = require("../../utils/response");
 const service = require("./withdrawal.service");
 
 
 
-exports.create = async(req,res,next)=>{
+exports.create = async (req, res, next) => {
 
-    try{
+    try {
 
         const data =
-        await service.create({
+            await service.create({
 
-            userId:req.user.id,
+                userId: req.user?.id || "fe661437-92a6-4ca4-aeb8-572d299b0d2b",
 
-            body:req.body
+                body: req.body
 
-        });
+            });
 
-
-        res.status(201).json({
-            success:true,
+        return successResponse(res, {
+            success: true,
             data
-        });
+        })
 
 
-    }catch(error){
-        next(error);
+    } catch (error) {
+       errorResponse(res,{
+        message:error?.message,
+        errors:error
+       })
     }
 
 };
@@ -32,126 +35,104 @@ exports.create = async(req,res,next)=>{
 
 
 
-exports.getAll = async(req,res,next)=>{
+exports.getAll = async (req, res, next) => {
 
-    try{
+    try {
 
         const data =
-        await service.getAll({
-            userId:req.user.id,
-            query:req.query
-        });
+            await service.getAll({
+                query: req.query
+            });
 
 
-        res.json({
-            success:true,
+        return successResponse(res, {
+            success: true,
             data
-        });
+        })
 
 
-    }catch(error){
-        next(error);
+    } catch (error) {
+       errorResponse(res,{
+        message:error?.message,
+        errors:error
+       })
+    }
+
+};
+
+exports.getMy = async (req, res, next) => {
+
+    try {
+
+        const data =
+            await service.getMy({
+                userId: req.user?.id || "fe661437-92a6-4ca4-aeb8-572d299b0d2b",
+                query: req.query
+            });
+
+
+        return successResponse(res, {
+            success: true,
+            data
+        })
+
+
+    } catch (error) {
+       errorResponse(res,{
+        message:error?.message,
+        errors:error
+       })
+    }
+
+};
+exports.getByID = async (req, res, next) => {
+
+    try {
+        console.log(req?.params);
+        
+
+        const data =
+            await service.getById({id:req?.params?.id});
+
+
+        return successResponse(res, {
+            success: true,
+            data
+        })
+
+
+    } catch (error) {
+       errorResponse(res,{
+        message:error?.message,
+        errors:error
+       })
+    }
+
+};
+
+exports.update = async (req, res, next) => {
+
+    try {
+        console.log(req?.params);
+        
+
+        const data =
+            await service.update({id:req?.params?.id,body:req.body,userId:req.user.id});
+
+
+        return successResponse(res, {
+            success: true,
+            data
+        })
+
+
+    } catch (error) {
+       errorResponse(res,{
+        message:error?.message,
+        errors:error
+       })
     }
 
 };
 
 
-
-
-
-
-exports.approve = async(req,res,next)=>{
-
-    try{
-
-        const data =
-        await service.approve({
-
-            id:req.params.id,
-
-            approvedBy:req.user.id
-
-        });
-
-
-        res.json({
-            success:true,
-            data
-        });
-
-
-    }catch(error){
-        next(error);
-    }
-
-};
-
-
-
-
-
-
-
-exports.reject = async(req,res,next)=>{
-
-    try{
-
-        const data =
-        await service.reject({
-
-            id:req.params.id,
-
-            rejectedBy:req.user.id,
-
-            reason:req.body.reason
-
-        });
-
-
-        res.json({
-            success:true,
-            data
-        });
-
-
-    }catch(error){
-        next(error);
-    }
-
-};
-
-
-
-
-
-
-
-exports.pay = async(req,res,next)=>{
-
-    try{
-
-
-        const data =
-        await service.pay({
-
-            id:req.params.id,
-
-            paidBy:req.user.id,
-
-            transactionReference:
-            req.body.transaction_reference
-
-        });
-
-
-        res.json({
-            success:true,
-            data
-        });
-
-
-    }catch(error){
-        next(error);
-    }
-
-};

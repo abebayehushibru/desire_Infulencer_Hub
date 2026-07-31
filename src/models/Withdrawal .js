@@ -1,4 +1,6 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
   const Withdrawal = sequelize.define(
     "Withdrawal",
     {
@@ -9,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       },
 
       // Influencer requesting withdrawal
-      influencer_user_id: {
+      requested_by_user_id: {
         type: DataTypes.UUID,
         allowNull: false,
       },
@@ -51,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
       },
 
       // Approval
-      approved_by: {
+      approved_by_user_id: {
         type: DataTypes.UUID,
         allowNull: true,
       },
@@ -62,7 +64,7 @@ module.exports = (sequelize, DataTypes) => {
       },
 
       // Rejection
-      rejected_by: {
+      rejected_by_user_id: {
         type: DataTypes.UUID,
         allowNull: true,
       },
@@ -78,7 +80,7 @@ module.exports = (sequelize, DataTypes) => {
       },
 
       // Payment
-      paid_by: {
+      paid_by_user_id: {
         type: DataTypes.UUID,
         allowNull: true,
       },
@@ -106,23 +108,23 @@ module.exports = (sequelize, DataTypes) => {
 
   Withdrawal.associate = (models) => {
     Withdrawal.belongsTo(models.User, {
-      foreignKey: "influencer_user_id",
-      as: "influencer",
+      foreignKey: "requested_by_user_id",
+      as: "requested_by",
     });
 
     Withdrawal.belongsTo(models.User, {
-      foreignKey: "approved_by",
-      as: "approver",
+      foreignKey: "approved_by_user_id",
+      as: "approved_by",
     });
 
     Withdrawal.belongsTo(models.User, {
-      foreignKey: "rejected_by",
-      as: "rejector",
+      foreignKey: "rejected_by_user_id",
+      as: "rejected_by",
     });
 
     Withdrawal.belongsTo(models.User, {
-      foreignKey: "paid_by",
-      as: "payer",
+      foreignKey: "paid_by_user_id",
+      as: "paid_by",
     });
   };
 

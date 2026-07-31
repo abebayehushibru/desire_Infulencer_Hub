@@ -17,6 +17,13 @@ const CampaignClaim = require("./CampaignClaim");
 const Chat = require("./Chat");
 const Message = require("./Message");
 
+const Conversion = require("./Conversion");
+const Wallet = require("./Wallet");
+const WalletTransaction = require("./WalletTransaction");
+const Withdrawal = require("./Withdrawal ");
+const ConversionPayout =require("./ConversionPayout")
+const RechargeHistory =require("./RechargeHistory")
+
 
 // Initialize Models
 
@@ -42,6 +49,15 @@ models.CampaignClaim = CampaignClaim(sequelize);
 
 models.Chat = Chat(sequelize);
 models.Message = Message(sequelize);
+
+
+models.Conversion = Conversion(sequelize);
+models.ConversionPayout = ConversionPayout(sequelize);
+models.Wallet = Wallet(sequelize);
+models.WalletTransaction = WalletTransaction(sequelize);
+models.Withdrawal = Withdrawal(sequelize);
+models.RechargeHistory = RechargeHistory(sequelize);
+
 
 // Add Sequelize Instance
 

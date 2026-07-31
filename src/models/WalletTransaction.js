@@ -1,4 +1,6 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
   const WalletTransaction = sequelize.define(
     "WalletTransaction",
     {
@@ -13,17 +15,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
 
-      user_id: {
-        type: DataTypes.UUID,
-        allowNull: false,
-      },
-
       type: {
         type: DataTypes.ENUM(
           "earning",
           "withdrawal",
           "refund",
-          "adjustment"
+          "adjustment",
+          "campaign_hold",
+          "campaign_release"
         ),
         allowNull: false,
       },
@@ -73,15 +72,12 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   WalletTransaction.associate = (models) => {
-    WalletTransaction.belongsTo(models.Wallet, {
+    WalletTransaction.hasOne(models.Wallet, {
       foreignKey: "wallet_id",
       as: "wallet",
     });
 
-    WalletTransaction.belongsTo(models.User, {
-      foreignKey: "user_id",
-      as: "user",
-    });
+  
 
     WalletTransaction.belongsTo(models.Conversion, {
       foreignKey: "conversion_id",
@@ -96,3 +92,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return WalletTransaction;
 };
+

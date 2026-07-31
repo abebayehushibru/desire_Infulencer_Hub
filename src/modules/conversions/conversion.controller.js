@@ -36,7 +36,7 @@ exports.getAll = async(req,res,next)=>{
 
         const data =
         await service.getAll({
-            userId:req.user.id,
+            userId:req.params?.id,
             query:req.query
         });
 
@@ -55,31 +55,15 @@ exports.getAll = async(req,res,next)=>{
 
 
 
-exports.getOne = async(req,res,next)=>{
-
-    try{
-
-        const data =
-        await service.getOne(req.params.id);
-
-
-        res.json({
-            success:true,
-            data
-        });
-
-
-    }catch(error){
-        next(error);
-    }
-
-};
 
 
 
 
 
-exports.confirm = async(req,res,next)=>{
+
+
+
+exports.updateStatus = async(req,res,next)=>{
 
     try{
 
@@ -88,38 +72,7 @@ exports.confirm = async(req,res,next)=>{
 
             id:req.params.id,
 
-            status:"confimed",
-
-            userId:req.user.id
-
-        });
-
-
-        res.json({
-            success:true,
-            data
-        });
-
-
-    }catch(error){
-        next(error);
-    }
-
-};
-
-
-
-
-exports.reject = async(req,res,next)=>{
-
-    try{
-
-        const data =
-        await service.updateStatus({
-
-            id:req.params.id,
-
-            status:"rejected",
+            status:req.body?.status,
 
             userId:req.user.id,
 

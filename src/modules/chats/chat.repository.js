@@ -5,16 +5,19 @@ const {
   Message,
   User,
   Campaign,
+  ChatMember,
+  Community,
+  Document,
 } = require("../../models");
 exports.findCampaignChat = async (
   campaignId
-)=>{
+) => {
 
   return await Chat.findOne({
 
-    where:{
-      type:"campaign",
-      target_id:campaignId,
+    where: {
+      type: "campaign",
+      target_id: campaignId,
     }
 
   });
@@ -25,14 +28,14 @@ exports.createCampaignChat = async ({
   campaignId,
   agentId,
   userId,
-})=>{
+}) => {
 
 
   const campaign =
     await Campaign.findByPk(campaignId);
 
 
-  if(!campaign){
+  if (!campaign) {
     throw new Error(
       "Campaign not found"
     );
@@ -43,30 +46,30 @@ exports.createCampaignChat = async ({
   const chat =
     await Chat.create({
 
-      type:"campaign",
+      type: "campaign",
 
-      target_id:campaignId,
+      target_id: campaignId,
 
-      agent_id:agentId,
+      agent_id: agentId,
 
-      created_by_user_id:userId,
+      created_by_user_id: userId,
 
-      status:"active",
+      status: "active",
 
-      is_allowed:true,
+      is_allowed: true,
 
     });
 
 
 
-  return await Chat.findByPk(chat.id,{
+  return await Chat.findByPk(chat.id, {
 
-    include:[
+    include: [
 
       {
-        model:User,
-        as:"agent",
-        attributes:[
+        model: User,
+        as: "agent",
+        attributes: [
           "id",
           "name_or_company_name",
           "email"
@@ -74,8 +77,8 @@ exports.createCampaignChat = async ({
       },
 
       {
-        model:Campaign,
-        as:"campaign",
+        model: Campaign,
+        as: "campaign",
       }
 
     ]
@@ -84,59 +87,160 @@ exports.createCampaignChat = async ({
 
 
 };
+
 exports.getCampaignChat = async ({
   campaignId,
   userId,
-  page,
-  limit,
+  page = 1,
+  limit = 20,
 }) => {
-
   const offset = (page - 1) * limit;
 
+  // Find campaign chat
   const chat = await Chat.findOne({
     where: {
       type: "campaign",
       target_id: campaignId,
     },
-  });
-
-  if (!chat)
-    throw new Error("Chat not found.");
-
-  const messages =
-    await Message.findAndCountAll({
-
-      where: {
-        chat_id: chat.id,
+    include: [
+      {
+        model: User,
+        as: "agent",
+        attributes: [
+          "id",
+          "name_or_company_name",
+          "email",
+          "profile_photo_document_id",
+        ],
       },
+      {
+        model: User,
+        as: "created_by",
+        attributes: [
+          "id",
+          "name_or_company_name",
+          "email",
+        ],
+      },
+      {
+        model: Campaign,
+        as: "campaign",
+        required: false,
+        attributes: [
+          "id",
+          "title",
+          "description",
+          "type",
+          "status",
+          "target_type",
+          "target_id",
+          "start_date",
+          "end_date",
+          "fund_type",
+          "conversion_rate",
+          "amount",
+          "total_budget",
+          "platforms",
+          "locations",
+          "ethiopia_locations",
+        ],
+        include: [
+          {
+            model: User,
+            as: "business",
+            attributes: [
+              "id",
+              "name_or_company_name",
+              "email",
+            ],
+          },
+          {
+            model: Community,
+            as: "community",
+            required: false,
+            attributes: [
+              "id",
+              "name",
+            ],
+          },
+          {
+            model: User,
+            as: "influencer",
+            required: false,
+            attributes: [
+              "id",
+              "name_or_company_name",
+              "email",
+            ],
+          },
+        ],
+      }
+    ],
+  });
+  if (!chat) {
+    throw new Error("Campaign chat not found.");
+  }
 
-      include: [
-        {
-          model: User,
-          as: "sender",
-          attributes: [
-            "id",
-            "name_or_company_name",
-            "profile_photo_document_id",
-          ],
-        },
-      ],
+  // Check membership
+  // const member = await ChatMember.findOne({
+  //   where: {
+  //     chat_id: chat.id,
+  //     user_id: userId,
+  //     is_active: true,
+  //   },
+  // });
 
-      order: [["created_at", "DESC"]],
+  // if (!member) {
+  //   throw new Error("You are not a member of this chat.");
+  // }
 
-      limit: Number(limit),
-
-      offset,
-    });
+  // Messages
+  const { rows, count } = await Message.findAndCountAll({
+    where: {
+      chat_id: chat.id,
+    },
+    include: [
+      {
+        model: User,
+        as: "sender",
+        attributes: [
+          "id",
+          "name_or_company_name",
+          "profile_photo_document_id",
+        ],
+      },
+      {
+        model:Document,
+        as:"document",
+        attributes:["file_url","media_type","original_name"]
+      }
+    ],
+    order: [["created_at", "DESC"]],
+    limit: Number(limit),
+    offset,
+  });
+  const chatPlain = chat.toJSON();
 
   return {
-    chat,
-    ...messages,
+    chat: {
+      ...chatPlain,
+
+
+      messages: rows.reverse(), // oldest -> newest
+    },
+    pagination: {
+      total: count,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages: Math.ceil(count / limit),
+      hasNext: offset + rows.length < count,
+      hasPrevious: page > 1,
+    },
   };
 };
 
 exports.sendMessage = async ({
-  campaignId,
+  chatId,
   userId,
   body,
   documentId,
@@ -144,8 +248,8 @@ exports.sendMessage = async ({
 
   let chat = await Chat.findOne({
     where: {
-      type: "campaign",
-      target_id: campaignId,
+      id: chatId,
+      //  status:"active"
     },
   });
 
@@ -163,7 +267,7 @@ exports.sendMessage = async ({
 
     type: body.type,
 
-    message: body.message || null,
+    message: body.message || body.content || null,
 
     document_id: documentId,
 
@@ -181,6 +285,11 @@ exports.sendMessage = async ({
           "profile_photo_document_id",
         ],
       },
+      {
+        model:Document,
+        as:"document",
+        attributes:["file_url","media_type","original_name","mime_type"]
+      }
     ],
 
   });

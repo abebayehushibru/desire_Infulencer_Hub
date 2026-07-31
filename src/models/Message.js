@@ -25,7 +25,9 @@ module.exports = (sequelize) => {
         type: DataTypes.ENUM(
           "text",
           "image",
-          "voice"
+          "voice",
+          'document',
+          'video'
         ),
         allowNull: false,
       },

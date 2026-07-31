@@ -7,7 +7,7 @@ const controller = require("./withdrawal.controller");
 // Create withdrawal request
 router.post(
     "/",
-    auth,
+    // auth,
     controller.create
 );
 
@@ -15,33 +15,38 @@ router.post(
 // Get withdrawals
 router.get(
     "/",
-    auth,
+    // auth,
     controller.getAll
 );
-
-
-// Approve withdrawal
-router.patch(
-    "/:id/approve",
-    auth,
-    controller.approve
+router.get(
+    "/my",
+    // auth,
+    controller.getMy
 );
 
+router.get(
+    "/:id",
+    // auth,
+    controller.getByID
+);
 
-// Reject withdrawal
+// Approve withdrawal
+
+
+// update withdrawal
 router.patch(
-    "/:id/reject",
+    "/:id",
     auth,
-    controller.reject
+    controller.update
 );
 
 
 // Mark paid
-router.patch(
-    "/:id/pay",
-    auth,
-    controller.pay
-);
+// router.patch(
+//     "/:id/pay",
+//     auth,
+//     controller.pay
+// );
 
 
 module.exports = router;

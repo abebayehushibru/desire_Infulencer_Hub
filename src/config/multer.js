@@ -66,6 +66,17 @@ const allowedMimeTypes = [
 
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
+  // Audio / Voice Messages
+  "audio/webm",        // Chrome MediaRecorder default
+  "audio/ogg",         // WhatsApp/Telegram style voice
+  "audio/mpeg",        // MP3
+  "audio/mp3",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/mp4",
+  "audio/aac",
+  "audio/m4a",
 ];
 
 // File filter

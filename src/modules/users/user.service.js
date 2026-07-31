@@ -2,15 +2,22 @@ const repository = require("./user.repository");
 const { sequelize } = require("../../models");
 
 class UserService {
-  async getAll(query) {
+   // Ensure you import operators at the top of your file
+
+async getAll(query) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;
+   
 
+    // If 'search' is present, search across both name OR company_name
+  
     return await repository.findAll({
-      page,
-      limit,
+        page,
+        limit,
+        query 
     });
-  }
+}
+
 
   async getById(id) {
     const user = await repository.findById(id);

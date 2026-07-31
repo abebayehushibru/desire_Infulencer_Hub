@@ -7,6 +7,7 @@ const {
   CommunityMember,
   CampaignClaim,
   User,
+  Chat,
 } = require("../../models");
 
 exports.create = async (data) => {
@@ -18,7 +19,11 @@ exports.update = async (id, data) => {
     where: { id },
   });
 }
-
+exports.findCommunity = async (id) => {
+  return Community.findByPk(id, {
+    attributes:["id","commission_type","commission_rate"]
+  });
+}
 exports.findById = async (id) => {
   return Campaign.findByPk(id, {
     include: [
@@ -39,7 +44,7 @@ exports.findById = async (id) => {
       {
         model: Community,
         as: "community",
-        attributes: ["id", "name"],
+        attributes: ["id", "name","commission_type","commission_rate"],
       },
       {
         model: User,
@@ -66,7 +71,12 @@ exports.findAll = async (query) => {
   const offset = (parseInt(page, 10) - 1) * parsedLimit;
   // 3. Return query with identical relation handling to findById
   const res = await Campaign.findAndCountAll({
-    ...cleanFilters, offset
+    ...cleanFilters, include: [{
+      model: Chat,
+      as: "chat",
+      required: false
+
+    }], offset
   });
 
   return {

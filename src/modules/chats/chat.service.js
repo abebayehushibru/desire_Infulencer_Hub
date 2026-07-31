@@ -1,3 +1,4 @@
+const documentService = require("../documents/document.service");
 const repo = require("./chat.repository");
 
 
@@ -48,7 +49,7 @@ exports.getCampaignChat = async ({
 };
 
 exports.sendMessage = async ({
-  campaignId,
+  chatId,
   userId,
   body,
   file,
@@ -57,12 +58,15 @@ exports.sendMessage = async ({
   let documentId = null;
 
   if (file) {
-    // const doc = await documentService.upload(file);
-    // documentId = doc.id;
+    const doc = await documentService.createDocument({file,userId,visibility:"private"});
+     documentId = doc.id;
+
+     console.log(doc.id,doc.file_url);
+     
   }
 
   return await repo.sendMessage({
-    campaignId,
+    chatId,
     userId,
     body,
     documentId,

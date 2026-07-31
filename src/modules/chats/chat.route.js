@@ -7,19 +7,19 @@ const controller = require("./chat.controller");
 
 router.post(
   "/campaign/:campaignId",
-  auth,
+   auth,
   controller.createCampaignChat
 );
 // Get campaign chat
 router.get(
   "/campaign/:campaignId",
-  auth,
+  // auth,
   controller.getCampaignChat
 );
 
 // Send message
 router.post(
-  "/campaign/:campaignId/message",
+  "/:chatId/message",
   auth,
   upload.single("file"),
   controller.sendMessage

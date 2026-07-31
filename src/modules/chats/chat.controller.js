@@ -28,7 +28,7 @@ exports.getCampaignChat = async (req, res, next) => {
   try {
     const response = await service.getCampaignChat({
       campaignId: req.params.campaignId,
-      userId: req.user.id,
+      userId: req.user?.id,
       page: req.query.page || 1,
       limit: req.query.limit || 20,
     });
@@ -42,15 +42,17 @@ return successResponse(res,{
   } catch (err) {
   errorResponse(res,{
     message:err.message||"Error on getting",
-    errors
+    errors:err
   })
   }
 };
 
 exports.sendMessage = async (req, res, next) => {
   try {
+    console.log( {chatId: req.body,});
+    
     const response = await service.sendMessage({
-      campaignId: req.params.campaignId,
+      chatId: req.params.chatId,
       userId: req.user.id,
       body: req.body,
       file: req.file,
@@ -58,13 +60,13 @@ exports.sendMessage = async (req, res, next) => {
 
 successResponse(res,{
     message:"success",
-    data:response
+    data:{message:response}
 }
 )
   } catch (err) {
   errorResponse(res,{
     message:err.message||"Error on getting",
-    errors
+    errors:err
   })
   }
 };

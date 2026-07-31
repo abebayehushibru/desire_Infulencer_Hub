@@ -8,7 +8,7 @@ const auth = require("../../middleware/auth");
 // Get all users (Admin)
 router.get(
   "/",
-  auth,
+  // auth,
 //   authorize("admin", "super_admin"),
   controller.getAll
 );

@@ -1,4 +1,6 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
     const Conversion = sequelize.define(
         "Conversion",
         {
@@ -16,6 +18,26 @@ module.exports = (sequelize, DataTypes) => {
             influencer_user_id: {
                 type: DataTypes.UUID,
                 allowNull: false,
+            },
+            influencer_commission_amount: {
+                type: DataTypes.DECIMAL(12, 2),
+                allowNull: false,
+                defaultValue: 0,
+            },
+
+            leader_user_id: {
+                type: DataTypes.UUID,
+                allowNull: true,
+            },
+            leader_commission_amount: {
+                type: DataTypes.DECIMAL(12, 2),
+                allowNull: false,
+                defaultValue: 0,
+            },
+            total_commission_amount: {
+                type: DataTypes.DECIMAL(12, 2),
+                allowNull: false,
+                defaultValue: 0,
             },
 
             customer_name: {
@@ -52,25 +74,7 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: 0,
             },
 
-            campiagn_payout_amount: {
-                type: DataTypes.DECIMAL(12, 2),
-                allowNull: false,
-                defaultValue: 0,
-            },
 
-            campiagn_payout_rate: {
-                type: DataTypes.DECIMAL(12, 2),
-                allowNull: false,
-                defaultValue: 0,
-            },
-
-            campiagn_payout_reason: {
-                type: DataTypes.ENUM(
-                    "leader",
-                    "influencer"
-                ),
-                defaultValue: "influencer",
-            },
 
             description: {
                 type: DataTypes.TEXT,
@@ -80,7 +84,7 @@ module.exports = (sequelize, DataTypes) => {
             status: {
                 type: DataTypes.ENUM(
                     "pending",
-                    "confimed",
+                    "confirmed",
                     "rejected"
                 ),
                 defaultValue: "pending",
@@ -111,6 +115,14 @@ module.exports = (sequelize, DataTypes) => {
         {
             tableName: "conversions",
             underscored: true,
+
+            timestamps: true,
+
+            createdAt: "created_at",
+
+            updatedAt: "updated_at",
+
+
         }
     );
 
@@ -130,6 +142,10 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "influencer_user_id",
             as: "influencer",
         });
+        Conversion.belongsTo(models.User, {
+            foreignKey: "leader_user_id",
+            as: "leader",
+        });
 
 
         // User who approved conversion
@@ -141,6 +157,11 @@ module.exports = (sequelize, DataTypes) => {
         Conversion.belongsTo(models.User, {
             foreignKey: "rejected_by_user_id",
             as: "rejected_by",
+        });
+
+        Conversion.hasMany(models.ConversionPayout, {
+            foreignKey: "conversion_id",
+            as: "conversions",
         });
 
 

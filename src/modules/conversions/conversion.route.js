@@ -14,33 +14,21 @@ router.post(
 
 // Get all conversions
 router.get(
-    "/",
-    auth,
+    "/:id",
+    // auth,
     controller.getAll
 );
 
 
 // Get single conversion
-router.get(
-    "/:id",
-    auth,
-    controller.getOne
-);
 
-
-// Confirm conversion
-router.patch(
-    "/:id/confirm",
-    auth,
-    controller.confirm
-);
 
 
 // Reject conversion
-router.patch(
-    "/:id/reject",
+router.put(
+    "/:id/status",
     auth,
-    controller.reject
+    controller.updateStatus
 );
 
 

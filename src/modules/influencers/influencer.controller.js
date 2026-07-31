@@ -64,7 +64,7 @@ exports.getAll = async (req, res) => {
 // ==========================
 exports.getById = async (req, res, next) => {
     try {
-     
+
         const result = await influencerService.getById(
             req.params.id
         );
@@ -75,7 +75,7 @@ exports.getById = async (req, res, next) => {
 
                 message: "Influencer fetched successfully.",
                 data: result,
-                 statusCode: 201
+                statusCode: 201
             }
         );
     } catch (error) {
@@ -107,7 +107,7 @@ exports.update = async (req, res, next) => {
             "Influencer updated successfully."
         );
     } catch (error) {
-         return errorResponse(res, {
+        return errorResponse(res, {
 
             statusCode: 500,
 
@@ -119,25 +119,25 @@ exports.update = async (req, res, next) => {
     }
 }
 
-exports. updateAudience=async(req, res, next) =>{
-  try {
-    
-    const result = await influencerService.updateAudience(
-      req.params.id,
-      req.body?.audience_locations
-    );
+exports.updateAudience = async (req, res, next) => {
+    try {
 
-    
-    return successResponse(
-      res,{
-        message:"Audience updated successfully.",
-        data:result,
-      }
-      
-      
-    );
-  } catch (error) {
-     return errorResponse(res, {
+        const result = await influencerService.updateAudience(
+            req.params.id,
+            req.body?.audience_locations
+        );
+
+
+        return successResponse(
+            res, {
+            message: "Audience updated successfully.",
+            data: result,
+        }
+
+
+        );
+    } catch (error) {
+        return errorResponse(res, {
 
             statusCode: 500,
 
@@ -146,7 +146,7 @@ exports. updateAudience=async(req, res, next) =>{
             errors: error
 
         });
-  }
+    }
 }
 
 // ==========================

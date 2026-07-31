@@ -35,13 +35,14 @@ router.use(
   require("../modules/users/user.routes")
 );
 router.use(
-  "/communities",
-  require("../modules/communities/community.route")
-);
-router.use(
   "/communities/:id/members",
   require("../modules/communityMembers/communityMember.route")
 );
+router.use(
+  "/communities",
+  require("../modules/communities/community.route")
+);
+
 router.use(
   "/campaigns",
   require("../modules/campaigns/campaign.route")
@@ -57,5 +58,9 @@ router.use(
 router.use(
   "/withdrawals",
   require("../modules/withdrawals/withdrawal.route")
+);
+router.use(
+  "/recharges",
+  require("../modules/rechargeHistory/rechargeHistory.routes")
 );
 module.exports = router;
