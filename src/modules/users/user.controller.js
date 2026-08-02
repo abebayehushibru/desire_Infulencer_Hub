@@ -2,6 +2,27 @@ const service = require("./user.service");
 const { successResponse, errorResponse } = require("../../utils/response");
 
 class UserController {
+  async create(req, res, next) {
+    try {
+      const result = await service.create(req.body);
+
+      return successResponse(
+        res,
+        {
+          message: "User created successfully.",
+          data: result
+        }
+      );
+    } catch (error) {
+
+      console.log(error.message)
+      return errorResponse(res, {
+        statusCode: 400,
+        message: error.message
+      });
+    }
+  }
+
   async getAll(req, res, next) {
     try {
       const result = await service.getAll(req.query);

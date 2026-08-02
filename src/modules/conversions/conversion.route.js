@@ -15,7 +15,7 @@ router.post(
 // Get all conversions
 router.get(
     "/:id",
-    // auth,
+     auth,
     controller.getAll
 );
 

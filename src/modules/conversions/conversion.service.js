@@ -3,11 +3,13 @@ const walletService = require("../wallets/wallet.service");
 const repo = require("./conversion.repository");
 
 function calculateCampaignSplit(campaign, paidAmount,) {
+
+
     // 1. Setup unified decimal percentage rate & variables
     const ruleType = campaign?.commission_rule_type || ""; // 'Rate' or 'Fixed'
     const commValue = parseFloat(campaign?.commission_value || 0);
 
-    const campaignRate = parseFloat(campaign?.commission_rate || 0) / 100;
+    const campaignRate = parseFloat(campaign?.conversion_rate || 0) / 100;
     const campaignAmount = parseFloat(campaign?.amount || 0);
     const actualPaid = parseFloat(paidAmount || 0);
 
@@ -20,7 +22,7 @@ function calculateCampaignSplit(campaign, paidAmount,) {
     if (campaignAmount > 0) {
         totalPool = campaignAmount;
     } else {
-        totalPool = actualPaid;
+        totalPool = actualPaid * campaignRate;
     }
 
     // 4b. Calculate Leader Share based on community rule
@@ -93,6 +95,7 @@ exports.create = async ({
     const transaction =
         await sequelize.transaction();
     const canculationOfSplit = calculateCampaignSplit(campaign, body.paid_amount)
+    console.log(canculationOfSplit);
 
     try {
 
@@ -185,7 +188,6 @@ exports.updateStatus = async ({
     userId,
     reason
 }) => {
-console.log(status);
 
 
     const conversion =
@@ -224,11 +226,27 @@ console.log(status);
 
     try {
         if (status == "confirmed") {
-            const infWallet =await walletService?.confirm({ datas: { user_id: conversion.influencer_user_id, id: conversion?.id, payout_amount: conversion.influencer_commission_amount }, transaction })
+            const infWallet = await walletService?.confirm({ datas: { user_id: conversion.influencer_user_id, id: conversion?.id, payout_amount: conversion.influencer_commission_amount }, transaction })
             if (conversion?.leader_user_id) {
 
-                const ledWallet =await  walletService?.confirm({ datas: { user_id: conversion.leader_user_id, id: conversion?.id, payout_amount: conversion.leader_commission_amount }, transaction })
+                const ledWallet = await walletService?.confirm({ datas: { user_id: conversion.leader_user_id, id: conversion?.id, payout_amount: conversion.leader_commission_amount }, transaction })
             }
+            const total_used = Number(campaign?.total_budget_used) + Number(conversion?.total_commission_amount)
+
+            if (total_used > campaign.total_budget) {
+                throw new Error("Insuficiennt balance");
+
+            }
+           
+ console.log(
+            "Campaign not found");
+            await walletService?.consumeHoldedBalance({ user_id: campaign.business_user_id,conversion_id:conversion?.id, campaign_id: conversion.campaign_id, amount: conversion?.total_commission_amount, transaction })
+
+
+
+            await repo?.updateCampaign(campaign.id, {
+                total_budget_used: total_used
+            }, transaction)
         }
 
         if (status == "rejected") {
@@ -239,9 +257,10 @@ console.log(status);
             }
         }
 
+
         const convupdate = await repo.updateStatus({
 
-            id,
+            id: conversion.id,
 
             status,
 

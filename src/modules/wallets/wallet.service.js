@@ -39,7 +39,9 @@ exports.withdraw = async (datas) => {
 
 
 exports.recharge = async (datas) => {
-  console.log(datas);
-  
+
   return walletRepo.recharge(datas);
 };
+exports.consumeHoldedBalance = async (data) => {
+ return await walletRepo.consumeHoldedBalance(data);
+}

@@ -2,9 +2,15 @@ const router = require("express").Router();
 
 const upload = require("../../config/multer");
 const auth = require("../../middleware/auth");
+const { chatLimiter } = require("../../middleware/rateLimit");
 const controller = require("./chat.controller");
 
-
+router.get(
+  "/",
+  auth,
+  chatLimiter,
+  controller.getChats
+);
 router.post(
   "/campaign/:campaignId",
    auth,
@@ -13,7 +19,7 @@ router.post(
 // Get campaign chat
 router.get(
   "/campaign/:campaignId",
-  // auth,
+   auth,
   controller.getCampaignChat
 );
 

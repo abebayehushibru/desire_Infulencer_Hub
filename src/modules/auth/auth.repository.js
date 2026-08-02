@@ -1,17 +1,37 @@
-const { User, Session } = require("../../models");
+const { User, Session, BusinessProfile, InfluencerProfile, CommunityMember, Document } = require("../../models");
 
 exports.findByAll = async (email) => {
   return await User.findAll();
 };
 // Find user by email
 
-exports.findByEmail = async (email) => {
-  console.log(email);
-  
+exports. findByEmail = async (email) => {
   return await User.findOne({
-    where: {
-      email,
-    },
+    where: { email },
+    include: [
+      {
+        model: BusinessProfile,
+        as: "business_profile",
+
+        attributes:["subscription_start_date","subscription_end_date","is_verified"]
+      },
+      {
+        model: InfluencerProfile,
+        as: "influencer_profile",
+        attributes:["is_verified","main_platform","followers_count","level"]
+      },
+      {
+        model: CommunityMember,
+        as: "community_memberships",
+        attributes:["community_id"]
+        
+      },
+      {
+        model: Document,
+        as: "profile_photo",
+    attributes:["file_url"]
+      },
+    ],
   });
 };
 

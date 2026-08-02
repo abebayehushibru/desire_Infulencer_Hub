@@ -10,8 +10,8 @@ const {
   Chat,
 } = require("../../models");
 
-exports.create = async (data) => {
-  return Campaign.create(data);
+exports.create = async (data,transaction) => {
+  return Campaign.create(data,{transaction:transaction});
 }
 
 exports.update = async (id, data) => {
@@ -21,7 +21,7 @@ exports.update = async (id, data) => {
 }
 exports.findCommunity = async (id) => {
   return Community.findByPk(id, {
-    attributes:["id","commission_type","commission_rate"]
+    attributes:["id","commission_type","commission_rate","commission_amount"]
   });
 }
 exports.findById = async (id) => {
@@ -97,12 +97,22 @@ exports.delete = async (id) => {
     where: { id },
   });
 }
-exports.updateStatus = async (id, data) => {
+exports.updateStatus = async (id, data,transaction) => {
+console.log(data,id);
 
   // Execute the Sequelize update query using the payload
-  return Campaign.update(data, {
-    where: { id },
-  });
+
+  await Campaign.update(data, {
+  where: { id },
+  transaction,
+});
+
+const campaign = await Campaign.findByPk(id, { transaction });
+
+console.log(campaign.toJSON());
+
+  return await campaign
+
 };
 
 
@@ -167,88 +177,68 @@ exports.getClaimableCampaigns = async ({
 
 
   // Statuses considered visible
-  const COMMUNITY_VISIBLE_STATUSES = [
-    "active",
-    "ongoing",
-    "completed",
-  ];
+ const DIRECT_INFLUENCER_VISIBLE_STATUSES = [
+  "approved",
+  "accepted",
+  "onbudget",
+  "active",
+  "completed",
+];
 
+const COMMUNITY_LEADER_VISIBLE_STATUSES = [
+  "approved",
+  "accepted",
+  "onbudget",
+  "active",
+  "completed",
+];
 
-  const COMMUNITY_VISIBLE_STATUSESWithRole = [
-    "approved",
-    "active",
-    "ongoing",
-    "completed",
-  ];
+const COMMUNITY_MEMBER_VISIBLE_STATUSES = [
+  "accepted",
+  "active",
+  "completed",
+];
 
+const where={
+  [Op.or]: [
 
-  const where = {
-    [Op.and]: [
-
-      {
-        status: {
-          [Op.notIn]: [
-            "draft",
-            "pending",
-            "cancelled",
-          ],
-        },
+    // Direct campaign assigned to influencer
+    {
+      target_type: "influencer",
+      target_id: userId,
+      status: {
+        [Op.in]: DIRECT_INFLUENCER_VISIBLE_STATUSES,
       },
+    },
 
-
-      {
-        [Op.not]: {
-          status: "rejected",
-          rejected_by_user_id: userId,
-        },
+    // Community leader
+    {
+      target_type: "community",
+      target_id: {
+        [Op.in]: communityIdsWithRole.length
+          ? communityIdsWithRole
+          : [null],
       },
-
-
-      {
-        [Op.or]: [
-
-          // Direct influencer campaign
-          {
-            target_type: "influencer",
-            target_id: userId,
-            status: "approved",
-          },
-
-
-          // Community leader campaigns
-          {
-            target_type: "community",
-            target_id: {
-              [Op.in]: communityIdsWithRole.length
-                ? communityIdsWithRole
-                : [null],
-            },
-            status: {
-              [Op.in]: COMMUNITY_VISIBLE_STATUSESWithRole,
-            },
-          },
-
-
-          // Community member campaigns
-          {
-            target_type: "community",
-            target_id: {
-              [Op.in]: communityIdsWithOutRoleLeadeing.length
-                ? communityIdsWithOutRoleLeadeing
-                : [null],
-            },
-            status: {
-              [Op.in]: COMMUNITY_VISIBLE_STATUSES,
-            },
-          },
-
-        ],
+      status: {
+        [Op.in]: COMMUNITY_LEADER_VISIBLE_STATUSES,
       },
+    },
 
-    ],
+    // Community member
+    {
+      target_type: "community",
+      target_id: {
+        [Op.in]: communityIdsWithOutRoleLeadeing.length
+          ? communityIdsWithOutRoleLeadeing
+          : [null],
+      },
+      status: {
+        [Op.in]: COMMUNITY_MEMBER_VISIBLE_STATUSES,
+      },
+    },
 
-    ...(type && { type }),
-  };
+  ],
+}
 
 
   const response = await Campaign.findAndCountAll({

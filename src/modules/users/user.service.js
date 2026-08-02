@@ -1,9 +1,26 @@
 const repository = require("./user.repository");
 const { sequelize } = require("../../models");
+const { hashPassword } = require("../../utils/hash");
 
 class UserService {
    // Ensure you import operators at the top of your file
+async create  (payload)  {
+  const email = await repository.findByEmail(payload.email);
 
+  if (email) {
+    throw new Error("Email already exists.");
+  }
+
+  const phone = await repository.findByPhone(payload.phone1);
+
+  if (phone) {
+    throw new Error("Phone number already exists.");
+  }
+
+  payload.password = await hashPassword(payload.password);
+
+  return repository.create(payload);
+};
 async getAll(query) {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;

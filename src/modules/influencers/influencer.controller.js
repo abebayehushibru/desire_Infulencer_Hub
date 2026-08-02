@@ -19,7 +19,14 @@ exports.create = async (req, res, next) => {
             201
         );
     } catch (error) {
-        next(error);
+        return errorResponse(res, {
+
+            statusCode: 400,
+
+            message:
+                error.message,
+
+        });
     }
 }
 

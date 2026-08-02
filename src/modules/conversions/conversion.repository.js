@@ -35,7 +35,12 @@ exports.getCampaign = async (id) => {
     });
 
 };
-
+exports.updateCampaign = async (id, data,transaction) => {
+  return Campaign.update(data, {
+    where: { id },
+    transaction
+  });
+}
 
 exports.getConversions = async ({
     campaign_id = null,
@@ -45,7 +50,6 @@ exports.getConversions = async ({
     query
 }) => {
     const where = {};
-console.log(query.status);
 
     if (query.status&&query.status!="All") {
 

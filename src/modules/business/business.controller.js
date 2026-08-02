@@ -23,6 +23,7 @@ console.log("here");
         body: req.body,
 
         files: req.files,
+        userId: req.user.id,
 
       });
 

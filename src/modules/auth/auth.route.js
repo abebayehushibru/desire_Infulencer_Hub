@@ -2,6 +2,7 @@ const router =
 require("express").Router();
 
 
+const { authLimiter, otpLimiter } = require("../../middleware/rateLimit");
 const controller =
 require("./auth.controller");
 
@@ -10,6 +11,7 @@ require("./auth.controller");
 
 router.post(
  "/login",
+ authLimiter,
  controller.login
 );
 
@@ -26,6 +28,7 @@ router.post(
 
 router.post(
  "/forgot-password",
+ otpLimiter,
  controller.forgotPassword
 );
 
@@ -34,6 +37,7 @@ router.post(
 
 router.post(
  "/verify-code",
+ otpLimiter,
  controller.verifyCode
 );
 

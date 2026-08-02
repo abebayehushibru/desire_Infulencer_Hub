@@ -178,7 +178,7 @@ exports.getCampaignChat = async ({
     ],
   });
   if (!chat) {
-    throw new Error("Campaign chat not found.");
+   return null
   }
 
   // Check membership
@@ -210,9 +210,9 @@ exports.getCampaignChat = async ({
         ],
       },
       {
-        model:Document,
-        as:"document",
-        attributes:["file_url","media_type","original_name"]
+        model: Document,
+        as: "document",
+        attributes: ["file_url", "media_type", "original_name"]
       }
     ],
     order: [["created_at", "DESC"]],
@@ -286,12 +286,94 @@ exports.sendMessage = async ({
         ],
       },
       {
-        model:Document,
-        as:"document",
-        attributes:["file_url","media_type","original_name","mime_type"]
+        model: Document,
+        as: "document",
+        attributes: ["file_url", "media_type", "original_name", "mime_type"]
       }
     ],
 
   });
+
+};
+
+exports.getAll = async ({
+  user,
+  page = 1,
+  limit = 20,
+  status
+}) => {
+
+  const where = {};
+
+ if (status) {
+  where.status=status
+ }
+  const include = [];
+
+  switch (user.role) {
+    case "super_admin":
+    case "admin":
+      break;
+
+    case "agent":
+      where.agent_id = user.id;
+      break;
+
+    case "business":
+      where.type = "campaign";
+
+      include.push({
+        association: "campaign",
+         attributes: ["id", "title", "status"],
+        required: true,
+        where: {
+          business_user_id: user.id,
+        },
+      });
+      break;
+
+    case "influencer":
+      where.type = "campaign";
+
+      include.push({
+        association: "campaign",
+         attributes: ["id", "title", "status"],
+        required: true,
+        include: [
+          {
+            association: "claims",
+            required: true,
+            where: {
+              influencer_user_id: user.id,
+            },
+          },
+        ],
+      });
+      break;
+
+    default:
+      throw new Error("Unauthorized");
+  }
+
+  return await Chat.findAndCountAll({
+    where,
+    include: [
+      {
+        association: "campaign",
+        attributes: ["id", "title", "status"],
+      },
+      ...include,
+      {
+        association: "agent",
+        attributes: ["id", "name_or_company_name", "email"],
+      },
+      {
+        association: "created_by",
+        attributes: ["id", "name_or_company_name"],
+      },
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+
 
 };

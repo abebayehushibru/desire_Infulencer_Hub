@@ -10,13 +10,13 @@ router.post(
 
 router.get(
   "",
-  // auth,
+   auth,
   controller.members
 );
 
 router.get(
   "/non-members",
-  // auth,
+   auth,
   controller.nonMembers
 );
 

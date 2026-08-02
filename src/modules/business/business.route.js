@@ -8,6 +8,7 @@ require("./business.controller");
 
 const upload =
 require("../../config/multer");
+const auth = require("../../middleware/auth");
 
 
 
@@ -18,6 +19,7 @@ require("../../config/multer");
 router.post(
 
   "/",
+  auth,
 
   upload.fields([
 

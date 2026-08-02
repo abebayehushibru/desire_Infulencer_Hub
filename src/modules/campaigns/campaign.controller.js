@@ -3,6 +3,8 @@ const service = require("./campaign.service");
 
 exports.create = async (req, res, next) => {
     try {
+        console.log( req.body?.locations?.split(", "));
+        
         const platforms = JSON.parse(req.body.platforms);
         const campaign =
             await service.create({
@@ -10,8 +12,9 @@ exports.create = async (req, res, next) => {
                 business_user_id: req.user.id,
                 locations: req.body?.locations?.split(","),
                 ethiopia_locations: req.body?.ethiopia_locations ? req.body?.ethiopia_locations?.split(",") : [],
-                platforms: platforms
-            });
+                platforms: platforms,
+               
+            }, req.user.id);
 
         res.status(201).json({
             success: true,
@@ -28,7 +31,8 @@ exports.create = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
     try {
-       
+              
+        const platforms = JSON.parse(req.body.platforms);
           const campaign =
             await service.update(
                 req.params.id,

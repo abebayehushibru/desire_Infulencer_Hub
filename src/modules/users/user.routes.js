@@ -4,7 +4,11 @@ const controller = require("./user.controller");
 
 const auth = require("../../middleware/auth");
 // const authorize = require("../../middleware/roles");
-
+router.post(
+  "/",
+  // auth,
+  controller.create
+);
 // Get all users (Admin)
 router.get(
   "/",

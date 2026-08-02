@@ -2,6 +2,8 @@ const router = require("express").Router();
 
 const upload = require("../../config/multer");
 const auth = require("../../middleware/auth");
+const authorize = require("../../middleware/authorize");
+const { actionLimiter } = require("../../middleware/rateLimit");
 const controller = require("./campaign.controller");
 
 // Upload middleware
@@ -31,6 +33,7 @@ router.get(
 router.post(
   "/claim/:id",
   auth,
+  actionLimiter,
   controller.claimCampaign
 );
 
@@ -42,6 +45,7 @@ router.post(
 router.post(
   "/",
   auth,
+  authorize("business"),
   uploadFiles,
   controller.create
 );
@@ -49,7 +53,7 @@ router.post(
 // Get all
 router.get(
   "/",
-  // auth,
+   auth,
   controller.getAll
 );
 
@@ -63,7 +67,7 @@ router.put(
 // Get by id
 router.get(
   "/:id",
-  // auth,
+  auth,
   controller.getById
 );
 

@@ -73,3 +73,33 @@ exports.sendMessage = async ({
   });
 
 };
+
+
+exports.getChats = async ({
+  user,
+  query,
+}) => {
+  const page = Number(query.page || 1);
+  const limit = Number(query.limit || 20);
+ const status =query.status
+
+  const result = await repo.getAll({
+    user,
+    page,
+    limit,
+    status
+
+  });
+
+  return {
+    success: true,
+    message: "Chats fetched successfully.",
+    data: result.rows,
+    pagination: {
+      total: result.count,
+      page,
+      limit,
+      totalPages: Math.ceil(result.count / limit),
+    },
+  };
+};

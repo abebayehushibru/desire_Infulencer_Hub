@@ -167,7 +167,7 @@ exports.reject = async ({
   datas,
   transaction,
 }) => {
-  const wallet = findOne(datas.user_id,transaction)
+  const wallet = await findOne(datas.user_id,transaction)
 
 
   const amount = Number(
@@ -436,6 +436,65 @@ exports.releaseHold = async ({
    
 
       description: `Unused campaign budget released. campaign_id: ${   campaign_id}`,
+    },
+    { transaction }
+  );
+
+  return wallet;
+};
+
+exports.consumeHoldedBalance = async ({
+  user_id,
+  campaign_id,
+  amount,
+  description,
+  transaction,
+  conversion_id
+}) => {
+  const wallet = await findOne(user_id, transaction);
+
+  if (!wallet) {
+    throw new Error("Wallet not found");
+  }
+
+  const spendAmount = Number(amount);
+
+  if (spendAmount <= 0) {
+    throw new Error("Invalid amount");
+  }
+
+  const holdedBefore = Number(wallet.holded_balance || 0);
+
+  if (holdedBefore < spendAmount) {
+    throw new Error("Insufficient held balance");
+  }
+
+  const holdedAfter = holdedBefore - spendAmount;
+
+  await wallet.update(
+    {
+      holded_balance: holdedAfter,
+    },
+    { transaction }
+  );
+
+  await WalletTransaction.create(
+    {
+      wallet_id: wallet.id,
+      user_id,
+
+      type: "campaign_spend",
+      direction: "debit",
+
+      amount: spendAmount,
+
+      balance_before: holdedBefore,
+      balance_after: holdedAfter,
+
+      campaign_id,
+
+      description:
+        `Campaign payout for campaign  : conversion_${conversion_id} - ${description}`,
     },
     { transaction }
   );

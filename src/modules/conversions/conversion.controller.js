@@ -1,3 +1,4 @@
+const { errorResponse } = require("../../utils/response");
 const service = require("./conversion.service");
 
 
@@ -23,7 +24,10 @@ exports.create = async(req,res,next)=>{
 
 
     }catch(error){
-        next(error);
+         return errorResponse(res,{
+        message:error.message,
+        errors:error
+       })
     }
 
 };
@@ -36,7 +40,7 @@ exports.getAll = async(req,res,next)=>{
 
         const data =
         await service.getAll({
-            userId:req.params?.id,
+            campaign_id:req.params?.id,
             query:req.query
         });
 
@@ -48,7 +52,10 @@ exports.getAll = async(req,res,next)=>{
 
 
     }catch(error){
-        next(error);
+         return errorResponse(res,{
+        message:error.message,
+        errors:error
+       })
     }
 
 };
@@ -88,7 +95,10 @@ exports.updateStatus = async(req,res,next)=>{
 
 
     }catch(error){
-        next(error);
+         return errorResponse(res,{
+        message:error.message,
+        errors:error
+       })
     }
 
 };

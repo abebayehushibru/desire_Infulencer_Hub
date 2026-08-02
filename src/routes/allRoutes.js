@@ -63,4 +63,8 @@ router.use(
   "/recharges",
   require("../modules/rechargeHistory/rechargeHistory.routes")
 );
+router.use(
+  "/dashboard",
+  require("../modules/dashboard/dashboard.route")
+);
 module.exports = router;

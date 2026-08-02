@@ -113,6 +113,10 @@ module.exports = (sequelize) => {
         type: DataTypes.DECIMAL(12, 2),
         allowNull: true,
       },
+      total_budget_used: {
+        type: DataTypes.DECIMAL(12, 2),
+        allowNull: true,
+      },
 
       // Awareness
       total_views: {

@@ -11,6 +11,7 @@ class DocumentService {
     async createDocument({
         file,
         userId,
+        transaction,
         visibility = "private"
     }) {
 
@@ -112,7 +113,7 @@ class DocumentService {
                 visibility
 
 
-            });
+            },transaction);
 
 
 

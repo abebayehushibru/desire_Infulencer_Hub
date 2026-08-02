@@ -23,11 +23,9 @@ exports.login = async ({
     password,
 }) => {
 
-    const users = repo.findByAll(email)
     const user =
         await repo.findByEmail(email.trim());
 
-    console.log(email, password, user, users[0]);
 
 
     if (!user) {
@@ -106,6 +104,10 @@ exports.login = async ({
 
             role: user.role,
 
+            business_profile: user.business_profile || null,
+            influencer_profile: user.influencer_profile || null,
+            community_memberships: user.community_memberships || [],
+
         }
 
     };
@@ -161,11 +163,11 @@ exports.forgotPassword = async (email) => {
             Math.random() * 900000
         ).toString();
 
- const token= generateToken({
-    id:user.id,
-    email:user.email,
-    code:code
- })
+    const token = generateToken({
+        id: user.id,
+        email: user.email,
+        code: code
+    })
 
     await sendEmail({
 
@@ -176,10 +178,11 @@ exports.forgotPassword = async (email) => {
 
 
         html: influencerEmailTemplate(
-            {name:user.name,
-                email:user.email,
-                code:code,
-                info:"Forgotting Password"
+            {
+                name: user.name,
+                email: user.email,
+                code: code,
+                info: "Forgotting Password"
             }
 
         )
@@ -192,7 +195,7 @@ exports.forgotPassword = async (email) => {
 
         message:
             "Confirmation code sent",
-            token
+        token
 
     };
 
@@ -209,26 +212,26 @@ exports.verifyCode = async ({
     code
 }) => {
 
-console.log(token,code);
+    console.log(token, code);
 
- const decode=await decodeToken(token)
- if (!decode){
-    throw Error("Invalid or Expired Token")
- }
+    const decode = await decodeToken(token)
+    if (!decode) {
+        throw Error("Invalid or Expired Token")
+    }
 
- if (code!=decode?.code){
-    throw Error("Invalid Code")
- }
-const {
-    id,email
-}=decode
+    if (code != decode?.code) {
+        throw Error("Invalid Code")
+    }
+    const {
+        id, email
+    } = decode
 
- const new_token=await generateToken({id,email},"10m")
+    const new_token = await generateToken({ id, email }, "10m")
 
     return {
 
         verified: true,
-        token:new_token,
+        token: new_token,
         message:
             "Code verified"
 
@@ -248,18 +251,18 @@ exports.resetPassword = async ({
     newPassword,
     confirmPassword
 }) => {
-     console.log(token,
-    newPassword,
-    confirmPassword);
- 
-const decode=await decodeToken(token)
- if (!decode){
-    throw Error("Invalid or Expired Token")
- }
+    console.log(token,
+        newPassword,
+        confirmPassword);
 
-if (confirmPassword!=newPassword){
-    throw Error("Password not Match")
- }
+    const decode = await decodeToken(token)
+    if (!decode) {
+        throw Error("Invalid or Expired Token")
+    }
+
+    if (confirmPassword != newPassword) {
+        throw Error("Password not Match")
+    }
 
 
     const hashedPassword =

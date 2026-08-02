@@ -128,8 +128,8 @@ exports.getAll = async ({
                 [literal(`SUM(CASE WHEN status = 'PENDING' THEN amount ELSE 0 END)`), "pending_sum"],
                 
                 // Totals for CONFIRMED status
-                [literal(`COUNT(CASE WHEN status = 'CONFIRMED' THEN 1 END)`), "confirmed_count"],
-                [literal(`SUM(CASE WHEN status = 'CONFIRMED' THEN amount ELSE 0 END)`), "confirmed_sum"],
+                [literal(`COUNT(CASE WHEN status = 'VERIFIED' THEN 1 END)`), "confirmed_count"],
+                [literal(`SUM(CASE WHEN status = 'VERIFIED' THEN amount ELSE 0 END)`), "confirmed_sum"],
                 
                 // Totals for REJECTED status
                 [literal(`COUNT(CASE WHEN status = 'REJECTED' THEN 1 END)`), "rejected_count"],
@@ -257,7 +257,7 @@ exports.getBusinessHistory =
                 business_user_id,
             },
             offset,
-            limit,
+            limit:3,
             order: [
                 ["created_at", "DESC"],
             ],

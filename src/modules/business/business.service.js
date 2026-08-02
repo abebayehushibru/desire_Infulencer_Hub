@@ -1,6 +1,7 @@
 const { sequelize } = require("../../models");
 
 const repo = require("./business.repository.js")
+const documentRepository = require("../documents/document.repository.js")
 
 const {
   hashPassword,
@@ -10,7 +11,37 @@ const {
   deleteFile,
 } = require("../../utils/file");
 const userRepo= require("../users/user.repository.js");
+const getMediaType = (file) => {
+  const mime = file.mimetype;
 
+  if (mime.startsWith("image/")) {
+    return "image";
+  }
+
+  if (mime.startsWith("video/")) {
+    return "video";
+  }
+
+  if (mime.startsWith("audio/")) {
+    return "audio";
+  }
+
+  if (mime === "application/pdf") {
+    return "pdf";
+  }
+
+  if (
+    mime.includes("word") ||
+    mime.includes("excel") ||
+    mime.includes("spreadsheet") ||
+    mime.includes("msword") ||
+    mime.includes("officedocument")
+  ) {
+    return "document";
+  }
+
+  return "other";
+};
 
 // ===============================
 // Register Business
@@ -19,6 +50,7 @@ const userRepo= require("../users/user.repository.js");
 exports.registerBusiness = async ({
   body,
   files,
+  userId,
 }) => {
 
 
@@ -36,15 +68,56 @@ exports.registerBusiness = async ({
     /*
       Collect uploaded files
     */
+console.log(files);
+let file= null
+    const companyLogo = files?.company_logo?.[0];
+    const businessLicense = files?.business_license?.[1];
+  file =files?.company_logo?.[0];
+ const companyLogoDocument = await documentRepository.create(
+  {
+    uploaded_by_user_id: userId,
 
-    const companyLogo =
-      files?.company_logo?.[0];
+    original_name: file.originalname,
+
+    file_name: file.filename,
+
+     file_url: file.path,
 
 
-    const businessLicense =
-      files?.business_license?.[0];
+    mime_type: file.mimetype,
 
+    media_type: getMediaType(file),
 
+    extension: file?.path.split(".")?.[1],
+
+    file_size: file.size,
+
+  
+  },
+  transaction
+);
+
+file =files?.business_license?.[0];
+ const companyLicenseDocument = await documentRepository.create(
+  {
+    uploaded_by_user_id: userId,
+
+    original_name: file.originalname,
+
+    file_name: file.filename,
+
+    file_url: file.path,
+
+    mime_type: file.mimetype,
+    media_type: getMediaType(file),
+    extension: file?.path.split(".")?.[1],
+    file_size: file.size,
+  
+
+    
+  },
+  transaction
+);
 
     if (companyLogo) {
       uploadedFiles.push(
@@ -151,6 +224,7 @@ exports.registerBusiness = async ({
           status:
             "pending",
 
+
         },
 
         transaction
@@ -161,86 +235,7 @@ exports.registerBusiness = async ({
 
 
 
-    /*
-      Create Company Logo Document
-    */
-
-    let logoDocument = null;
-
-
-    if (companyLogo) {
-
-
-      logoDocument =
-        await repo.createDocument(
-
-          {
-
-            file_name:
-              companyLogo.filename,
-
-
-            file_url:
-              companyLogo.path,
-
-
-            file_type:
-              companyLogo.mimetype,
-
-
-            media_type:
-              "image",
-
-
-          },
-
-          transaction
-
-        );
-
-    }
-
-
-
-
-
-    /*
-      Create Business License Document
-    */
-
-    let licenseDocument = null;
-
-
-    if (businessLicense) {
-
-
-      licenseDocument =
-        await repo.createDocument(
-
-          {
-
-            file_name:
-              businessLicense.filename,
-
-
-            file_url:
-              businessLicense.path,
-
-
-            file_type:
-              businessLicense.mimetype,
-
-
-            media_type:
-              "pdf",
-
-          },
-
-          transaction
-
-        );
-
-    }
+  
 
 
 
@@ -297,12 +292,12 @@ exports.registerBusiness = async ({
 
 
           company_logo_document_id:
-            logoDocument?.id || null,
+            companyLogoDocument?.id || null,
 
 
 
           licence_document_id:
-            licenseDocument?.id || null,
+            companyLicenseDocument?.id || null,
 
 
 

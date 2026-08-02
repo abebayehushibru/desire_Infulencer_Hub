@@ -7,7 +7,7 @@ const controller = require("./withdrawal.controller");
 // Create withdrawal request
 router.post(
     "/",
-    // auth,
+     auth,
     controller.create
 );
 
@@ -15,12 +15,12 @@ router.post(
 // Get withdrawals
 router.get(
     "/",
-    // auth,
+ auth,
     controller.getAll
 );
 router.get(
     "/my",
-    // auth,
+     auth,
     controller.getMy
 );
 
