@@ -1,6 +1,6 @@
 export default function Unauthorized() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-primary)] text-white">
+    <div className="min-h-full my-auto py-12 flex items-center justify-center bg-[var(--color-primary)] text-white">
       <div className="text-center">
         <h1 className="text-7xl font-bold text-[var(--color-tertiary)]">
           403

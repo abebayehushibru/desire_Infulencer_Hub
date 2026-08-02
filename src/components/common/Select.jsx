@@ -19,7 +19,7 @@ const Select = ({
   disabled = false,
   error,
   className = "",
-
+awayFrom = "top-full",
   leftIcon,
   searchable = true, // Premium feature addition
   ...props
@@ -73,7 +73,7 @@ const Select = ({
   const hasError = Boolean(error);
 
   return (
-    <div className={`w-full  z-[100] relative z-10 ${className}`} ref={dropdownRef} {...props}>
+    <div className={`w-full relative  max-w-sm z-[100] relative z-0 ${className}`} ref={dropdownRef} {...props}>
       {/* Premium Field Labels Layout */}
       {label && (
         <label htmlFor={name} className="mb-1.5 block text-xs font-semibold text-gray-700 tracking-wide">
@@ -119,8 +119,8 @@ const Select = ({
       {/* Custom Floating Options Dropdown Menu Panel */}
       {isOpen && (
         <div
-          className="absolute mt-1.5 right-0 bg-white border border-gray-100 rounded-lg shadow-xl 
-                     overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100 min-w-full max-w-sm max-h-64 flex flex-col"
+          className={`absolute mt-1.5 right-0 ${awayFrom || ""} bg-white border border-gray-100 rounded-lg shadow-xl 
+                     overflow-hidden animate-in fade-in slide-in-from-top-1 duration-100 min-w-full max-w-sm max-h-64 flex flex-col`}
         >
           {/* Real-time Filter Search input */}
           {searchable && (
@@ -145,10 +145,11 @@ const Select = ({
                 return (
                   <div
                     key={item[valueKey]}
-                    onClick={() => handleSelect(item[valueKey])}
+                    disabled={item?.disabled}
+                    onClick={() => !item?.disabled && handleSelect(item[valueKey])}
                     className={`
                       flex items-center justify-between px-3.5 py-2.5 mx-1 my-0.5 rounded-lg
-                      text-xs cursor-pointer transition-all duration-150 select-none
+                      text-xs cursor-pointer transition-all duration-150 select-none disabled:cursor-not-allowed disabled:text-gray-400 disabled:bg-gray-50
                       ${isSelected
                         ? "bg-primary/10 text-primary font-semibold"
                         : "text-gray-700 hover:bg-gray-50 font-medium"

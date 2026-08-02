@@ -40,7 +40,7 @@ const forgotApi = useApi({
 
   if (submitted) {
     return (
-      <div className="min-h-full bg-gray-100 flex items-center justify-center p-8">
+      <div className="min-h-full bg-gray-100 flex items-center justify-center md:p-8">
         <div className="w-full max-w-5xl bg-white rounded-lg shadow-xl overflow-hidden grid lg:grid-cols-2">
           <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-8 flex flex-col justify-between">
             <div className="absolute h-full flex items-end justify-center">
@@ -48,15 +48,15 @@ const forgotApi = useApi({
             </div>
             <div>
               <h4 className="text-sm font-semibold mb-2">Check your inbox 📬</h4>
-              <h1 className="text-4xl font-bold leading-tight">Code Sent!</h1>
-              <p className="mt-4 text-sm opacity-90">
+              <h1 className="sm:text-4xl text-2xl font-bold leading-tight">Code Sent!</h1>
+              <p className="mt-4 text-xs opacity-90">
                 If an account exists for that email, a reset code has been sent. Check your spam folder too.
               </p>
             </div>
             <div />
           </div>
 
-          <div className="p-12 flex items-center">
+          <div className="p-4 md:p-16 flex items-center">
             <div className="w-full text-center">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Mail className="text-green-600" size={36} />
@@ -105,9 +105,9 @@ const forgotApi = useApi({
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
 
         {/* ── LEFT ─────────────────────────────────────────────────────────── */}
-        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-16 flex flex-col justify-between">
+        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-4 md:p-16 flex flex-col justify-between">
           <div className="absolute h-full flex items-end justify-center">
-            <img src={loginImage} alt="" className="w-full mt-4 scale-80" />
+            <img src={loginImage} alt="" className="w-full mt-4 scale-60" />
           </div>
           <div>
             <h4 className="text-lg font-semibold mb-4">Forgot your password? 🔑</h4>
@@ -124,7 +124,7 @@ const forgotApi = useApi({
         </div>
 
         {/* ── RIGHT ────────────────────────────────────────────────────────── */}
-        <div className="p-12 flex items-center">
+        <div className="p-4 md:p-16 flex items-center">
           <div className="w-full">
             <h2 className="text-2xl text-gray-800 font-bold mb-1">Forgot password</h2>
             <p className="text-gray-500 text-sm mb-4">

@@ -95,11 +95,11 @@ export default function VerifyResetCode() {
   };
 
   return (
-    <div className="h-full bg-gray-100 flex items-center justify-center p-8">
+    <div className="h-full bg-gray-100 flex items-center justify-center md:p-8">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
 
         {/* LEFT */}
-        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-16 flex flex-col justify-between">
+        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-6 md:p-16 flex flex-col justify-between">
           <div className="absolute h-full flex items-end justify-center">
             <img src={loginImage} alt="" className="w-full mt-4 scale-80" />
           </div>
@@ -118,7 +118,7 @@ export default function VerifyResetCode() {
         </div>
 
         {/* RIGHT */}
-        <div className="p-6 flex items-center">
+        <div className="p-4 flex items-center">
           <div className="w-full">
             <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
               <KeyRound className="text-primary" size={28} />
@@ -149,7 +149,7 @@ export default function VerifyResetCode() {
                       value={digit}
                       onChange={(e) => handleOtpChange(i, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(i, e)}
-                      className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl
+                      className={`w-10 h-12 text-center text-2xl font-bold border-2 rounded-xl
                         focus:outline-none focus:border-primary transition-colors
                         ${digit ? "border-primary bg-primary/5 text-primary" : "border-gray-200 text-gray-800"}
                         ${error ? "border-red-400" : ""}`}

@@ -12,6 +12,7 @@ import StatsCard from "../../components/common/StatsCard."; // Fixed trailing do
 import useApi from "../../hooks/useApi";
 import Avatar from "../../components/common/Avatar";
 import toast from "react-hot-toast";
+import { formatFollowers } from "../../services/helpers";
 
 export default function Recharges() {
   const navigate = useNavigate();
@@ -193,28 +194,34 @@ export default function Recharges() {
 
     
       {/* Metrics Dashboard Layout powered directly via backend summary expressions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-5 mb-6">
         <StatsCard
           title="Total Count"
-          number={summary?.total_withdrawals_count || 0}
+          number={summary?.total_recharges_count || 0}
           color="blue"
           currency=""
         />
+         <StatsCard
+          title="Total "
+          number={formatFollowers(summary?.total_recharges_amount || 0)}
+          color="blue"
+          currency="ETB"
+        />
         <StatsCard
-          title="Pending Amount"
-          number={(summary?.pending_amount || 0).toLocaleString()}
+          title="Pending"
+          number={formatFollowers(summary?.pending_amount || 0)}
           color="yellow"
           currency="ETB"
         />
         <StatsCard
-          title="Confirmed Amount"
-          number={(summary?.confirmed_amount || 0).toLocaleString()}
+          title="Confirmed"
+          number={formatFollowers(summary?.confirmed_amount || 0)}
           color="green"
           currency="ETB"
         />
         <StatsCard
-          title="Rejected Amount"
-          number={(summary?.rejected_amount || 0).toLocaleString()}
+          title="Rejected"
+          number={formatFollowers(summary?.rejected_amount || 0)}
           color="red"
           currency="ETB"
         />

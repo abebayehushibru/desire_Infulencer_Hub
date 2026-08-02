@@ -257,6 +257,9 @@ export default function CreateCommunity() {
   };
 
   const validateStep = (s) => {
+    const rateNum = Number(form.commission_rate);
+    const amountNum = Number(form.commission_amount);
+
     const e = {};
     if (s === 0) {
       if (!form.name.trim()) e.name = "Community name is required.";
@@ -269,12 +272,17 @@ export default function CreateCommunity() {
       if (form.platforms.length === 0) e.platforms = "Select at least one platform.";
     }
     if (s === 2) {
-      if (form.commissionValue === "" || form.commissionValue === null) {
-        e.commissionValue = form.commissionType === "Rate" ? "Enter a commission rate." : "Enter a commission amount.";
-      } else if (form.commissionType === "Rate" && (Number(form.commissionValue) < 0 || Number(form.commissionValue) > 100)) {
-        e.commissionValue = "Rate must be between 0 and 100.";
-      } else if (form.commissionType === "Fixed" && Number(form.commissionValue) < 0) {
-        e.commissionValue = "Amount cannot be negative.";
+      if (!form?.commissionType) {
+        e.commissionType = "Enter a commission Default.";
+      } else if (isNaN(rateNum)) {
+        e.commission_rate = "Please enter a valid number.";
+      } else if (rateNum < 0 || rateNum > 100) {
+        e.commission_rate = "Rate must be between 0 and 100.";
+      }
+      else if (isNaN(amountNum)) {
+        e.commission_amount = "Please enter a valid number.";
+      } else if (amountNum < 0) {
+        e.commission_amount = "Amount cannot be negative.";
       }
     }
     setErrors(e);
@@ -342,7 +350,7 @@ export default function CreateCommunity() {
 
     formData.append(
       "platforms",
-     form.platforms
+      form.platforms
     );
 
 
@@ -355,18 +363,13 @@ export default function CreateCommunity() {
 
 
     formData.append(
-      "commission_rate",
-      form.commissionType === "Rate"
-        ? Number(form.commissionValue)
-        : ""
+      "commission_rate", Number(form.commission_rate)
+        
     );
 
 
     formData.append(
-      "commission_amount",
-      form.commissionType === "Fixed"
-        ? Number(form.commissionValue)
-        : ""
+      "commission_amount", Number(form.commission_amount)
     );
 
 
@@ -667,43 +670,43 @@ export default function CreateCommunity() {
                 previously both a "Rate" and an "Amount" input rendered at the
                 same time, and the rate input was bound to a state key
                 (commission_rate) that didn't exist, so it silently did nothing. */}
-            <div className="mt-4 flex gap-4 max-w-xs">
+            <div className="mt-4 flex gap-4 max-w-xs sm:max-w-md">
 
-                <div className="relative">
-                  <Input
-                    label="Commission Rate"
-                    required
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    placeholder="e.g. 10"
-                    value={form.commissionValue}
-                    onChange={(e) => set("commissionValue", e.target.value)}
-                    error={errors.commissionValue}
-                    className={`w-full rounded-lg border bg-white py-2.5 pl-3 pr-9 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
-                      }`}
-                  />
-                  <Percent className="pointer-events-none absolute right-3 bottom-2.5 h-4 w-4 text-slate-400" />
-                </div>
-              
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 bottom-3 text-sm text-slate-400">ETB</span>
-                  <Input
-                    label="Commission Amount"
-                    required
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="e.g. 500"
-                    value={form.commissionValue}
-                    onChange={(e) => set("commissionValue", e.target.value)}
-                    error={errors.commissionValue}
-                    className={`w-full rounded-lg border bg-white py-2.5 pl-11 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
-                      }`}
-                  />
-                </div>
-            
+              <div className="relative">
+                <Input
+                  label="Commission Rate"
+                  required
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  placeholder="e.g. 10"
+                  value={form.commission_rate}
+                  onChange={(e) => set("commission_rate", e.target.value)}
+                  error={errors.commission_rate}
+                  className={`w-full rounded-lg border bg-white py-2.5 pl-3 pr-9 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
+                    }`}
+                />
+                <Percent className="pointer-events-none absolute right-3 bottom-2.5 h-4 w-4 text-slate-400" />
+              </div>
+
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 bottom-3 text-sm text-slate-400">ETB</span>
+                <Input
+                  label="Commission Amount"
+                  required
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="e.g. 500"
+                  value={form.commission_amount}
+                  onChange={(e) => set("commission_amount", e.target.value)}
+                  error={errors.commission_amount}
+                  className={`w-full rounded-lg border bg-white py-2.5 pl-11 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--color-secondary)]/30 ${errors.commissionValue ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-[var(--color-secondary)]"
+                    }`}
+                />
+              </div>
+
             </div>
           </section>
 
@@ -718,7 +721,7 @@ export default function CreateCommunity() {
                 onInputChange={(inputValue) => setSearchTerm(inputValue)}
                 onChange={(selectedOption) => {
                   console.log(selectedOption);
-                  
+
                   set("manager_user_id", selectedOption.value);
                   set("managerLabel", selectedOption.label);
                 }}
@@ -773,15 +776,19 @@ export default function CreateCommunity() {
           <ReviewSection title="Commission & Manager">
             <ReviewRow label="Commission Type" value={form.commissionType} />
             <ReviewRow
-              label={form.commissionType === "Rate" ? "Commission Rate" : "Commission Amount"}
+              label={"Commission Rate"}
               value={
-                form.commissionValue !== ""
-                  ? form.commissionType === "Rate"
-                    ? `${form.commissionValue}%`
-                    : `ETB ${form.commissionValue}`
-                  : "—"
+               ` ${form.commission_rate} %`
               }
             />
+             <ReviewRow
+              label={"Commission Amount"}
+              value={
+               `${ form.commission_amount} ETB`
+              }
+            
+            />
+            
             <ReviewRow label="Manager" value={form.managerLabel || "Not assigned"} />
           </ReviewSection>
         </div>

@@ -31,13 +31,13 @@ const RECHARGE_BANK = {
 };
 
 const STATUS_STYLE = {
-  completed: "bg-green-100 text-green-700",
+  verified: "bg-green-100 text-green-700",
   pending: "bg-yellow-100 text-yellow-700",
   rejected: "bg-red-100 text-red-700",
 };
 
 const STATUS_ICON = {
-  completed: CheckCircle2,
+  verified: CheckCircle2,
   pending: Clock,
   rejected: XCircle,
 };
@@ -221,14 +221,15 @@ export default function BusinessWallet() {
                   {formatFollowers(summary?.total_recharged || 0)} ETB
                 </p>
               </div>
-              <div className="border-l border-white/20 pl-4">
+               <div className="border-l border-white/20 pl-4">
                 <p className="flex items-center gap-1.5 text-xs text-white/70">
-                  <Clock3 size={13} /> Pending 
+                  <Clock3 size={13} /> Holded 
                 </p>
                 <p className="mt-1 text-xl font-bold tabular-nums">
-                  {formatFollowers(summary?.pending_recharge || 0)} ETB
+                  {formatFollowers(summary?.holded_balance || 0)} ETB
                 </p>
               </div>
+           
             </div>
 
             <button

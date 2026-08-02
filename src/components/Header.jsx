@@ -75,7 +75,7 @@ const  Header = () => {
                            <Link to="/auth/login" className="flex-1 text-center rounded-full border border-violet-950/20 py-3 text-sm font-semibold">
                                 Log in
                             </Link>
-                            <Link href="/auth/register" className="flex-1 text-center rounded-full bg-amber-400 text-violet-950 py-3 text-sm font-semibold">
+                            <Link to="/auth/register" className="flex-1 text-center rounded-full bg-amber-400 text-violet-950 py-3 text-sm font-semibold">
                                 Register
                             </Link>
                              </>:

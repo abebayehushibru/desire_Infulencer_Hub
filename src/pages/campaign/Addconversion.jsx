@@ -40,7 +40,7 @@ function calculateCampaignSplit(campaign, paidAmount, returnRole = null) {
   const ruleType = campaign?.commission_rule_type || ""; // 'Rate' or 'Fixed'
   const commValue = parseFloat(campaign?.commission_value || 0);
   
-  const campaignRate = parseFloat(campaign?.commission_rate || 0) / 100;
+  const campaignRate = parseFloat(campaign?.conversion_rate || 0) / 100;
   const campaignAmount = parseFloat(campaign?.amount || 0);
   const actualPaid = parseFloat(paidAmount || 0);
 
@@ -53,7 +53,7 @@ function calculateCampaignSplit(campaign, paidAmount, returnRole = null) {
   if (campaignAmount > 0) {
     totalPool = campaignAmount;
   } else {
-    totalPool = actualPaid;
+    totalPool = actualPaid*campaignRate;
   }
 
   // 4b. Calculate Leader Share based on community rule

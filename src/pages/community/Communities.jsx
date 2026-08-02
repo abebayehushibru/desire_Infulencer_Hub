@@ -129,7 +129,7 @@ export default function Communities() {
           setActive={setActive}
           onEdit={() => navigate(`/communities/edit/${row.id}`)}
           onView={() => navigate(`/communities/view/${row.id}`)}
-          onDelete={() => console.log(row)}
+          // onDelete={() => console.log(row)}
         />
       ),
     },

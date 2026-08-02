@@ -161,8 +161,8 @@ export default function InfluencerEarnings() {
   }, [user?.id,])
 
   return (
-    <div className="min-h-full bg-primary/10 bg-blur-sm rounded-lg">
-      <div className="mx-auto max-w-full space-y-4 p-4">
+    <div className="min-h-full -m-4  bg-primary/10 bg-blur-sm rounded-lg">
+      <div className="max-w-full space-y-4 - p-4">
         {/* ---------------- PROFILE ---------------- */}
         {/* ---------------- BALANCE CARD ---------------- */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary p-5 text-white shadow-lg">
@@ -221,7 +221,7 @@ export default function InfluencerEarnings() {
               See all <ChevronRight size={14} />
             </button> */}
           </div>
-          {JSON.stringify(selectedBank)}
+        
           <div className="divide-y divide-gray-50">
             {withdrawalApi.data?.data?.withdrwals?.map((w) => {
               const StatusIcon = STATUS_ICON[w.status];
@@ -258,8 +258,8 @@ export default function InfluencerEarnings() {
 
       {/* ---------------- WITHDRAW MODAL ---------------- */}
       {showWithdraw && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs sm:items-center">
-          <div className="w-full max-w-sm bg-white p-5 rounded-lg">
+        <div className="fixed  inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs sm:items-center">
+          <div className="w-full mx-4 max-w-sm bg-white p-5 rounded-lg">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-base font-semibold text-gray-900">
                 {step === 1 ? "Select a bank" : "Withdrawal details"}

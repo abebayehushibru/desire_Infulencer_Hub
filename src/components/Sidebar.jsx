@@ -15,61 +15,162 @@ import {
   ChevronLeft,
   BriefcaseBusiness,
   Banknote,
+  MessageCirclePlus,
 } from "lucide-react";
 import { useState } from "react";
 import logo from "../assets/logos/logo7.png";
 import logo10 from "../assets/logos/logo10.png";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import RoleGuard from "../router/RoleGuard";
+
+const ROLES = {
+  SUPER_ADMIN: "super_admin",
+  ADMIN: "admin",
+  AGENT: "agent",
+  BUSINESS: "business",
+  INFLUENCER: "influencer",
+};
 
 const NAV_GROUPS = [
   {
     label: "Overview",
     items: [
-      { name: "Dashboard", icon: LayoutDashboard },
-      // { name: "Analytics", icon: BarChart3 },
+      {
+        name: "Dashboard",
+        icon: LayoutDashboard,
+        roles: Object.values(ROLES),
+      },
     ],
   },
+
+  {
+    label: "Chats",
+    items: [
+      {
+        name: "Chats",
+        icon: MessageCirclePlus,
+        roles: Object.values(ROLES),
+      },
+    ],
+  },
+
   {
     label: "Management",
     items: [
-      { name: "Campaigns", icon: Megaphone },
-      { name: "Influencers", icon: UserCheck },
-      { name: "Communities", icon: Users },
-      { name: "Businesses", icon: BriefcaseBusiness },
+      {
+        name: "Campaigns",
+        icon: Megaphone,
+        roles: [
+          ROLES.SUPER_ADMIN,
+          ROLES.ADMIN,
+          ROLES.AGENT,
+          ROLES.BUSINESS,
+          ROLES.INFLUENCER,
+        ],
+      },
+      {
+        name: "Influencers",
+        icon: UserCheck,
+        roles: [
+          ROLES.SUPER_ADMIN,
+          ROLES.ADMIN,
+          ROLES.AGENT,
+        ],
+      },
+      {
+        name: "Communities",
+        icon: Users,
+        roles: [
+          ROLES.SUPER_ADMIN,
+          ROLES.ADMIN,
+          ROLES.AGENT,
+        ],
+      },
+      {
+        name: "Businesses",
+        icon: BriefcaseBusiness,
+        roles: [
+          ROLES.SUPER_ADMIN,
+          ROLES.ADMIN,
+        ],
+      },
+       {
+        name: "Users",
+        icon: Users,
+        roles: [
+          ROLES.SUPER_ADMIN,
+          ROLES.ADMIN,
+        ],
+      },
     ],
   },
+
   {
     label: "Finance",
     items: [
-      // { name: "Earnings", icon: Wallet },
-      { name: "Payments", icon: CreditCard },
-      { name: "Recharges", icon: Banknote },
-      { name: "Wallet", icon: CreditCard },
-      { name: "Earnings", icon: Banknote },
-      
+      {
+        name: "Payments",
+        icon: CreditCard,
+        roles: [
+          ROLES.SUPER_ADMIN,
+          ROLES.ADMIN,
+        ],
+      },
+      {
+        name: "Recharges",
+        icon: Banknote,
+        roles: [
+          ROLES.SUPER_ADMIN,
+          ROLES.ADMIN,
+        ],
+      },
+      {
+        name: "Wallet",
+        icon: Wallet,
+        roles: [
+          ROLES.BUSINESS,
+        ],
+      },
+      {
+        name: "Earnings",
+        icon: Banknote,
+        roles: [
+          ROLES.INFLUENCER,
+        ],
+      },
     ],
   },
+
   {
     label: "Account",
     items: [
-      { name: "Notifications", icon: Bell, badge: 3 },
-      { name: "Settings", icon: Settings },
+      {
+        name: "Notifications",
+        icon: Bell,
+        badge: 3,
+        roles: Object.values(ROLES),
+      },
+      {
+        name: "Settings",
+        icon: Settings,
+        roles: Object.values(ROLES),
+      },
     ],
   },
 ];
-
 export default function Sidebar() {
-  const [showCard, setShowCard] = useState(true);
+  const { user } = useAuth();
+    const location = useLocation();
+  const [showCard, setShowCard] = useState(user?.role == "business");
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
-    const {user}=useAuth()
+
+
 
   return (
     <aside
-      className={`relative bg-gradient-to-br from-primary to-secondary  flex min-h-full flex-col border-r border-gray-400/50 transition-all duration-200 ${
-        collapsed ? "w-20" : "w-72"
-      }`}
+      className={`relative bg-gradient-to-br from-primary to-secondary  flex min-h-full flex-col border-r border-gray-400/50 transition-all duration-200 ${collapsed ? "w-20" : "w-72"
+        }`}
     >
       {/* Collapse toggle */}
       <button
@@ -83,7 +184,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="flex h-20 items-center gap-3 border-b border-gray-400/50 px-4">
         <div className="flex w-full shrink-0 items-center justify-start overflow-hidden rounded-xl shadow-sm shadow-primary/10">
-          {!collapsed &&<img src={logo} alt="InfluenceHub" className="bg-teritary -mx-4 h-full w-full object-contain" />}
+          {!collapsed && <img src={logo} alt="InfluenceHub" className="bg-teritary -mx-4 h-full w-full object-contain" />}
           {collapsed && <img src={logo10} alt="InfluenceHub" className="h-full w-full object-contain" />}
         </div>
         {!collapsed && (
@@ -93,64 +194,71 @@ export default function Sidebar() {
 
       {/* Menu */}
       <div className="flex-1  relative">
-<nav className="max-h-full absolute  w-full overflow-y-auto scroll-container overflow-x-hidden px-4 py-5">
-        <ul className="space-y-3">
-          {NAV_GROUPS.map((group) => (
-            <li key={group.label}>
-              {!collapsed && (
-                <p className="mb-2 px-3 text-[12px] font-semibold uppercase tracking-wider text-gray-300">
-                  {group.label}
-                </p>
-              )}
-              <ul className="space-y-1">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const path = `/${item.name.toLowerCase()}`;
-                  const isActive =
-                    location.pathname === path || location.pathname.startsWith(`${path}/`);
+        <nav className="max-h-full absolute  w-full overflow-y-auto scroll-container overflow-x-hidden px-4 py-5">
+          <ul className="space-y-3">
+            {NAV_GROUPS.map((group) => (
+              <li key={group.label}>
+                {!collapsed && (
+                  <p className="mb-2 px-3 text-[12px] font-semibold uppercase tracking-wider text-gray-300">
+                    {group.label}
+                  </p>
+                )}
+                <ul className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const path = `/${item.name.toLowerCase()}`;
+                    const isActive =
+                      location.pathname === path || location.pathname.startsWith(`${path}/`);
 
-                  return (
-                    <li key={item.name} className="relative">
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-tertiary" />
-                      )}
-                      <Link
-                        to={item.name.toLowerCase()}
-                        title={collapsed ? item.name : undefined}
-                        className={`group flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 ${
-                          collapsed ? "justify-center px-0" : ""
-                        } ${
-                          isActive
-                            ? "bg-gray-100 text-primary"
-                            : "text-gray-400 hover:bg-gray-300 hover:text-gray-800"
-                        }`}
+                    return (
+                      <RoleGuard
+                        key={item.name}
+                        allowedRoles={item.roles}
                       >
-                        <span
-                          className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-                            isActive
-                              ? "bg-primary text-white shadow-sm shadow-primary/30"
-                              : "bg-gray-50 text-primary group-hover:bg-white group-hover:text-primary"
-                          }`}
-                        >
-                          <Icon size={16} strokeWidth={2.25} />
-                          {item.badge && (
-                            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-semibold text-white ring-2 ring-white">
-                              {item.badge}
-                            </span>
+                        <li className="relative">
+                          {isActive && (
+                            <span className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-tertiary" />
                           )}
-                        </span>
-                        {!collapsed && <span className="truncate">{item.name}</span>}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </li>
-          ))}
-        </ul>
-      </nav>
+
+                          <Link
+                            to={item.name.toLowerCase()}
+                            title={collapsed ? item.name : undefined}
+                            className={`group flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 ${collapsed ? "justify-center px-0" : ""
+                              } ${isActive
+                                ? "bg-gray-100 text-primary"
+                                : "text-gray-400 hover:bg-gray-300 hover:text-gray-800"
+                              }`}
+                          >
+                            <span
+                              className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${isActive
+                                  ? "bg-primary text-white"
+                                  : "bg-gray-50 text-primary"
+                                }`}
+                            >
+                              <Icon size={16} />
+
+                              {item.badge && (
+                                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] text-white">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </span>
+
+                            {!collapsed && (
+                              <span>{item.name}</span>
+                            )}
+                          </Link>
+                        </li>
+                      </RoleGuard>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
-      
+
 
       {/* Bottom section */}
       <div className="border-t border-gray-100 p-4">
@@ -190,23 +298,22 @@ export default function Sidebar() {
           {/* User */}
           <button
             onClick={() => {
-              if (user?.role=="business_owner") {
-                 setShowCard(true)
+              if (user?.role == "business") {
+                setShowCard(true)
               }
-             }}
+            }}
             title={collapsed ? "Desire Online School" : undefined}
-            className={`group flex w-full items-center gap-3 rounded-xl p-2 text-left transition bg-gray-50/5 hover:bg-gray-50/20 ${
-              collapsed ? "justify-center" : ""
-            }`}
+            className={`group flex w-full items-center gap-3 rounded-xl p-2 text-left transition bg-gray-50/5 hover:bg-gray-50/20 ${collapsed ? "justify-center" : ""
+              }`}
           >
             <div className="relative shrink-0">
-              {user?.avatar?<img
+              {user?.avatar ? <img
                 src="https://i.pravatar.cc/150?img=12"
                 alt="Account avatar"
                 className="h-10 w-10 rounded-full object-cover ring-2 ring-white"
-              />:  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary font-semibold text-primary">
-             { user?.name?.split("")?.[0]}
-            </div>}
+              /> : <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-tertiary font-semibold text-primary">
+                {user?.name?.split("")?.[0]}
+              </div>}
               <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
             </div>
 
@@ -219,7 +326,7 @@ export default function Sidebar() {
                   <p className="text-xs text-gray-400">{user?.role}</p>
                 </div>
 
-                {user?.role=="business"&&<>{!showCard ? (
+                {user?.role == "business" && <>{!showCard ? (
                   <Info
                     size={16}
                     className="shrink-0 text-gray-300 transition group-hover:text-primary"

@@ -51,17 +51,35 @@ import InfluencerEarnings from "../pages/payments/InfluencerEarnings";
 import BusinessWallet from "../pages/payments/Businesswallet";
 import Recharges from "../pages/payments/Recharges";
 import RechargeDetails from "../pages/payments/RechargeDetails";
+import Profile from "../pages/Profile";
+import ChatList from "../pages/campaign/ChatList";
+import RoleProtectedRoute from "./RoleProtectedRoute";
+import RoleGuard from "./RoleGuard";
+import UsersAdmin from "../pages/users/Usersadmin";
 
 export default function AppRouter() {
-
+  const ROLES = {
+    SUPER_ADMIN: "super_admin",
+    ADMIN: "admin",
+    AGENT: "agent",
+    BUSINESS: "business",
+    INFLUENCER: "influencer",
+  };
   const isMobile = useMediaQuery({ maxWidth: 768 });
-
+  const Protect = (roles, element) => (
+    <RoleProtectedRoute allowedRoles={roles}>
+      {element}
+    </RoleProtectedRoute>
+  );
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<TheHubLanding />} />
-        <Route path="auth" element={<Auth />}>
 
+        {/* Landing */}
+        <Route path="/" element={<TheHubLanding />} />
+
+        {/* Authentication */}
+        <Route path="auth" element={<Auth />}>
           <Route path="verify-email" element={<VerifyEmail />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="verify-reset-code" element={<VerifyResetCode />} />
@@ -69,65 +87,359 @@ export default function AppRouter() {
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="*" element={<NotFound />} />
-
         </Route>
 
-        <Route path="/" element={<ResponsiveLayout />}>
+        {/* Protected Layout */}
+        <Route
+          path="/"
+          element={
+            <RoleProtectedRoute>
+              <ResponsiveLayout />
+            </RoleProtectedRoute>
+          }
+        >
 
-          <Route path="dashboard" element={<Home />} />
-          <Route path="campaigns" element={<CampaignLayout />}>
-            <Route index element={<Campaigns />} />
-            <Route path="create" element={<EditCampaign />} />
-            <Route path="claims" element={<Campaignclaims />} />
-            <Route path=":id/edit" element={<EditCampaign />} />
+          {/* Dashboard */}
+          <Route
+            path="dashboard"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+                ROLES.BUSINESS,
+                ROLES.INFLUENCER,
+              ],
+              <Home />
+            )}
+          />
+  <Route path="users" element={<UsersAdmin />} />
 
+          {/* Campaigns */}
+          <Route
+            path="campaigns"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+                ROLES.BUSINESS,
+                ROLES.INFLUENCER
+              ],
+              <CampaignLayout />
+            )}
+          >
+            <Route index element={
+              <>
+              <RoleGuard allowedRoles={[ROLES.INFLUENCER]}> <Campaignclaims  /></RoleGuard>
+              <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.BUSINESS,ROLES.AGENT]}> <Campaigns /></RoleGuard>  
+              </>
+             } />
 
-            <Route path=":id" element={isMobile ? <ClaimDetail /> : <CampaignDetail />}>
+            <Route
+              path="create"
+              element={Protect(
+                [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.BUSINESS],
+                <EditCampaign />
+              )}
+            />
 
-              <Route index element={isMobile ? <MobileOverview /> : <Overview />} />
+  
 
-            <Route index element={isMobile ? <MobileOverview /> : <Overview />} />
+            <Route
+              path=":id/edit"
+              element={Protect(
+                [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.BUSINESS, ROLES.INFLUENCER, ROLES.AGENT],
+                <EditCampaign />
+              )}
+            />
+
+            <Route
+              path=":id"
+              element={<>
+              <RoleGuard allowedRoles={[ROLES.INFLUENCER]}> <ClaimDetail /></RoleGuard>
+              <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.BUSINESS,ROLES.AGENT]}> <CampaignDetail /></RoleGuard>  
+              </>}
+            >
+              <Route
+                index
+                element={<>
+              <RoleGuard allowedRoles={[ROLES.INFLUENCER]}> <MobileOverview /></RoleGuard>
+              <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN,ROLES.ADMIN,ROLES.BUSINESS,ROLES.AGENT]}> <Overview /></RoleGuard>  
+              </>}
+              />
+
               <Route path="contents" element={<Contents />} />
               <Route path="chat" element={<Chat />} />
               <Route path="performance" element={<Performance />} />
-              <Route path="conversions" element={<Conversions />} />
+              <Route path="conversions" element={Protect(
+                [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.BUSINESS, ROLES.AGENT], <Conversions />)} />
               <Route path="earnings" element={<Earnings />} />
-              <Route path="earnings" element={<Earnings />} />
-
+            
               <Route path="*" element={<NotFound />} />
             </Route>
+
             <Route path="*" element={<NotFound />} />
           </Route>
-          <Route path="campaigns/:id/conversions/add" element={<AddConversion />} />
-          <Route path="campaigns/:id/conversions/edit/:id2" element={<EditConversion />} />
-          <Route path="influencers" element={<Influencers />} />
-          <Route path="influencers/create" element={<CreateInfluencer />} />
-          <Route path="influencers/edit/:id" element={<EditInfluencer />} />
-          <Route path="influencers/view/:id" element={<InfluencerDetail />} />
-          <Route path="communities" element={<Communities />} />
-          <Route path="communities/create" element={<CreateCommunity />} />
-          <Route path="communities/view/:id" element={<CommunityDetail />} />
-          <Route path="communities/edit/:id" element={<EditCommunity />} />
-          <Route path="businesses" element={<Businesses />} />
-          <Route path="businesses/create" element={<CreateBusiness />} />
-          <Route path="businesses/edit/:id" element={<EditBusiness />} />
-          <Route path="businesses/view/:id" element={<BusinessDetail />} />
-          <Route path="payments" element={<Payments />} />
-          <Route path="payments/view/:id" element={<EditPayment />} />
-          <Route path="notifications" element={<Notification />} />
-          <Route path="settings" element={<Setting />} />
-          <Route path="settings/password" element={<PasswordSetting />} />
-          <Route path="earnings" element={<InfluencerEarnings />} />
-           <Route path="wallet" element={<BusinessWallet />} />
 
-            <Route path="recharges" element={<Recharges />} />
-               <Route path="recharges/view/:id" element={<RechargeDetails />} />
+          {/* Conversion */}
+          <Route
+            path="campaigns/:id/conversions/add"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.AGENT],
+              <AddConversion />
+            )}
+          />
+
+          <Route
+            path="campaigns/:id/conversions/edit/:id2"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.AGENT],
+              <EditConversion />
+            )}
+          />
+
+          {/* Influencers */}
+          <Route
+            path="influencers"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.AGENT],
+              <Influencers />
+            )}
+          />
+
+          <Route
+            path="influencers/create"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <CreateInfluencer />
+            )}
+          />
+
+          <Route
+            path="influencers/edit/:id"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <EditInfluencer />
+            )}
+          />
+
+          <Route
+            path="influencers/view/:id"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+
+              ],
+              <InfluencerDetail />
+            )}
+          />
+
+          {/* Communities */}
+          <Route
+            path="communities"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.AGENT],
+              <Communities />
+            )}
+          />
+
+          <Route
+            path="communities/create"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <CreateCommunity />
+            )}
+          />
+
+          <Route
+            path="communities/edit/:id"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <EditCommunity />
+            )}
+          />
+
+          <Route
+            path="communities/view/:id"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+              ],
+              <CommunityDetail />
+            )}
+          />
+
+          {/* Businesses */}
+          <Route
+            path="businesses"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <Businesses />
+            )}
+          />
+
+          <Route
+            path="businesses/create"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <CreateBusiness />
+            )}
+          />
+
+          <Route
+            path="businesses/edit/:id"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.BUSINESS],
+              <EditBusiness />
+            )}
+          />
+
+          <Route
+            path="businesses/view/:id"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <BusinessDetail />
+            )}
+          />
+
+          {/* Payments */}
+          <Route
+            path="payments"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <Payments />
+            )}
+          />
+
+          <Route
+            path="payments/view/:id"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <EditPayment />
+            )}
+          />
+
+          {/* Wallet */}
+          <Route
+            path="wallet"
+            element={Protect(
+              [ROLES.BUSINESS],
+              <BusinessWallet />
+            )}
+          />
+
+          {/* Earnings */}
+          <Route
+            path="earnings"
+            element={Protect(
+              [ROLES.INFLUENCER],
+              <InfluencerEarnings />
+            )}
+          />
+
+          {/* Recharges */}
+          <Route
+            path="recharges"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <Recharges />
+            )}
+          />
+
+          <Route
+            path="recharges/view/:id"
+            element={Protect(
+              [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+              <RechargeDetails />
+            )}
+          />
+
+          {/* Chat */}
+          <Route
+            path="chats"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+                ROLES.BUSINESS,
+                ROLES.INFLUENCER,
+              ],
+              <ChatList />
+            )}
+          />
+
+          {/* Notifications */}
+          <Route
+            path="notifications"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+                ROLES.BUSINESS,
+                ROLES.INFLUENCER,
+              ],
+              <Notification />
+            )}
+          />
+
+          {/* Profile */}
+          <Route
+            path="profile"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+                ROLES.BUSINESS,
+                ROLES.INFLUENCER,
+              ],
+              <Profile />
+            )}
+          />
+
+          {/* Settings */}
+          <Route
+            path="settings"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+                ROLES.BUSINESS,
+                ROLES.INFLUENCER,
+              ],
+              <Setting />
+            )}
+          />
+
+          <Route
+            path="settings/password"
+            element={Protect(
+              [
+                ROLES.SUPER_ADMIN,
+                ROLES.ADMIN,
+                ROLES.AGENT,
+                ROLES.BUSINESS,
+                ROLES.INFLUENCER,
+              ],
+              <PasswordSetting />
+            )}
+          />
+
           <Route path="*" element={<NotFound />} />
-        </Route>
-        <Route path="login" element={<Login />} />
-        <Route path="unauthorized" element={<Unauthorized />} />
 
+        </Route>
+
+        <Route path="unauthorized" element={<Unauthorized />} />
+        <Route path="login" element={<Login />} />
         <Route path="*" element={<NotFound />} />
+
       </Routes>
     </BrowserRouter>
   );

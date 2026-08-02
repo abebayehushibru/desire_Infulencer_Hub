@@ -15,6 +15,7 @@ import {
   BriefcaseBusiness,
   Wallet,
   BellRing,
+  User,
 } from "lucide-react";
 import Input from "./common/Input";
 import { Link, useNavigate } from "react-router-dom";
@@ -179,8 +180,16 @@ export default function Navbar() {
           </button>
 
           {open && (
-            <div className="absolute right-0 z-50 mt-2 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
+            <div className="absolute right-0 z-[999] mt-2 w-56 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl shadow-gray-200/60">
               <Link
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
+              >
+                <User size={16} />
+                <span>Profile</span>
+              </Link>
+               <Link
                 to="/settings"
                 onClick={() => setOpen(false)}
                 className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"

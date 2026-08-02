@@ -86,9 +86,9 @@ export default function Businesses() {
           active={active}
           setActive={setActive}
           onEdit={() => navigate(`/businesses/edit/${row.id}`)}
-           onView={() => navigate(`/businesses/view/${row.id}`)}
+          //  onView={() => navigate(`/businesses/view/${row.id}`)}
          
-          onDelete={() => console.log("Delete", row)}
+          // onDelete={() => console.log("Delete", row)}
         />
       ),
     },
@@ -115,7 +115,7 @@ export default function Businesses() {
       <div className="mb-4 flex items-center justify-between">
         <Titel titel={"Businesses"} disc={"Manage all registered business accounts."}>
                 <Button leftIcon={<Plus size={18} />} onClick={() => navigate("/businesses/create")}>
-          Add Business
+         <span className="hidden sm:inline">Add Business</span>
         </Button>
         </Titel>
        

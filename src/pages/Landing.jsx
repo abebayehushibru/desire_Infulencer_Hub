@@ -24,9 +24,11 @@ import Footer from "../components/Footer";
 import hero1 from "../assets/habiba.png";
 import hero2 from "../assets/fasika.png";
 import { AnimatePresence, motion } from "framer-motion";
+import TelegramContactModal from "../components/Telegramchat";
 
 export default function InfulencerHubLanding() {
     const [current, setCurrent] = useState(0);
+    const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
     const images = [hero1, hero2, hero1, hero2, hero1, hero2];
 
     useEffect(() => {
@@ -47,6 +49,9 @@ export default function InfulencerHubLanding() {
     };
 
     return (
+        <>
+
+     
         <div className="min-h-full poppins bg-red-500 bg-white text-primary font-sans ">
             {/* ============ HEADER ============ */}
             <Header />
@@ -70,18 +75,20 @@ export default function InfulencerHubLanding() {
                         </p>
 
                         <div className="mt-8 flex flex-wrap gap-4">
-                            <a
-                                href="#"
+                            <button
+                                onClick={() => setIsTelegramModalOpen(true)}
+                                className="inline-flex items-center rounded-full bg-amber-400 text-violet-950 font-semibold px-7 py-4 shadow-lg hover:bg-amber-500 hover:-translate-y-0.5 transition"
+                               
                                 className="inline-flex items-center rounded-full bg-amber-400 text-violet-950 font-semibold px-7 py-4 shadow-lg hover:bg-amber-500 hover:-translate-y-0.5 transition"
                             >
                                 I'm a Creator
-                            </a>
-                            <a
-                                href="#"
+                            </button>
+                            <Link
+                                to="/auth/register?role=business"
                                 className="inline-flex items-center rounded-full border border-white/40 text-white font-semibold px-7 py-4 hover:bg-white/10 hover:-translate-y-0.5 transition"
                             >
                                 I'm a Brand
-                            </a>
+                            </Link>
                         </div>
 
                         <div className="mt-11 flex items-center gap-4">
@@ -163,12 +170,12 @@ export default function InfulencerHubLanding() {
                             ))}
                         </ul>
 
-                        <a
-                            href="#"
-                            className="mt-8 inline-flex items-center gap-2 rounded-full bg-tertiary text-primary font-semibold px-7 py-4 shadow-md hover:bg-amber-500 hover:-translate-y-0.5 transition"
+                        <button
+                            onClick={() => setIsTelegramModalOpen(true)}
+                            className="mt-8 inline-flex items-center gap-2 rounded-full bg-amber-400 text-violet-950 font-semibold px-7 py-4 shadow-md hover:bg-amber-500 hover:-translate-y-0.5 transition"
                         >
                             Create a free Profile →
-                        </a>
+                        </button>
                     </div>
 
                     {/* Passion visual placeholder — replace with a real photo of a
@@ -354,12 +361,15 @@ export default function InfulencerHubLanding() {
                             Join thousands of creators and brands already growing together on InfulencerHub.
                         </p>
                         <div className="relative mt-8 flex flex-wrap gap-4 justify-center">
-                            <a href="#" className="rounded-full bg-violet-950 text-white font-semibold px-7 py-4 hover:bg-violet-900 hover:-translate-y-0.5 transition">
+                            <button
+                                onClick={() => setIsTelegramModalOpen(true)}
+                                className="rounded-full bg-violet-950 text-white font-semibold px-7 py-4 hover:bg-violet-900 hover:-translate-y-0.5 transition"
+                            >
                                 I'm a Creator
-                            </a>
-                            <a href="#" className="rounded-full bg-white text-violet-950 font-semibold px-7 py-4 hover:-translate-y-0.5 transition">
+                            </button>
+                            <Link  to="/auth/register?role=business" className="rounded-full bg-white text-violet-950 font-semibold px-7 py-4 hover:-translate-y-0.5 transition">
                                 I'm a Brand
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -368,5 +378,7 @@ export default function InfulencerHubLanding() {
             {/* ============ FOOTER ============ */}
             <Footer />
         </div>
+           <TelegramContactModal open={isTelegramModalOpen} onClose={() => setIsTelegramModalOpen(false)} />
+        </>
     );
 }

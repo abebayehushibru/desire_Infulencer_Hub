@@ -10,6 +10,7 @@ import Title from "../../components/common/Title";
 import { useEffect } from "react";
 import useApi from "../../hooks/useApi";
 import { RejectionModal } from "../../components/RejectionModal";
+import RoleGuard from "../../router/RoleGuard";
 
 const conversions = [
   {
@@ -98,7 +99,7 @@ export default function Conversions() {
       method: "PUT",
       path: `/conversions/${payload?.id}/status`,
       manual: true,
-      data:payload
+      data: payload
     }),
   });
   const fetchConversions = async (page = 1, filters) => {
@@ -165,26 +166,27 @@ export default function Conversions() {
       key: "actions",
       label: "",
       render: (_, row, index) => (
-        row?.status=="pending"&& <ActionMenu
+        row?.status == "pending" &&  <RoleGuard allowedRoles={["agent"]}> <ActionMenu
           index={index}
           active={active}
           setActive={setActive}
-          onApprove={async() => {
-            const res= await handleAction(row?.id,"confirmed","")
+          onApprove={async () => {
+            const res = await handleAction(row?.id, "confirmed", "")
             if (res) {
-              row.status=confirmed
+              row.status = confirmed
             }
           }}
-          onReject={() =>{
+          onReject={() => {
             setSelectedConversions({
-              id:row.id,
-              name:row.customer_name,
+              id: row.id,
+              name: row.customer_name,
 
             })
 
-              setIsRejectModalOpen(true)
+            setIsRejectModalOpen(true)
           }}
         />
+        </RoleGuard>
       ),
     },
   ];
@@ -220,9 +222,11 @@ export default function Conversions() {
 
 
 
-          <Button leftIcon={<Plus size={18} />} onClick={() => navigate(`/campaigns/${id}/conversions/add`)}>
-            Add Conversion
-          </Button>
+          <RoleGuard allowedRoles={["agent"]}>
+            <Button leftIcon={<Plus size={18} />} onClick={() => navigate(`/campaigns/${id}/conversions/add`)}>
+              Add Conversion
+            </Button>
+          </RoleGuard>
         </Title>
       </div>
       {/* Stats */}
@@ -266,18 +270,18 @@ export default function Conversions() {
         <Table columns={columns} data={data?.conversions || []} loading={conversionsApi?.loading} />
       </div>
 
-       <RejectionModal
-              isOpen={isRejectModalOpen}
-              campaignName={selectedConversions?.name}
-              onClose={() => {
-                setIsRejectModalOpen(false);
-                setSelectedCampaign(null);
-              }}
-              onSubmit={(reason) => {
-                handleAction(selectedConversions?.id, "rejected", reason)
-              }}
-              title="Conversions"
-            />
+      <RejectionModal
+        isOpen={isRejectModalOpen}
+        campaignName={selectedConversions?.name}
+        onClose={() => {
+          setIsRejectModalOpen(false);
+          setSelectedCampaign(null);
+        }}
+        onSubmit={(reason) => {
+          handleAction(selectedConversions?.id, "rejected", reason)
+        }}
+        title="Conversions"
+      />
     </div>
   );
 }

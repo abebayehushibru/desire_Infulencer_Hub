@@ -1,9 +1,10 @@
 import { Download, FileText, Mic, AlertCircle, RotateCw, Check, CheckCheck } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import env from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 import useMediaCache from '../hooks/useMediaCache';
 import Avatar from './common/Avatar';
+import MessageImageViewer from './MessageImageViewer';
 
 
 function StatusIndicator({ status, onRetry }) {
@@ -37,20 +38,13 @@ function StatusIndicator({ status, onRetry }) {
 const MessageBubble = ({ m, onRetry }) => {
   const { user } = useAuth();
   const isOwn = m.sender?.id === user?.id; // adjust to your auth field
+const [previewImage, setPreviewImage] = useState(null);
 
-  // Build the real attachment URL from this message's document — never a
-  // hardcoded placeholder. Assumes Document rows store a relative
-  // `file_path` (matching the convention used when documents are created
-  // elsewhere, e.g. business.service.js).
-  const fileUrl = m.document?.file_path
-    ? `${env.API_URL}/${m.document.file_path}`
+  const fileUrl = m.document?.file_url
+    ? `${env.API_URL.replace(/\/$/, "")}/${m.document.file_url.replace(/^\//, "")}`
     : null;
 
-  // Hooks must run unconditionally on every render — previously this was
-  // called only when m.document?.media_type was truthy, which breaks the
-  // Rules of Hooks the moment a text-only message renders alongside one
-  // with an attachment. useMediaCache is expected to no-op safely when
-  // type/url are undefined.
+
   const { localUrl, loading } = useMediaCache({
     id: m.id,
     type: m.document?.media_type,
@@ -84,7 +78,7 @@ const MessageBubble = ({ m, onRetry }) => {
       <div className={`flex min-w-0 max-w-[75%] flex-col ${isOwn ? "items-end" : "items-start"}`}>
         <div className={`flex items-baseline gap-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
           <span className="text-sm font-semibold text-[var(--color-primary)]">
-            {m.sender?.name_or_company_name}
+            {m.sender?.name_or_company_name} 
           </span>
           <span className="text-[11px] text-gray-400">
             {new Date(m.created_at || m.createdAt).toLocaleTimeString([], {
@@ -105,6 +99,7 @@ const MessageBubble = ({ m, onRetry }) => {
                 : "rounded-tl-sm bg-gray-100/80 text-gray-800"
             }`}
           >
+            
             {m.message}
           </div>
         )}
@@ -124,6 +119,7 @@ const MessageBubble = ({ m, onRetry }) => {
                 ) : (
                   <img
                     src={displayUrl}
+                     onClick={() => setPreviewImage(displayUrl)}
                     alt={m.document.original_name}
                     className="h-72 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   />
@@ -168,7 +164,6 @@ const MessageBubble = ({ m, onRetry }) => {
                 href={displayUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                download
                 className="group flex items-center gap-3 border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-[var(--color-primary)]/30 hover:shadow-md"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-tertiary)]/15 text-[var(--color-primary)]">
@@ -179,7 +174,7 @@ const MessageBubble = ({ m, onRetry }) => {
                   <span className="block truncate text-sm font-medium text-gray-800">
                     {m.document.original_name}
                   </span>
-                  <span className="text-xs text-gray-400">Tap to download</span>
+                  <span className="text-xs text-gray-400">Tap to open</span>
                 </span>
 
                 <Download
@@ -198,6 +193,12 @@ const MessageBubble = ({ m, onRetry }) => {
           </div>
         )}
       </div>
+
+      <MessageImageViewer
+  open={!!previewImage}
+  image={previewImage}
+  onClose={() => setPreviewImage(null)}
+/>
     </div>
   );
 };

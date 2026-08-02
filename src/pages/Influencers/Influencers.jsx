@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 
 import Table, { ActionMenu } from "../../components/common/Table";
@@ -10,6 +10,7 @@ import Title from "../../components/common/Title";
 import Pagination from "../../components/Pagination";
 import useApi from "../../hooks/useApi";
 import { useEffect } from "react";
+import RoleGuard from "../../router/RoleGuard";
 
 export default function Influencers() {
   const navigate = useNavigate();
@@ -58,8 +59,8 @@ export default function Influencers() {
       render: (value) => (
         <span
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shadow-sm border ${value
-              ? "bg-green-100 text-green-800 border-green-200"
-              : "bg-red-100 text-red-800 border-red-200"
+            ? "bg-green-100 text-green-800 border-green-200"
+            : "bg-red-100 text-red-800 border-red-200"
             }`}
         >
           {value ? "Yes" : "No"}
@@ -147,49 +148,20 @@ export default function Influencers() {
       key: "actions",
       label: "",
       render: (_, row, index) => (
-        <ActionMenu
+        <RoleGuard allowedRoles={["admin","super_admin"]}><ActionMenu
           index={index}
           active={active}
           setActive={setActive}
           onEdit={() => navigate(`/influencers/edit/${row.id}`)}
-          onView={() => navigate(`/influencers/view/${row.id}`)}
-          onDelete={() => console.log(row)}
+          // onView={() => navigate(`/influencers/view/${row.id}`)}
+          // onDelete={() => console.log(row)}
         />
+        </RoleGuard>
       ),
     },
   ];
 
-  const influencers = [
-    {
-      id: 1,
-      name: "Abebe Kebede",
-      location: "Addis Ababa",
-      platform: "TikTok",
-      followers: "145K",
-      level: "Diamond",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Helen Media",
-      location: "Adama",
-      platform: "Instagram",
-      followers: "82K",
-      level: "Gold",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Tech Ethiopia",
-      location: "Hawassa",
-      platform: "YouTube",
-      followers: "32K",
-      level: "Silver",
-      status: "Inactive",
-    },
-  ];
-
-
+ 
 
   const fetchInfluencers = async (page = 1, filters) => {
     const res = await influencerApi.execute(
@@ -200,7 +172,7 @@ export default function Influencers() {
       }
     )
     if (res.success) {
-     setPagination(res?.data?.data?.data?.pagination)
+      setPagination(res?.data?.data?.data?.pagination)
     }
   }
 
@@ -213,20 +185,22 @@ export default function Influencers() {
     <div className="bg-gray-50/10 min-h-full">
       <div className="flex justify-between items-center mb-4">
         <Title titel={"Influencers"} disc={"Manage all registered influencers."}>
-          <Button
+          <RoleGuard allowedRoles={["admin","super_admin"]}>
+           <Button
             leftIcon={<Plus size={18} />}
             onClick={() => navigate("/influencers/create")}
           >
-            Add Influencer
+            <span className="hidden sm:inline">Add Influencer</span>
           </Button>
+          </RoleGuard>
         </Title>
 
 
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm  p-4">
         {/* Search & Filters */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-5">
+        <div className="flex flex-wrap md:flex-nowrap md:flex-row gap-2 items-center justify-between mb-3">
           <Input
             name="search"
             value={filters.search}
@@ -237,7 +211,7 @@ export default function Influencers() {
             }}
           />
 
-          <div className="w-sm">
+          <div className="">
             <Select
               name="platform"
               value={filters.platform}
@@ -256,7 +230,7 @@ export default function Influencers() {
             />
           </div>
 
-          <div className="w-sm">
+          <div className="">
             <Select
               name="level"
               value={filters.level}
@@ -271,26 +245,26 @@ export default function Influencers() {
               }}
             />
           </div>
-          <Button className="py-1" loading={influencerApi.api} onClick={() => {
+          <Button className="py-1 flex gap-2 items-center" loading={influencerApi.api} onClick={() => {
             fetchInfluencers(1, filters)
           }}>
-            Search
+            <Search size={18} /> <span className="hidden sm:inline">Search</span>
           </Button>
         </div>
 
         <Table columns={columns} data={influencerApi?.data?.data?.data?.data || []} loading={influencerApi.loading} />
-     <Pagination  onPageChange={(pg)=>{
-                 setPagination(prev=>({
-                   ...prev,page:pg
-                 }))
-                 fetchInfluencers(pg,filters)
-     
-                }}
-                page={pagination.page}
-                total={pagination.total}
-                totalPages={pagination.totalPages}
-                
-                />
+        <Pagination onPageChange={(pg) => {
+          setPagination(prev => ({
+            ...prev, page: pg
+          }))
+          fetchInfluencers(pg, filters)
+
+        }}
+          page={pagination.page}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+
+        />
       </div>
     </div>
   );

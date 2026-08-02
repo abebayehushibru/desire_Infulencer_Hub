@@ -29,7 +29,7 @@ function ChatInputBar({ chatHook }) {
   };
 
   return (
-    <div className="border-t border-gray-200 p-3 bg-white">
+    <div className="border-t border-gray-200  max-w-full bg-white">
       {pendingImage && (
         <div className="flex items-center gap-2 mb-2">
           <img
@@ -65,7 +65,7 @@ function ChatInputBar({ chatHook }) {
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-5 items-center gap-1">
           <input
             type="file"
             accept="image/*"
@@ -94,7 +94,7 @@ function ChatInputBar({ chatHook }) {
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Type a message…"
-            className="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 border border-gray-200 rounded-full w-full px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             disabled={sending}
           />
 
@@ -103,7 +103,7 @@ function ChatInputBar({ chatHook }) {
             disabled={sending || (!text.trim() && !pendingImage)}
             className="p-2 rounded-full bg-blue-600 text-white disabled:opacity-40"
           >
-            {sending ? "...." :<Send/>}
+            {sending ? "...." :<Send size={20}/>}
           </button>
         </div>
       )}

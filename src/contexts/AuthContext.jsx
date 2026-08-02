@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('user');
     setUser(null);
     setToken(null)
-    window.location="/"
+
   };
 
   const value = {

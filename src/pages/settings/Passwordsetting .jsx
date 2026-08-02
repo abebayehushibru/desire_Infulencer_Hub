@@ -85,15 +85,9 @@ const passwordApi = useApi({
       
 
       <div className="mb-4">
-        <Title titel={"Password"} disc={"Update the password used to sign in to your account."}>
+        <Title titel={"Change Password"} disc={"Update the password used to sign in to your account."}>
 
-            <button
-        type="button"
-        onClick={() => navigate(-1)}
-        className="mb-4 flex items-center gap-1.5 text-sm font-medium text-gray-500 transition hover:text-gray-700"
-      >
-        <ArrowLeft size={16} /> Back
-      </button>
+            
 
         </Title>
       </div>

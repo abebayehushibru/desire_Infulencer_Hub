@@ -8,6 +8,7 @@ import {
   Megaphone,
   BarChart3,
 } from "lucide-react";
+import { formatNumber } from "../../services/helpers";
 
 const defaultIcons = [
   CircleDollarSign,
@@ -32,7 +33,7 @@ export default function StatsCard({
   number,
   currency,
   compare,
-  compareLabel = "vs last week",
+  compareLabel = "",
   icon,
   color,
 }) {
@@ -55,13 +56,13 @@ export default function StatsCard({
 
       <div className="relative flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <p className="sm:text-xs text-[8px] font-semibold uppercase tracking-wider text-slate-300">
             {title}
           </p>
 
           <div className="mt-3 flex items-end gap-2">
-            <h2 className="text-3xl font-bold text-white">
-              {number}
+            <h2 className="sm:text-3xl text-xl font-bold text-white">
+              {formatNumber(number)}
             </h2>
 
             {currency && (
@@ -72,7 +73,7 @@ export default function StatsCard({
           </div>
 
           {typeof compare === "number" && (
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4  hidden sm:flex items-center gap-2">
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
                   isPositive
@@ -81,16 +82,16 @@ export default function StatsCard({
                 }`}
               >
                 {isPositive ? (
-                  <ArrowUpRight size={14} />
+                  <ArrowUpRight size={12} />
                 ) : (
-                  <ArrowDownRight size={14} />
+                  <ArrowDownRight size={12} />
                 )}
 
                 {isPositive ? "+" : ""}
                 {compare}%
               </span>
 
-              <span className="text-xs text-slate-400">
+              <span className="hidden sm:block sm:text-xs text-slate-400">
                 {compareLabel}
               </span>
             </div>
@@ -98,9 +99,10 @@ export default function StatsCard({
         </div>
 
         <div
-          className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}
+          className={`flex p-2 sm:h-12 sm:w-12 aspect-square items-center justify-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 text-primary shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}
         >
-          <Icon size={26} strokeWidth={2.2} />
+          <Icon  className ={ "hidden sm:block "} strokeWidth={2.2} />
+          <Icon  className ={ "sm:hidden "} strokeWidth={2.2} size={20} />
         </div>
       </div>
 

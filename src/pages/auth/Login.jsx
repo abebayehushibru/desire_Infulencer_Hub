@@ -42,6 +42,7 @@ export default function Login() {
   };
 
   const handleSubmit = async (e) => {
+    setError({ email: "", password: "" })
     e.preventDefault();
 
     // Client-side validation
@@ -74,6 +75,7 @@ export default function Login() {
   
       const destination = location.state?.from?.pathname || "/dashboard";
       const data = result.data
+      
       await login(data?.data.user,data?.data?.token);
       
     return navigate(destination, { replace: true });
@@ -85,19 +87,19 @@ export default function Login() {
     // return navigate(destination, { replace: true });
   }
   return (
-    <div className="h-full md:my-auto bg-gray-100 flex items-center justify-center md:px-16  p-4">
+    <div className="h-full md:my-auto bg-gray-100 flex items-center justify-center md:px-16 ">
 
       <div className="w-full min-h-[400px]  max-w-[1440px] bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
 
         {/* LEFT */}
 
-        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-16 flex flex-col justify-between">
+        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white sm:p-16 p-4 flex flex-col justify-between">
           <div className="absolute h-full flex items-end justify-center ">
 
             <img
               src={loginImage}
               alt=""
-              className="w-full mt-4 scale-60"
+              className="w-full mt-4 -z-0 scale-60"
             />
           </div>
           <div>
@@ -106,7 +108,7 @@ export default function Login() {
               Welcome Back 👋
             </h4>
 
-            <h1 className="text-4xl font-bold leading-tight">
+            <h1 className="sm:text-4xl  text-3xl font-bold leading-tight">
               Let's Continue
               <br />
               <span className="flex relative">
@@ -136,7 +138,7 @@ export default function Login() {
 
         {/* RIGHT */}
 
-        <div className="p-8  flex items-center">
+        <div className="p-6  flex items-center">
 
           <div className="w-full">
 

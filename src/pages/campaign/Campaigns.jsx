@@ -12,6 +12,7 @@ import useApi from "../../hooks/useApi";
 import { useAuth } from "../../contexts/AuthContext";
 import { RejectionModal } from "../../components/RejectionModal";
 import CreateChat from "../../components/CreateChat";
+import RoleGuard from "../../router/RoleGuard";
 
 export default function Campaigns() {
 
@@ -44,7 +45,7 @@ export default function Campaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
-
+  const [selectedStatus, setSelectedStatus] = useState(null);
   const columns = [
     {
       key: "title",
@@ -67,10 +68,19 @@ export default function Campaigns() {
       label: "Budget",
     },
     {
+      key: "total_budget_used",
+      label: "Used",
+    },
+    {
       key: "locations",
       label: "Locations",
-      render: (value) => value,
-    },
+      render: (value) => (
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-primary px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10 dark:bg-slate-400/10 dark:text-slate-400 dark:ring-slate-400/20">
+          {(value || "").replace(/["']/g, " ")}
+        </span>
+      ),
+    }
+    ,
 
     {
       key: "status",
@@ -105,23 +115,29 @@ export default function Campaigns() {
       key: "Chats",
       key: "chat",
       render: (value, row) => (
-        <div className="space-y-1">
-        
+        (row?.status != "rejected" || row?.status != "Completed" ) && (
+          <div className="space-y-1">
+
           {row.chat ? (
             <Link
               to={`/campaigns/${row.id}/chat`}
               className="inline-flex items-center gap-1 rounded-lg border border-primary bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary hover:text-white transition"
             >
               <MessageCircle size={14} />
-              Open Chat
+              
             </Link>
-          ) : <Button onClick={() => {
-            setSelectedCampaign({ id: row?.id, name: row?.title })
-            setIsChatModalOpen(true)
-          }}> <MessageCircle size={14} /> Create </Button>}
-        </div>
-      ),
-    },
+          ) : <RoleGuard allowedRoles={["admin", "super_admin"]}>
+            <Button onClick={() => {
+              setSelectedCampaign({ id: row?.id, name: row?.title })
+              setIsChatModalOpen(true)
+            }}>
+              <MessageCircle size={14} />
+              
+            </Button>
+          </RoleGuard>}
+        </div>)
+      ),},
+    
     {
       key: "actions",
       label: "",
@@ -133,11 +149,11 @@ export default function Campaigns() {
         // 1. Default Baseline Status Actions
         if (status === "draft" || status === "rejected") {
           actions.onEdit = () => navigate(`/campaigns/${row.id}/edit`);
-          actions.onDelete = () => handleDelete(row.id);
+          // actions.onDelete = () => handleDelete(row.id);
         } else if (status !== "pending") {
-          actions.onView = () => navigate(`/campaigns/${row.id}/overview`);
+          actions.onView = () => navigate(`/campaigns/${row.id}/`);
         } else {
-          actions.onDelete = () => handleDelete(row.id);
+          // actions.onDelete = () => handleDelete(row.id);
         }
 
         // 2. Role-Based Permissions Overrides
@@ -242,25 +258,25 @@ export default function Campaigns() {
 
 
   useEffect(() => {
-    fetchData(1
-    )
-  }, [])
+    fetchData(1, { status: selectedStatus, search });
+  }, []);
   return (
     <div className="bg-gray-50/10 min-h-full">
 
       <div className="flex justify-between items-center mb-4">
         <Title titel={"Campaigns"} disc={"Manage all your marketing campaigns."}>
-
-          <Button
-            leftIcon={<Plus size={18} />}
-            onClick={() => navigate("/campaigns/create")}
-          >
-            Create Campaign
-          </Button>
+          <RoleGuard allowedRoles={["business"]}>
+            <Button
+              leftIcon={<Plus size={18} />}
+              onClick={() => navigate("/campaigns/create")}
+            >
+              <span className="hidden sm:inline">Create Campaign</span>
+            </Button>
+          </RoleGuard>
         </Title>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm -mx-4 sm:mx-0 p-4">
 
         {/* Search & Filters */}
         <div className="flex flex-col md:flex-row gap-4 justify-between mb-5">
@@ -269,10 +285,13 @@ export default function Campaigns() {
             name={"search"}
             className="border rounded-lg px-4 py-2 w-full md:w-80"
           />
-          <div className="w-sm flex gap-3 items-center">
+          <div className=" flex  flex-1 gap-3 items-center">
 
             <Select
               name="status"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              placeholder="Filter by status"
               data={[
                 {
                   label: "Active",
@@ -320,7 +339,7 @@ export default function Campaigns() {
           handleAction(selectedCampaign?.id, "rejected", reason)
         }}
       />
-       <CreateChat
+      <CreateChat
         open={isChatModalOpen}
         campaignName={selectedCampaign?.name}
         campaignId={selectedCampaign?.id}

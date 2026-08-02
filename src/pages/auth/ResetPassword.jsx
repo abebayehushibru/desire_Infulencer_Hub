@@ -111,7 +111,7 @@ export default function ResetPassword() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
+      <div className="min-h-full bg-gray-100 flex items-center justify-center md:p-8">
         <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-12 text-center">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="text-green-600" size={40} />
@@ -129,22 +129,22 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-8">
+    <div className="min-h-full bg-gray-100 flex items-center justify-center md:p-8">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-xl overflow-hidden grid lg:grid-cols-2">
 
         {/* LEFT */}
-        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-16 flex flex-col justify-between">
+        <div className="relative bg-gradient-to-br from-primary via-secondary to-primary text-white p-4 md:p-16 flex flex-col justify-between">
           <div className="absolute h-full flex items-end justify-center">
             <img src={loginImage} alt="" className="w-full mt-4 scale-60" />
           </div>
           <div>
             <h4 className="text-xl font-semibold mb-4">Almost done! 🔒</h4>
-            <h1 className="text-3xl font-bold leading-tight">
+            <h1 className="text-2xl font-bold leading-tight">
               Create
               <br />
               New Password
             </h1>
-            <p className="mt-4 text-sm opacity-90">
+            <p className="mt-4 text-xs opacity-90">
               Choose a strong password. It must contain uppercase, lowercase, a number and a special character.
             </p>
           </div>
@@ -152,7 +152,7 @@ export default function ResetPassword() {
         </div>
 
         {/* RIGHT */}
-        <div className="p-12 flex items-center">
+        <div className="p-4 md:p-16 flex items-center">
           <div className="w-full">
             <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
               <Lock className="text-primary" size={18} />
